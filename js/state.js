@@ -43,13 +43,10 @@ function dietState(){
   if(!d||typeof d!=='object')d={};
   if(typeof d.weight!=='number')d.weight=63;
   if(!DIET_TYPES[d.type])d.type='nonveg';
-  if(!d.eaten||typeof d.eaten!=='object')d.eaten={};
+  delete d.eaten; // food logging was removed; drop any old log data
   return d;
 }
 function saveDietState(d){
-  // keep two weeks of plate history at most
-  const cut=addDays(todayStr(),-14);
-  Object.keys(d.eaten).forEach(k=>{if(k<cut)delete d.eaten[k]});
   try{localStorage.setItem(DKEY,JSON.stringify(d))}catch(e){}
 }
 

@@ -240,32 +240,22 @@ function historyHTML(){
 /* ---------- DIET ---------- */
 function renderDiet(){
   const ds=dietState(),t={low:Math.round(ds.weight*0.83),high:Math.round(ds.weight*1.2)};
-  const allow=DIET_TYPES[ds.type].allow,today=todayStr();
-  const eaten=(ds.eaten[today]||[]).map(id=>{const [m,i]=id.split(':');return {id,f:FOODS[m]&&FOODS[m][+i]}}).filter(x=>x.f);
-  const tot=eaten.reduce((a,x)=>({p:a.p+x.f.p,kcal:a.kcal+x.f.kcal}),{p:0,kcal:0});
-  const status=tot.p>=t.high?['good','Target reached']:tot.p>=t.low?['accent',`${t.high-tot.p}g to the muscle range`]:['',`${t.low-tot.p}g to your baseline`];
+  const allow=DIET_TYPES[ds.type].allow;
 
   let h=`<div class="page-head"><h1 class="h1">Nutrition</h1><p class="muted">Simple Indian meals that hit your protein.</p></div>
     <div class="seg" role="radiogroup" aria-label="Diet type">${Object.entries(DIET_TYPES).map(([k,v])=>`<button role="radio" aria-checked="${ds.type===k}" data-act="dietType" data-arg="${k}">${v.label}</button>`).join('')}</div>
 
     <div class="card"><div class="protein">
-      <div class="ring-box">${ring(112,10,tot.p/t.high)}<div class="in"><b>${tot.p}g</b><span>PROTEIN</span></div></div>
-      <div class="grow"><p class="overline">Daily target</p><p class="h2 num" style="margin:4px 0 8px">${t.low}–${t.high}g</p>
-        <span class="pill ${status[0]}">${status[1]}</span></div></div>
+      <p class="overline">Daily protein target</p><p class="pt-num num">${t.low}–${t.high}<small>g</small></p></div>
       <form class="weight-form" id="dwForm"><label class="field" for="dwIn">${ic('scale')}<input id="dwIn" type="number" inputmode="decimal" min="30" max="200" step="0.1" value="${ds.weight}" aria-label="Body weight in kg"><span class="faint">kg</span></label><button class="btn ghost sm" type="submit">Update</button></form>
-      <p class="faint small" style="margin-top:10px">0.83 g/kg is the baseline. 1.2 g/kg is better for building muscle while training.</p></div>
-
-    <div class="sec-label"><span class="overline">Today's plate</span><span class="faint small num">${tot.kcal} kcal</span></div>
-    ${eaten.length?`<div class="card tight"><ul class="list plain">${eaten.map((x,i)=>`<li class="lrow food-row"><i class="dot ${x.f.tag}"></i><div class="grow"><p class="t">${esc(x.f.n)}</p><p class="s">${x.f.p}g protein · ${x.f.kcal} kcal</p></div><button class="rm" aria-label="Remove ${esc(x.f.n)}" data-act="uneat" data-arg="${i}">${ic('x')}</button></li>`).join('')}</ul></div>`
-      :`<div class="card state-card"><div class="state-ic">${ic('food')}</div><div><p class="h3">Nothing logged yet</p><p class="muted small">Tap + on any food below to add it to today.</p></div></div>`}`;
+      <p class="faint small" style="margin-top:10px">0.83 g/kg is the baseline. 1.2 g/kg is better for building muscle while training.</p></div>`;
 
   MEAL_ORDER.forEach(meal=>{
-    const list=FOODS[meal].map((f,i)=>({f,i})).filter(x=>allow.includes(x.f.tag));
+    const list=FOODS[meal].filter(f=>allow.includes(f.tag));
     h+=`<div class="sec-label"><span class="overline">${MEAL_LABEL[meal]}</span></div><div class="card tight"><ul class="list plain">`;
-    list.forEach(({f,i})=>{
+    list.forEach(f=>{
       h+=`<li class="lrow food-row"><i class="dot ${f.tag}" title="${f.tag==='nonveg'?'Non-veg':f.tag==='egg'?'Egg':'Veg'}"></i><div class="grow"><p class="t">${f.n}</p>
-        <p class="s"><b>${f.p}g</b> protein · ${f.c}g carbs · ${f.f}g fiber · ${f.kcal} kcal</p><p class="s faint">${f.serv}</p></div>
-        <button class="add" aria-label="Add ${esc(f.n)} to today's plate" data-act="eat" data-arg="${meal}:${i}">${ic('plus')}</button></li>`;
+        <p class="s"><b>${f.p}g</b> protein · ${f.c}g carbs · ${f.f}g fiber · ${f.kcal} kcal</p><p class="s faint">${f.serv}</p></div></li>`;
     });
     h+=`</ul></div>`;
   });
@@ -283,5 +273,3 @@ function renderDiet(){
   });
 }
 ACT.dietType=k=>{const d=dietState();d.type=k;saveDietState(d);renderDiet()};
-ACT.eat=id=>{const d=dietState(),t=todayStr();(d.eaten[t]=d.eaten[t]||[]).push(id);saveDietState(d);buzz('tap');renderDiet();const [m,i]=id.split(':');toast(`Added ${FOODS[m][+i].n} · +${FOODS[m][+i].p}g protein`)};
-ACT.uneat=i=>{const d=dietState(),t=todayStr();(d.eaten[t]||[]).splice(+i,1);saveDietState(d);renderDiet()};
