@@ -30,8 +30,11 @@ function todayCard(){
   <div class="card tight"><ul class="list">${items.map((it,k)=>{const d=rec.done.includes(it.id);return `<li class="${d?'done':''}"><div class="lrow"><span class="ex-num">${String(k+1).padStart(2,'0')}</span><div class="grow"><p class="t">${esc(dn(it.name))}</p></div><span class="target">${it.sets}<i>×</i>${it.amt}${it.timed?'s':''}</span></div></li>`}).join('')}</ul></div>
   <div class="cta-wrap">${sp.boss?`<p class="warn-line" style="padding:0 0 10px">${ic('flame')}Weekly boss day. Push the last set to your limit.</p>`:''}
     <button class="btn block" data-act="goQuest">${doneN?`Continue quest · ${doneN}/${all.length}`:'Begin quest'}</button>
-    <p class="warn-line">${ic('alert')}${penaltyDue()?`Clear ${S.penaltyReps-S.penaltyProgress} penalty reps first`:'Failure to complete will result in a penalty'}</p></div>`;
+    <p class="warn-line">${ic('alert')}<span>${penaltyDue()?`Clear ${S.penaltyReps-S.penaltyProgress} penalty reps first`:`Failure to complete will result in a penalty · <b id="timeLeft">${timeLeft()}</b> left`}</span></p></div>`;
 }
+
+/* Time until midnight, when an unfinished quest becomes a missed day. */
+function timeLeft(){const n=new Date(),m=(24*60)-(n.getHours()*60+n.getMinutes());return `${Math.floor(m/60)}h ${String(m%60).padStart(2,'0')}m`}
 
 function weekStrip(){
   const start=mondayOf(todayStr()),today=todayStr();
@@ -50,10 +53,18 @@ function renderStatus(){
   const rawName=S.profile?S.profile.name:'Hunter';
   let h=`<div class="hero">
     <div class="h-l"><p class="overline faint">${greeting()} · Player</p><h1 class="name${rawName.length>8?' long':''}">${name}</h1>
-      <div class="kv2"><div><p class="overline faint">Rank</p><b>${rk.r} — ${rk.name}</b></div><div><p class="overline faint">Streak</p><b>${plural(S.streak,'day')}</b></div></div>
+      <div class="kv2"><div><p class="overline faint">Rank</p><b>${rk.r} — ${rk.name}</b></div><div><p class="overline faint">Streak</p><b>${plural(S.streak,'day')}</b></div>${S.job?`<div><p class="overline faint">Job</p><b>${JOBS[S.job.path].title}</b></div>`:''}</div>
       <div class="prog" role="progressbar" aria-label="EXP to next level" aria-valuemin="0" aria-valuemax="${lv.need}" aria-valuenow="${lv.into}"><i style="width:${lv.into/lv.need*100}%"></i></div>
       <p class="overline">${lv.into} / ${lv.need} EXP${S.deaths?` · ${S.deaths} death${S.deaths>1?'s':''}`:''}</p></div>
-    <div class="h-r"><p class="overline">Level</p><div class="lv-big">${String(S.level).padStart(2,'0')}</div></div></div>`;
+    <div class="h-r"><p class="overline">Level</p><div class="lv-big">${String(S.level).padStart(2,'0')}</div></div></div>
+  <button class="license-link" data-act="card"><span class="overline">Hunter License</span><span class="overline">View card →</span></button>`;
+  const sq=suddenActive();
+  if(sq)h+=`<div class="card bad"><div class="card-head"><span class="h3">Sudden quest</span><span class="pill bad">${Math.max(1,Math.ceil((sq.deadline-Date.now())/60000))} min left</span></div>
+    <p class="h2" style="margin-bottom:6px">${sq.task}</p><p class="muted small">+${SUDDEN_EXP} EXP. No penalty if you miss it.</p>
+    <button class="btn block" style="margin-top:14px" data-act="suddenDone">Done it</button></div>`;
+  if(jobAvailable())h+=`<div class="card bad"><div class="card-head"><span class="h3">Job change quest</span><span class="pill warn">S-Rank</span></div>
+    <p class="muted small">You passed the S-rank test. Choose Fighter, Assassin or Ranger to unlock a new 12-week program.</p>
+    <button class="btn block" style="margin-top:14px" data-act="jobChange">Choose your job</button></div>`;
 
   h+=todayCard();
 
@@ -62,8 +73,9 @@ function renderStatus(){
     <p class="muted small" style="margin-top:12px">${wd>=5?'Weekly goal hit. Every stat got a boost.':`Train ${plural(5-wd,'more day')} this week for a bonus to every stat.`}</p></div>`;
 
   const smax=Math.max(20,Math.ceil(Math.max(...STATS.map(x=>S.stats[x]))/10)*10);
-  h+=`<div class="sec-label"><span class="overline">Stats</span><span class="small">Grow by training</span></div>
-    <div class="card" style="border-top:0;padding-top:6px"><div class="stat-grid">${STATS.map(x=>`<div><b>${String(Math.floor(S.stats[x])).padStart(2,'0')}</b><div class="bar-mini"><i style="width:${S.stats[x]/smax*100}%"></i></div><span>${x.slice(0,3).toUpperCase()}</span></div>`).join('')}</div></div>`;
+  h+=`<div class="sec-label"><span class="overline">Stats</span><span class="small">${S.statPoints?`${S.statPoints} points unassigned`:'Grow by training'}</span></div>
+    <div class="card" style="border-top:0;padding-top:6px"><div class="stat-grid">${STATS.map(x=>`<div><b>${String(Math.floor(S.stats[x])).padStart(2,'0')}</b><div class="bar-mini"><i style="width:${S.stats[x]/smax*100}%"></i></div><span>${x.slice(0,3).toUpperCase()}</span></div>`).join('')}</div>
+    ${S.statPoints?`<button class="btn block" style="margin-top:16px" data-act="allocate">Assign ${S.statPoints} stat point${S.statPoints>1?'s':''}</button>`:''}</div>`;
 
   if(S.penaltyLevel>0||S.penaltyReps>0){
     h+=`<div class="card bad"><div class="card-head"><span class="h3">Penalty level ${S.penaltyLevel} of 5</span><span class="pill bad">${ic('alert')}Danger</span></div>
@@ -128,7 +140,7 @@ function renderQuest(){
         ${logged.length?`<p class="log-line">Logged ${logged.join(' · ')}${t.timed?' sec':''}</p>`:pr?`<p class="log-line faint">Best ${pr.best}${pr.timed?' sec':''}</p>`:''}
         <button class="how-btn" aria-expanded="${open}" data-act="cue" data-arg="${t.id}">How to ${ic('down')}</button></div>
       <span class="target">${t.sets}<i>×</i>${t.amt}${t.timed?'s':''}</span></div>
-      ${open&&t.cue?`<p class="ex-cue">${t.cue}</p>`:''}</li>`;
+      ${open&&t.cue?`<div class="ex-cue">${demoHTML(t.name)}<p>${t.cue}</p></div>`:''}</li>`;
   };
   if(warm.length)h+=`<div class="sec-label"><span class="overline">Warm-up</span><span class="faint small">2 min</span></div><div class="card tight"><ul class="list">${warm.map(w=>row(w,true)).join('')}</ul></div>`;
   h+=`<div class="sec-label"><span class="overline">Main quest</span><span class="faint small">Tap □ to log by hand</span></div><div class="card tight"><ul class="list">${main.map(t=>row(t,false)).join('')}</ul></div>`;
@@ -147,6 +159,7 @@ function renderQuest(){
   else{label=doneN?'Continue workout':'Start workout';act='workout'}
   h+=`<div class="dock"><button class="btn block${act==='completeDay'?' glow':''}" ${disabled?'disabled':`data-act="${act}"`}>${ic(icon)}${label}</button></div>`;
   $('quest').innerHTML=h;
+  startDemos();
 }
 ACT.cue=id=>{openCues.has(id)?openCues.delete(id):openCues.add(id);renderQuest()};
 
@@ -177,13 +190,14 @@ function planHTML(){
   const testWeek={};Object.keys(RANK_TESTS).forEach(r=>testWeek[RANK_TESTS[r].week]=r);
   let h=`<div class="sec-label" style="margin-top:0"><span class="overline">Weekly split</span></div><div class="card tight"><ul class="list plain">`+
     [1,2,3,4,5,6,0].map(i=>`<li class="lrow plan-row${i===today?' today':''}"><div class="grow"><p class="t">${SPLIT[i].name}</p><p class="s">${SPLIT[i].type}</p></div>${i===today?'<span class="pill accent">Today</span>':SPLIT[i].boss?`<span class="pill warn">${ic('flame')}Boss</span>`:SPLIT[i].rest?`<span class="pill">${ic('moon')}Rest</span>`:''}</li>`).join('')+`</ul></div>`;
-  PHASES.forEach(p=>{
+  const phases=S.job?[...PHASES,{name:`Phase 6: ${JOBS[S.job.path].title}`,weeks:[25,36],goal:JOBS[S.job.path].desc}]:PHASES;
+  phases.forEach(p=>{
     const nowIn=cw>=p.weeks[0]&&cw<=p.weeks[1];
     h+=`<div class="sec-label"><span class="overline">${p.name.replace(/: .*/,'')} · Weeks ${p.weeks[0]}–${p.weeks[1]}</span>${nowIn?'<span class="pill accent">Now</span>':''}</div>
       <div class="card tight phase"><div style="padding:14px 20px 6px"><p class="h2">${p.name.replace(/^Phase \d+: /,'')}</p><p class="muted small" style="margin-top:4px">${p.goal}</p></div><ul class="list">`;
     for(let w=p.weeks[0];w<=p.weeks[1];w++){
       const cls=w===cw?'now':(w<cw?'past':'');
-      h+=`<li class="lrow wk-row ${cls}"${w===cw?' aria-current="step"':''}><span class="lead">${w<cw?ic('check'):w}</span><div class="grow"><p class="t" style="font-weight:500;font-size:15px">${WEEKLY_FOCUS[w]}</p></div>${testWeek[w]?`<span class="pill accent">${ic('trophy')}Test ${testWeek[w]}</span>`:''}</li>`;
+      h+=`<li class="lrow wk-row ${cls}"${w===cw?' aria-current="step"':''}><span class="lead">${w<cw?ic('check'):w}</span><div class="grow"><p class="t" style="font-weight:500;font-size:15px">${w>24?JOBS[S.job.path].focus[w-25]:WEEKLY_FOCUS[w]}</p></div>${testWeek[w]?`<span class="pill accent">${ic('trophy')}Test ${testWeek[w]}</span>`:''}</li>`;
     }
     h+=`</ul></div>`;
   });

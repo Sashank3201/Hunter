@@ -5,12 +5,17 @@ function openMenu(){
   const acc=(icn,title,lines,red)=>`<li><details class="acc"><summary class="lrow"><span class="lead"${red?' style="color:var(--bad);background:var(--bad-soft)"':''}>${ic(icn)}</span><span class="grow t">${title}</span><span class="chev">${ic('right')}</span></summary><div class="acc-body">${lines.map(l=>`<p>${l}</p>`).join('')}</div></details></li>`;
   $('menu').innerHTML=`<div class="set-top"><h1 class="h1">Profile</h1><button class="icon-btn" data-act="menuClose" aria-label="Close">${ic('x')}</button></div>
   <div class="card"><div class="profile"><span class="avatar">${rk.r}</span><div class="grow"><p class="h2">${esc(p.name)}</p><p class="muted small">Level ${S.level} · ${rk.name} · ${S.totalQuests} quests</p></div></div>
-    <div class="prog" style="margin-top:16px"><i style="width:${lv.into/lv.need*100}%"></i></div></div>
+    <div class="prog" style="margin-top:16px"><i style="width:${lv.into/lv.need*100}%"></i></div>
+    <button class="btn block" style="margin-top:16px" data-act="cardFromMenu">View Hunter License</button></div>
 
   <div class="sec-label"><span class="overline">Player</span></div>
   <div class="card tight"><ul class="list">
     <li><form id="nameForm" class="lrow"><span class="lead">${ic('user')}</span><input id="mName" class="text-in" maxlength="20" value="${esc(p.name)}" aria-label="Player name"><button class="btn sm ghost" type="submit">Save</button></form></li>
+    <li class="lrow"><span class="lead">${ic('moon')}</span><span class="grow t">Theme</span>
+      <span class="seg mini" role="radiogroup" aria-label="Theme">${[['auto','Auto'],['light','Light'],['dark','Night']].map(([k,l])=>`<button role="radio" aria-checked="${(p.theme||'auto')===k}" data-act="theme" data-arg="${k}">${l}</button>`).join('')}</span></li>
     <li><label class="lrow" for="mHaptics" style="cursor:pointer"><span class="lead">${ic('vibrate')}</span><span class="grow t">Vibration</span><span class="switch"><input type="checkbox" id="mHaptics" ${p.haptics!==false?'checked':''}><i></i></span></label></li>
+    <li><form id="remForm" class="rem"><div class="lrow" style="padding-bottom:4px"><span class="lead">${ic('timer')}</span><div class="grow"><p class="t">Daily reminder</p><p class="s">A repeating alarm in your phone's calendar, plus a 9 pm penalty warning</p></div></div>
+      <div class="rem-row"><input id="mRemind" type="time" class="text-in" value="${p.remindAt||'18:00'}" aria-label="Reminder time"><button class="btn sm" type="submit">Add to calendar</button></div></form></li>
     <li class="lrow"><span class="lead">${ic('moon')}</span><div class="grow"><p class="t">Rest Pass</p><p class="s">${passUsedThisWeek()?`Used this week. Next one ${passNext}.`:'Available. Use it from the Quest tab if sick or injured.'}</p></div></li>
   </ul></div>
 
@@ -38,6 +43,8 @@ function openMenu(){
   });
   $('mHaptics').addEventListener('change',e=>{S.profile=Object.assign(S.profile||{},{haptics:e.target.checked});save();buzz('set')});
   $('mImport').addEventListener('change',importData);
+  $('remForm').addEventListener('submit',e=>{e.preventDefault();const v=$('mRemind').value||'18:00';
+    S.profile=Object.assign(S.profile||{},{remindAt:v});save();downloadReminder(v)});
 }
 function closeMenu(){$('menu').hidden=true;document.body.classList.remove('locked')}
 
@@ -71,6 +78,8 @@ function importData(e){
 }
 
 ACT.menu=openMenu;
+ACT.cardFromMenu=()=>{closeMenu();openCard()};
+ACT.theme=k=>{S.profile=Object.assign(S.profile||{},{theme:k});save();applyTheme();openMenu()};
 ACT.menuClose=closeMenu;
 ACT.exportData=exportData;
 ACT.replayBrief=()=>{closeMenu();startAwakening(true)};
@@ -80,3 +89,27 @@ ACT.resetAll=()=>{
   try{localStorage.removeItem(KEY);localStorage.removeItem(DKEY)}catch(e){}
   S=fresh();closeModal();closeMenu();renderAll();startAwakening();
 };
+
+/* ---------- daily reminder ----------
+   A static site can't push notifications to a closed app, so the reminder is a
+   calendar file: a daily "quest" alarm at the chosen time, plus a penalty warning
+   three hours before midnight. Phones import .ics files into their calendar app. */
+const icsText=t=>t.replace(/\\/g,'\\\\').replace(/([,;])/g,'\\$1');
+const icsFold=l=>l.length<=74?l:l.match(/.{1,73}/g).join('\r\n ');
+function downloadReminder(hhmm){
+  const [h,m]=hhmm.split(':').map(Number),pad=n=>String(n).padStart(2,'0');
+  const day=todayStr().replace(/-/g,''),url=location.origin+location.pathname;
+  const stamp=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+  const warnH=h>=21?23:21,warnM=0;
+  const ev=(uid,hh,mm,title,body)=>['BEGIN:VEVENT',`UID:${uid}-${S.created}@hunter-system`,`DTSTAMP:${stamp}`,
+    `DTSTART:${day}T${pad(hh)}${pad(mm)}00`,'DURATION:PT15M','RRULE:FREQ=DAILY',`SUMMARY:${icsText(title)}`,
+    `DESCRIPTION:${icsText(body+' '+url)}`,`URL:${url}`,'BEGIN:VALARM','ACTION:DISPLAY',`DESCRIPTION:${icsText(title)}`,'TRIGGER:PT0M','END:VALARM','END:VEVENT'];
+  const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Hunter System//Daily Quest//EN','CALSCALE:GREGORIAN',
+    ...ev('daily-quest',h,m,'Daily Quest has arrived','[SYSTEM] Your Daily Quest is ready. Open Hunter System:'),
+    ...ev('penalty-warning',warnH,warnM,'Penalty warning: quest due at midnight','[SYSTEM] If today\'s quest is not done, a penalty is issued at midnight.'),
+    'END:VCALENDAR'].map(icsFold).join('\r\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));a.download='hunter-daily-quest.ics';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  toast(`Reminder at ${hhmm} saved. Open the file to add it to your calendar`);
+}

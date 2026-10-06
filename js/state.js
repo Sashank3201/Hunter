@@ -21,15 +21,22 @@ function fresh(){return {
   weekDays:{},
   passes:{},         // monday date -> date the weekly Rest Pass was used
   prs:{},            // exercise name -> {best, date}
-  profile:null       // {name, haptics} once awakened
+  statPoints:0,      // unspent points from level-ups (3 per level)
+  pointsInit:true,   // marks saves that already got back-dated points
+  sudden:null,       // today's sudden quest, if any
+  job:null,          // {path, date} after the S-rank job change
+  profile:null       // {name, haptics, theme, remindAt} once awakened
 }}
 
 /* Older saves are upgraded in place: any missing field gets its default. */
 function migrate(s){
+  const legacy=s.pointsInit===undefined;
   const f=fresh();
   Object.keys(f).forEach(k=>{if(s[k]===undefined)s[k]=f[k]});
   Object.keys(LADDERS).forEach(k=>{if(!s.ladders[k])s.ladders[k]={step:0,streak:0}});
   delete s.weeklyBonus;
+  // saves from before stat points existed get the points their level already earned
+  if(legacy){s.statPoints=Math.max(0,((s.level||1)-1)*3);s.pointsInit=true}
   return s;
 }
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&typeof s==='object')return migrate(s)}catch(e){}return fresh()}
@@ -51,13 +58,21 @@ function saveDietState(d){
 }
 
 /* ---------- calendar ---------- */
-function weekNumber(){return Math.min(24,Math.max(1,Math.floor(dayDiff(S.startDate,todayStr())/7)+1))}
+function maxWeek(){return S.job?36:24}
+function inJobPhase(){return !!S.job&&weekNumber()>24}
+function weekNumber(){return Math.min(maxWeek(),Math.max(1,Math.floor(dayDiff(S.startDate,todayStr())/7)+1))}
 function weekKey(){return 'w'+weekNumber()}
 function notStarted(){return todayStr()<S.startDate}
 
 /* ---------- progression ---------- */
 function expForLevel(l){return 140+(l-1)*45}
 function levelFromExp(){let l=1,e=S.exp;while(e>=expForLevel(l)){e-=expForLevel(l);l++;if(l>60)break}return {level:l,into:e,need:expForLevel(l)}}
+/* Recompute level from EXP. Each level gained grants 3 stat points. Returns levels gained. */
+const POINTS_PER_LEVEL=3;
+function syncLevel(){
+  const before=S.level;S.level=levelFromExp().level;
+  const up=Math.max(0,S.level-before);S.statPoints+=up*POINTS_PER_LEVEL;return up;
+}
 function currentRank(){let r=RANKS[0];for(const x of RANKS)if(S.level>=x.lv&&(x.lv===0||S.rankTestsPassed.includes(x.r)))r=x;return r}
 function nextRank(){const c=currentRank();const i=RANKS.findIndex(x=>x.r===c.r);return RANKS[i+1]||null}
 
@@ -65,7 +80,8 @@ function nextRank(){const c=currentRank();const i=RANKS.findIndex(x=>x.r===c.r);
 function targetFor(key){
   const L=LADDERS[key],st=L.steps[Math.min(S.ladders[key].step,L.steps.length-1)];
   const base=st[1],w=weekNumber();
-  const bonus=Math.min(6,Math.floor((w-1)/2)); // grows slowly then plateaus until step up
+  // grows slowly then plateaus until step up; the job phase keeps raising it
+  const bonus=w>24?Math.min(12,6+Math.floor((w-24)/2)):Math.min(6,Math.floor((w-1)/2));
   const isTimed=/secs|sec on|secs on/.test(st[0]);
   const val=isTimed?base+bonus*3:base+bonus;
   return {name:st[0],goal:base,sets:3,target:Math.max(3,Math.round(val*0.7)),graduate:base,timed:isTimed};
@@ -73,11 +89,18 @@ function targetFor(key){
 
 /* ---------- today ---------- */
 function todayRec(){const k=todayStr();if(!S.log[k])S.log[k]={done:[],completed:false,penaltyDone:false};const r=S.log[k];if(!r.sets)r.sets={};return r}
-function todaysSplit(){return SPLIT[dayIndex()]}
+function todaysSplit(){
+  const base=SPLIT[dayIndex()];
+  if(!inJobPhase()||base.rest)return base;
+  const J=JOBS[S.job.path],q=J.days[dayIndex()];
+  return Object.assign({},base,{quests:q,type:(base.boss?'Boss Day: ':'')+q.map(k=>LADDERS[k].title).join(' + '),
+    note:`${J.title} program, week ${weekNumber()-24} of 12. ${J.focus[weekNumber()-25]}`});
+}
 const dn=n=>n.replace(' (secs)','').replace('(secs on/off)','(on/off)');
 
 function restFor(it){
   if(it.key==='mobility'||it.key==='flex')return REST.stretch;
+  if(inJobPhase())return JOBS[S.job.path].rest;
   if(todaysSplit().boss&&it.stat==='Strength')return REST.boss;
   return REST.normal;
 }
@@ -88,7 +111,7 @@ function buildQuestItems(){
   if(!sp.rest)WARMUP.forEach((w,i)=>items.push({id:'w'+i,name:w[0],amt:w[1]+' '+w[2],warm:true}));
   sp.quests.forEach(k=>{
     const L=LADDERS[k],t=targetFor(k);
-    const sets=sp.rest?1:(sp.boss?4:3);
+    const sets=sp.rest?1:(sp.boss||inJobPhase()?4:3);
     const tg=sp.boss?Math.round(t.target*1.25):t.target;
     const st=L.steps[Math.min(S.ladders[k].step,L.steps.length-1)];
     items.push({id:k,key:k,name:t.name,sets,amt:tg,timed:t.timed,stat:L.stat,family:L.title,cue:st[2]||'',

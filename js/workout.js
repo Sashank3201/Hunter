@@ -141,7 +141,7 @@ function wRender(){
     const setNo=Math.min(n+1,it.sets),pr=S.prs[it.name];
     const pips=`<div class="w-pips" aria-label="${n} of ${it.sets} sets logged">${Array.from({length:it.sets},(_,i)=>`<i class="${i<n?'on':''}${i===n&&W.phase==='set'?' cur':''}">${i<n?logged[i]+(it.timed?'s':''):'Set '+(i+1)}</i>`).join('')}</div>`;
     h+=`<div class="w-body"><p class="overline">${it.stat===it.family?it.stat:`${it.family} · ${it.stat}`}</p>
-      <h2 class="w-name">${dn(it.name)}</h2>${pips}`;
+      <h2 class="w-name">${dn(it.name)}</h2>${pips}${W.phase==='set'&&n<it.sets?demoHTML(it.name):''}`;
     const how=`<details class="w-how"${n?'':' open'}><summary>How to do it ${ic('down')}</summary><p>${it.cue}</p></details>`;
 
     if(W.phase==='rest'){
@@ -168,4 +168,5 @@ function wRender(){
     }
   }
   $('workout').innerHTML=h;
+  startDemos();
 }
