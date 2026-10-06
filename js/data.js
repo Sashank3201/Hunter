@@ -114,60 +114,6 @@ const RANK_TESTS={
   S:{level:20,week:24,tests:[['Full push-ups',40],['Pistol squat each leg',3],['L-sit (secs)',20],['Burpees in 60s',20]]}
 };
 
-/* ============================================================
-   DIET DATA
-   All values per typical serving unless noted. Sourced from
-   USDA FoodData Central and ICMR-NIN guidelines (see Rules tab).
-   p=protein g, c=carbs g, f=fiber g, kcal=calories
-   tags: veg | egg | nonveg  (nonveg items also shown to egg/veg as "skip")
-   ============================================================ */
-const FOODS = {
-  breakfast: [
-    {n:'2 boiled eggs',serv:'2 eggs',p:12,c:1,f:0,kcal:140,tag:'egg'},
-    {n:'Vegetable poha',serv:'1 bowl (150g)',p:4,c:38,f:2,kcal:180,tag:'veg'},
-    {n:'Oats with milk',serv:'40g oats + 200ml milk',p:11,c:32,f:5,kcal:250,tag:'veg'},
-    {n:'Besan cheela',serv:'2 pieces',p:14,c:24,f:4,kcal:230,tag:'veg'},
-    {n:'Curd with banana',serv:'200g curd + 1 banana',p:9,c:24,f:2,kcal:210,tag:'veg'},
-    {n:'Paneer bhurji',serv:'100g',p:18,c:4,f:0,kcal:265,tag:'veg'},
-    {n:'2 rotis with sabzi',serv:'2 rotis + veg',p:8,c:40,f:5,kcal:280,tag:'veg'},
-    {n:'Sprouts chaat',serv:'1 bowl (100g)',p:7,c:19,f:5,kcal:120,tag:'veg'},
-    {n:'Chicken omelette',serv:'2 eggs + 50g chicken',p:20,c:1,f:0,kcal:220,tag:'nonveg'}
-  ],
-  lunch: [
-    {n:'Dal + rice + sabzi',serv:'1 katori dal + 1 cup rice + veg',p:16,c:60,f:6,kcal:420,tag:'veg'},
-    {n:'Rajma + rice',serv:'1 katori rajma + 1 cup rice',p:19,c:58,f:9,kcal:400,tag:'veg'},
-    {n:'Paneer sabzi + 2 rotis',serv:'100g paneer + 2 rotis',p:22,c:44,f:5,kcal:460,tag:'veg'},
-    {n:'Chana curry + rice',serv:'1 katori chana + 1 cup rice',p:19,c:64,f:9,kcal:440,tag:'veg'},
-    {n:'Grilled chicken + rice + dal',serv:'150g chicken + rice + dal',p:42,c:56,f:4,kcal:520,tag:'nonveg'},
-    {n:'Fish curry + rice',serv:'150g fish + 1 cup rice',p:34,c:46,f:2,kcal:430,tag:'nonveg'},
-    {n:'Curd rice + pickle',serv:'1.5 cups',p:10,c:48,f:2,kcal:320,tag:'veg'},
-    {n:'Soya chunk curry + roti',serv:'50g dry soya + 2 rotis',p:24,c:46,f:6,kcal:380,tag:'veg'}
-  ],
-  snacks: [
-    {n:'Roasted chana',serv:'1 handful (30g)',p:6,c:15,f:5,kcal:100,tag:'veg'},
-    {n:'Peanuts',serv:'1 handful (30g)',p:8,c:6,f:3,kcal:170,tag:'veg'},
-    {n:'Banana',serv:'1 medium',p:1,c:23,f:3,kcal:90,tag:'veg'},
-    {n:'Apple',serv:'1 medium',p:0,c:25,f:4,kcal:95,tag:'veg'},
-    {n:'Buttermilk',serv:'1 glass (250ml)',p:3,c:5,f:0,kcal:40,tag:'veg'},
-    {n:'Boiled egg',serv:'1 egg',p:6,c:0,f:0,kcal:70,tag:'egg'},
-    {n:'Milk',serv:'1 glass (250ml)',p:8,c:12,f:0,kcal:150,tag:'veg'},
-    {n:'Almonds',serv:'10 pieces',p:3,c:2,f:2,kcal:70,tag:'veg'},
-    {n:'Sattu drink',serv:'1 glass (60g sattu)',p:12,c:20,f:11,kcal:220,tag:'veg'}
-  ],
-  dinner: [
-    {n:'Dal + 2 rotis + sabzi',serv:'1 katori dal + 2 rotis + veg',p:14,c:48,f:7,kcal:380,tag:'veg'},
-    {n:'Grilled chicken + salad',serv:'150g chicken + salad',p:35,c:8,f:3,kcal:280,tag:'nonveg'},
-    {n:'Paneer tikka + roti',serv:'100g paneer + 2 rotis',p:22,c:36,f:5,kcal:410,tag:'veg'},
-    {n:'Khichdi',serv:'1.5 bowls',p:11,c:52,f:4,kcal:340,tag:'veg'},
-    {n:'Egg curry + roti',serv:'2 eggs + 2 rotis',p:18,c:36,f:4,kcal:360,tag:'egg'},
-    {n:'Vegetable soup + salad',serv:'1 bowl + salad',p:5,c:18,f:6,kcal:150,tag:'veg'},
-    {n:'Moong dal cheela + curd',serv:'2 pieces + 100g curd',p:16,c:26,f:5,kcal:280,tag:'veg'},
-    {n:'Fish + steamed veg',serv:'150g fish + veg',p:32,c:10,f:4,kcal:260,tag:'nonveg'}
-  ]
-};
-
-const MEAL_ORDER=['breakfast','lunch','snacks','dinner'];
-const MEAL_LABEL={breakfast:'Breakfast',lunch:'Lunch',snacks:'Snacks',dinner:'Dinner'};
 
 /* Which food tags each diet type may eat. */
 const DIET_TYPES={

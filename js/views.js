@@ -146,6 +146,8 @@ function renderQuest(){
   h+=`<div class="sec-label"><span class="overline">Main quest</span><span class="faint small">Tap □ to log by hand</span></div><div class="card tight"><ul class="list">${main.map(t=>row(t,false)).join('')}</ul></div>`;
   justToggled=null;
 
+  if(!sp.rest&&!notStarted())h+=fuelHTML();
+
   if(!rec.completed&&!notStarted()&&!sp.rest){
     h+=passUsedThisWeek()?`<p class="faint small" style="text-align:center;margin-top:16px">Rest Pass used this week. Next one ${fmtDate(addDays(mondayOf(todayStr()),7))}.</p>`
       :`<button class="pass-link" data-act="restPass">${ic('moon')}<span class="grow"><b>Sick or injured?</b>Use this week's Rest Pass</span>${ic('right')}</button>`;
@@ -250,40 +252,3 @@ function historyHTML(){
     :`<div class="card state-card"><div class="state-ic">${ic('trophy')}</div><div><p class="h3">No records yet</p><p class="muted small">Log sets in workout mode and your best set for each move appears here.</p></div></div>`;
   return h;
 }
-
-/* ---------- DIET ---------- */
-function renderDiet(){
-  const ds=dietState(),t={low:Math.round(ds.weight*0.83),high:Math.round(ds.weight*1.2)};
-  const allow=DIET_TYPES[ds.type].allow;
-
-  let h=`<div class="page-head"><h1 class="h1">Nutrition</h1><p class="muted">Simple Indian meals that hit your protein.</p></div>
-    <div class="seg" role="radiogroup" aria-label="Diet type">${Object.entries(DIET_TYPES).map(([k,v])=>`<button role="radio" aria-checked="${ds.type===k}" data-act="dietType" data-arg="${k}">${v.label}</button>`).join('')}</div>
-
-    <div class="card"><div class="protein">
-      <p class="overline">Daily protein target</p><p class="pt-num num">${t.low}–${t.high}<small>g</small></p></div>
-      <form class="weight-form" id="dwForm"><label class="field" for="dwIn">${ic('scale')}<input id="dwIn" type="number" inputmode="decimal" min="30" max="200" step="0.1" value="${ds.weight}" aria-label="Body weight in kg"><span class="faint">kg</span></label><button class="btn ghost sm" type="submit">Update</button></form>
-      <p class="faint small" style="margin-top:10px">0.83 g/kg is the baseline. 1.2 g/kg is better for building muscle while training.</p></div>`;
-
-  MEAL_ORDER.forEach(meal=>{
-    const list=FOODS[meal].filter(f=>allow.includes(f.tag));
-    h+=`<div class="sec-label"><span class="overline">${MEAL_LABEL[meal]}</span></div><div class="card tight"><ul class="list plain">`;
-    list.forEach(f=>{
-      h+=`<li class="lrow food-row"><i class="dot ${f.tag}" title="${f.tag==='nonveg'?'Non-veg':f.tag==='egg'?'Egg':'Veg'}"></i><div class="grow"><p class="t">${f.n}</p>
-        <p class="s"><b>${f.p}g</b> protein · ${f.c}g carbs · ${f.f}g fiber · ${f.kcal} kcal</p><p class="s faint">${f.serv}</p></div></li>`;
-    });
-    h+=`</ul></div>`;
-  });
-
-  h+=`<div class="card info-list" style="margin-top:22px"><p class="h3" style="padding:0 0 6px">How to read this</p>
-    <p>Numbers are per serving shown, not per 100g, so you can read a plate directly.</p>
-    <p>Any one item per meal is a reasonable choice. Aim for a high-fiber item at most meals.</p>
-    <p>Values come from USDA FoodData Central and ICMR-NIN. Home cooking varies, so treat them as close estimates.</p></div>`;
-  $('diet').innerHTML=h;
-  $('dwForm').addEventListener('submit',e=>{
-    e.preventDefault();
-    const v=parseFloat($('dwIn').value);
-    if(!v||v<30||v>200){toast('Enter a weight between 30 and 200 kg');return}
-    const d=dietState();d.weight=Math.round(v*10)/10;saveDietState(d);renderDiet();toast('Weight updated');
-  });
-}
-ACT.dietType=k=>{const d=dietState();d.type=k;saveDietState(d);renderDiet()};
