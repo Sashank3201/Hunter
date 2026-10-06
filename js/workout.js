@@ -129,7 +129,7 @@ function wRender(){
   if(W.phase==='final'){
     h+=`<div class="w-body w-final"><div class="badge">${ic('trophy')}</div><p class="overline">Daily quest</p><h2 class="w-name" style="margin:0">All exercises done</h2>
       <p class="muted">Claim your EXP. The System is waiting.</p></div>
-      <div class="w-foot"><button class="btn glow" data-act="wClaim">${ic('sparkle')}Claim reward</button></div>`;
+      <div class="w-foot"><button class="btn glow" data-act="wClaim">Claim reward</button></div>`;
   }else if(st.warm){
     const rec=todayRec();
     h+=`<div class="w-body"><p class="overline">Warm-up</p><h2 class="w-name">Wake the body</h2>

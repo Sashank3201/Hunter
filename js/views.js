@@ -26,14 +26,11 @@ function todayCard(){
     <p class="h3">${rec.rested?'Resting today':'Daily quest cleared'}</p>
     <p class="muted small">${rec.rested?'Rest Pass used. Your streak is safe.':`+${rec.exp||0} EXP earned. Tomorrow: ${SPLIT[(dayIndex()+1)%7].type}.`}</p></div></div>`;
   const mins=sp.rest?'15':sp.boss?'35':'25';
-  return `<div class="card glow">
-    <div class="card-head"><span class="overline">Today's quest</span>${sp.boss?`<span class="pill warn">${ic('flame')}Boss day</span>`:sp.rest?`<span class="pill accent">${ic('moon')}Recovery</span>`:penaltyDue()?`<span class="pill bad">${ic('alert')}Penalty owed</span>`:`<span class="pill">${doneN}/${all.length} done</span>`}</div>
-    <p class="h2">${esc(sp.type.replace(' Boss Day',''))}</p>
-    <p class="muted small" style="margin-top:4px">${plural(items.length,'exercise')} · about ${mins} min</p>
-    <ul class="quest-preview">${items.map(it=>{const d=rec.done.includes(it.id);return `<li class="${d?'done':''}"><i class="chk${d?' on':''}">${ic('check')}</i><span>${esc(dn(it.name))}</span><b class="target">${it.sets}<i>×</i>${it.amt}${it.timed?'s':''}</b></li>`}).join('')}</ul>
-    <button class="btn block" data-act="goQuest">${ic('play')}${doneN?'Continue quest':'Start quest'}</button>
-    <p class="warn-line">${ic('alert')}${penaltyDue()?`Clear ${S.penaltyReps-S.penaltyProgress} penalty reps first.`:'Skip it and the System issues a penalty.'}</p>
-  </div>`;
+  return `<div class="sec-label"><span class="overline">Today's quest</span><span class="small">${esc(sp.type.replace(' Boss Day',''))} · ${mins} min</span></div>
+  <div class="card tight"><ul class="list">${items.map((it,k)=>{const d=rec.done.includes(it.id);return `<li class="${d?'done':''}"><div class="lrow"><span class="ex-num">${String(k+1).padStart(2,'0')}</span><div class="grow"><p class="t">${esc(dn(it.name))}</p></div><span class="target">${it.sets}<i>×</i>${it.amt}${it.timed?'s':''}</span></div></li>`}).join('')}</ul></div>
+  <div class="cta-wrap">${sp.boss?`<p class="warn-line" style="padding:0 0 10px">${ic('flame')}Weekly boss day. Push the last set to your limit.</p>`:''}
+    <button class="btn block" data-act="goQuest">${doneN?`Continue quest · ${doneN}/${all.length}`:'Begin quest'}</button>
+    <p class="warn-line">${ic('alert')}${penaltyDue()?`Clear ${S.penaltyReps-S.penaltyProgress} penalty reps first`:'Failure to complete will result in a penalty'}</p></div>`;
 }
 
 function weekStrip(){
@@ -42,46 +39,31 @@ function weekStrip(){
     const ds=addDays(start,i),st=dayState(ds),isRest=SPLIT[dowOf(ds)].rest;
     const cls=st==='done'?'done':st==='pass'?'pass':st==='miss'?'miss':(isRest&&ds>=today)||st==='rest'?'rest':'';
     const icn=cls==='done'?'check':cls==='pass'?'moon':cls==='miss'?'x':'';
-    return `<div class="wd ${cls}${ds===today?' today':''}"><i style="animation-delay:${.1+i*.04}s">${icn?ic(icn):''}</i>${DOW[dowOf(ds)][0]}</div>`;
+    return `<div class="wd ${cls}${ds===today?' today':''}">${DOW[dowOf(ds)][0]}<i>${icn?ic(icn):''}</i></div>`;
   }).join('');
-}
-
-function radar(){
-  const vals=STATS.map(s=>S.stats[s]),max=Math.max(20,Math.ceil(Math.max(...vals)/10)*10);
-  const cx=125,cy=118,R=86,pt=(i,f)=>{const a=(-90+i*72)*Math.PI/180;return [cx+Math.cos(a)*R*f,cy+Math.sin(a)*R*f]};
-  const poly=f=>STATS.map((_,i)=>pt(i,f).map(n=>n.toFixed(1)).join(',')).join(' ');
-  const shape=vals.map((v,i)=>pt(i,Math.max(.06,v/max)));
-  let g=[.25,.5,.75,1].map(f=>`<polygon class="grid" points="${poly(f)}"/>`).join('');
-  g+=STATS.map((_,i)=>{const [x,y]=pt(i,1);return `<line class="axis" x1="${cx}" y1="${cy}" x2="${x}" y2="${y}"/>`}).join('');
-  g+=`<polygon class="shape" points="${shape.map(p=>p.join(',')).join(' ')}"/><g class="dots">${shape.map(([x,y])=>`<circle class="dot" cx="${x}" cy="${y}" r="3.5"/>`).join('')}</g>`;
-  g+=STATS.map((s,i)=>{const [x,y]=pt(i,1.2);return `<text x="${x}" y="${y+4}" text-anchor="middle">${s}</text>`}).join('');
-  return `<svg class="radar" viewBox="0 0 250 232" role="img" aria-label="Stats: ${STATS.map(s=>s+' '+Math.floor(S.stats[s])).join(', ')}">${g}</svg>`;
 }
 
 function renderStatus(){
   const rk=currentRank(),lv=levelFromExp(),nx=nextRank();
   const name=S.profile?esc(S.profile.name):'Hunter';
   const wd=trainedInWeek(mondayOf(todayStr()));
-  let h=`<div class="page-head greet"><p class="muted">${greeting()},</p><h1 class="h1">${name}</h1></div>`;
-
-  h+=`<div class="card"><div class="hero">
-      <div class="lv-ring">${ring(118,10,lv.into/lv.need)}<div class="in"><b>${S.level}</b><span>LEVEL</span></div></div>
-      <div class="grow"><div class="rank-badge"><b>${rk.r}</b><span>RANK</span></div>
-        <p class="h2">${rk.name}</p>
-        <p class="muted small num">${lv.into} / ${lv.need} EXP</p></div>
-    </div>
-    <div class="hero-meta"><span class="pill flame">${ic('flame')}${S.streak} day streak</span><span class="pill">${ic('trophy')}Best ${S.bestStreak}</span>${S.deaths?`<span class="pill">${ic('skull')}${S.deaths}</span>`:''}</div>
-  </div>`;
+  const rawName=S.profile?S.profile.name:'Hunter';
+  let h=`<div class="hero">
+    <div class="h-l"><p class="overline faint">${greeting()} · Player</p><h1 class="name${rawName.length>8?' long':''}">${name}</h1>
+      <div class="kv2"><div><p class="overline faint">Rank</p><b>${rk.r} — ${rk.name}</b></div><div><p class="overline faint">Streak</p><b>${plural(S.streak,'day')}</b></div></div>
+      <div class="prog" role="progressbar" aria-label="EXP to next level" aria-valuemin="0" aria-valuemax="${lv.need}" aria-valuenow="${lv.into}"><i style="width:${lv.into/lv.need*100}%"></i></div>
+      <p class="overline">${lv.into} / ${lv.need} EXP${S.deaths?` · ${S.deaths} death${S.deaths>1?'s':''}`:''}</p></div>
+    <div class="h-r"><p class="overline">Level</p><div class="lv-big">${String(S.level).padStart(2,'0')}</div></div></div>`;
 
   h+=todayCard();
 
-  h+=`<div class="card"><div class="card-head"><span class="h3">This week</span><span class="pill ${wd>=5?'good':'accent'}">${wd} of 5 days</span></div>
-    <div class="week">${weekStrip()}</div>
-    <p class="muted small" style="margin-top:14px">${wd>=5?'Weekly goal hit. Every stat got a boost.':`Train ${plural(5-wd,'more day')} this week for a bonus to every stat.`}</p></div>`;
+  h+=`<div class="sec-label"><span class="overline">This week</span><span class="small">${wd} / 5 days</span></div>
+    <div class="card" style="border-top:0;padding-top:4px"><div class="week">${weekStrip()}</div>
+    <p class="muted small" style="margin-top:12px">${wd>=5?'Weekly goal hit. Every stat got a boost.':`Train ${plural(5-wd,'more day')} this week for a bonus to every stat.`}</p></div>`;
 
-  h+=`<div class="card"><div class="card-head"><span class="h3">Attributes</span><span class="faint small">Grow by training</span></div>
-    <div class="radar-wrap">${radar()}</div>
-    <div class="stat-grid">${STATS.map(s=>`<div><b>${Math.floor(S.stats[s])}</b><span>${s.slice(0,3).toUpperCase()}</span></div>`).join('')}</div></div>`;
+  const smax=Math.max(20,Math.ceil(Math.max(...STATS.map(x=>S.stats[x]))/10)*10);
+  h+=`<div class="sec-label"><span class="overline">Stats</span><span class="small">Grow by training</span></div>
+    <div class="card" style="border-top:0;padding-top:6px"><div class="stat-grid">${STATS.map(x=>`<div><b>${String(Math.floor(S.stats[x])).padStart(2,'0')}</b><div class="bar-mini"><i style="width:${S.stats[x]/smax*100}%"></i></div><span>${x.slice(0,3).toUpperCase()}</span></div>`).join('')}</div></div>`;
 
   if(S.penaltyLevel>0||S.penaltyReps>0){
     h+=`<div class="card bad"><div class="card-head"><span class="h3">Penalty level ${S.penaltyLevel} of 5</span><span class="pill bad">${ic('alert')}Danger</span></div>
@@ -121,8 +103,8 @@ function renderQuest(){
   const doneN=items.filter(i=>rec.done.includes(i.id)).length;
   const penDue=penaltyDue(),lock=rec.completed||notStarted();
 
-  let h=`<div class="page-head qhead"><div><p class="overline">${sp.boss?'Weekly boss':sp.rest?'Recovery':"Today's quest"}</p><h1 class="h1" style="margin-top:6px">${esc(sp.boss?'Boss Day':sp.type)}</h1><p class="muted">${sp.note}</p></div>
-    <div class="mini-ring">${ring(64,6,items.length?doneN/items.length:0)}<div class="in"><span>${doneN}<small>/${items.length}</small></span></div></div></div>`;
+  let h=`<div class="page-head qhead"><div><p class="overline">${sp.boss?'Weekly boss':sp.rest?'Recovery':"Today's quest"}</p><h1 class="h1" style="margin-top:8px">${esc(sp.boss?'Boss Day':sp.type)}</h1><p class="muted">${sp.note}</p></div>
+    <div class="count-big">${doneN}<small>/${items.length}</small></div></div>`;
 
   if(notStarted())h+=`<div class="card state-card"><div class="state-ic">${ic('calendar')}</div><div><p class="h3">Quest locked until ${fmtDate(S.startDate)}</p><p class="muted small">Look through today's moves so you're ready.</p><button class="btn sm" data-act="startToday">Start today instead</button></div></div>`;
   else if(rec.completed)h+=`<div class="card ${rec.rested?'':'good'} state-card"><div class="state-ic">${ic(rec.rested?'moon':'check')}</div><div><p class="h3">${rec.rested?'Rest Pass active':'Quest cleared'}</p><p class="muted small">${rec.rested?'No training today. Recover well.':`+${rec.exp||0} EXP. See you tomorrow.`}</p></div></div>`;
@@ -149,7 +131,7 @@ function renderQuest(){
       ${open&&t.cue?`<p class="ex-cue">${t.cue}</p>`:''}</li>`;
   };
   if(warm.length)h+=`<div class="sec-label"><span class="overline">Warm-up</span><span class="faint small">2 min</span></div><div class="card tight"><ul class="list">${warm.map(w=>row(w,true)).join('')}</ul></div>`;
-  h+=`<div class="sec-label"><span class="overline">Main quest</span><span class="faint small">Tap ○ to log without workout mode</span></div><div class="card tight"><ul class="list">${main.map(t=>row(t,false)).join('')}</ul></div>`;
+  h+=`<div class="sec-label"><span class="overline">Main quest</span><span class="faint small">Tap □ to log by hand</span></div><div class="card tight"><ul class="list">${main.map(t=>row(t,false)).join('')}</ul></div>`;
   justToggled=null;
 
   if(!rec.completed&&!notStarted()&&!sp.rest){

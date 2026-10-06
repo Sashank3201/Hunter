@@ -9,7 +9,7 @@ function openMenu(){
 
   <div class="sec-label"><span class="overline">Player</span></div>
   <div class="card tight"><ul class="list">
-    <li><form id="nameForm" class="lrow"><span class="lead">${ic('sparkle')}</span><input id="mName" class="text-in" maxlength="20" value="${esc(p.name)}" aria-label="Player name"><button class="btn sm ghost" type="submit">Save</button></form></li>
+    <li><form id="nameForm" class="lrow"><span class="lead">${ic('user')}</span><input id="mName" class="text-in" maxlength="20" value="${esc(p.name)}" aria-label="Player name"><button class="btn sm ghost" type="submit">Save</button></form></li>
     <li><label class="lrow" for="mHaptics" style="cursor:pointer"><span class="lead">${ic('vibrate')}</span><span class="grow t">Vibration</span><span class="switch"><input type="checkbox" id="mHaptics" ${p.haptics!==false?'checked':''}><i></i></span></label></li>
     <li class="lrow"><span class="lead">${ic('moon')}</span><div class="grow"><p class="t">Rest Pass</p><p class="s">${passUsedThisWeek()?`Used this week. Next one ${passNext}.`:'Available. Use it from the Quest tab if sick or injured.'}</p></div></li>
   </ul></div>

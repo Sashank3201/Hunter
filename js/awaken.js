@@ -60,14 +60,14 @@ function aRender(){
   if(s==='intro'||s==='decline'){
     const dec=s==='decline';
     const line=dec?'Declining is not an option.':A.returning?'System update detected. Your progress is safe.':'You have acquired the qualifications to be a Player.';
-    h=`<div class="a-main a-center"><div class="a-emblem${dec?' red':''}">${ic(dec?'alert':'sparkle')}</div>
+    h=`<div class="a-main a-center"><div class="a-emblem${dec?' red':''}">${ic(dec?'x':'alert')}</div>
       <p class="overline" style="margin-bottom:14px">${dec?'Warning':'System notification'}</p>
       <h1 class="a-title a-type" id="aType" data-text="${esc(line)}"></h1>
-      <p class="a-sub">${dec?'The System has already chosen you.':A.returning?'Re-register to continue where you left off.':'Daily quests. Real training. Level up for real.'}</p></div>
+      <p class="a-sub">${dec?'The System has already chosen you.':A.returning?'Re-register to continue where you left off.':'A 24-week bodyweight program. One quest a day. Miss it, and there is a penalty.'}</p></div>
       <div class="a-foot"><button class="btn" data-act="aGo" data-arg="name">${A.returning?'Continue':'Accept'}</button>${A.returning||dec?'':`<button class="btn quiet" data-act="aDecline" style="color:var(--text-3)">Decline</button>`}</div>`;
   }else if(s==='name'){
     h=aNav('intro')+`<div class="a-main top"><p class="overline">Registration · 1 of 3</p><h1 class="a-title" style="margin-top:10px">What should the System call you?</h1>
-      <label class="a-input" for="aName">${ic('sparkle')}<input id="aName" maxlength="20" autocomplete="nickname" autocapitalize="words" value="${esc(A.name)}" placeholder="Your name"></label>
+      <label class="a-input" for="aName"><input id="aName" maxlength="20" autocomplete="nickname" autocapitalize="words" value="${esc(A.name)}" placeholder="Your name"></label>
       <p class="a-sub small" style="margin-top:12px">This is how you'll be greeted every day.</p></div>
       <div class="a-foot"><button class="btn" id="aNameGo" data-act="aName" ${A.name.trim()?'':'disabled'}>Continue</button></div>`;
   }else if(s==='diet'){
@@ -100,7 +100,7 @@ function aRender(){
     h=`<div class="a-main a-center"><div class="a-rank">${currentRank().r}</div>
       <p class="overline" style="margin-bottom:10px">Registration complete</p>
       <h1 class="a-title">Welcome, ${esc(A.name)}</h1>
-      <p class="a-sub">${A.returning?'Your progress has been restored.':S.startDate>todayStr()?`Your first quest unlocks ${fmtDate(S.startDate)}.`:'Your first daily quest is ready. Rise.'}</p></div>
+      <p class="a-sub">${A.returning?'Your progress has been restored.':S.startDate>todayStr()?`Your first quest unlocks ${fmtDate(S.startDate)}.`:'Your first daily quest is ready.'}</p></div>
       <div class="a-foot"><button class="btn" data-act="aEnter">Enter the System ${ic('right')}</button></div>`;
   }
   const scr=$('aScreen');
