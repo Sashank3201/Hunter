@@ -276,12 +276,8 @@ details.more[open] summary .ic{transform:rotate(180deg)}
 .tip{position:fixed;z-index:200;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:11px;letter-spacing:.04em;padding:6px 9px;pointer-events:none;white-space:nowrap}
 
 /* ---------- diet ---------- */
-.protein{display:flex;align-items:center;gap:20px}
-.protein .ring-box{position:relative;width:108px;height:108px;flex:none}
-.protein .ring-box .in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.protein .ring-box b{font-weight:850;font-stretch:62%;font-size:36px;line-height:1}
-.protein .ring-box span{font-family:var(--mono);font-size:9.5px;letter-spacing:.07em;color:var(--ink-2);margin-top:2px}
-.protein .h2{font-size:40px;font-stretch:62%}
+.protein .pt-num{font-weight:900;font-stretch:62%;font-size:84px;line-height:.85;margin-top:6px}
+.protein .pt-num small{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--ink-2);margin-left:4px}
 .weight-form{display:flex;align-items:stretch;gap:8px;margin-top:14px}
 .weight-form .field{flex:1;display:flex;align-items:center;gap:8px;height:44px;padding:0 12px;box-shadow:inset 0 0 0 1.5px var(--ink);background:var(--paper)}
 .weight-form input{flex:1;min-width:0;background:none;border:0;font-family:var(--mono);font-weight:600;font-size:17px;color:var(--ink);outline:none}
@@ -290,11 +286,6 @@ details.more[open] summary .ic{transform:rotate(180deg)}
 .food-row .dot{width:9px;height:9px;flex:none}
 .dot.veg{background:var(--green)}.dot.egg{background:#C08A1C}.dot.nonveg{background:var(--red)}
 .food-row .s b{color:var(--ink);font-weight:600}
-.add{width:40px;height:40px;display:grid;place-items:center;box-shadow:inset 0 0 0 1.5px var(--ink);flex:none;transition:background .12s}
-.add:active{background:var(--ink);color:var(--paper)}
-.add .ic{width:18px;height:18px;stroke-width:2.4}
-.rm{width:40px;height:40px;display:grid;place-items:center;color:var(--ink-2)}
-.rm .ic{width:16px;height:16px}
 .info-list p{padding:9px 0;border-top:1px solid var(--hair);color:var(--ink-2);font-size:15px}
 
 /* ---------- tab bar ---------- */
