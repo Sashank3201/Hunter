@@ -20,6 +20,7 @@ function openWorkout(){
   W.i=W.steps.findIndex(s=>!stepDone(s));
   if(W.i<0){W.i=W.steps.length;W.phase='final'}else enterStep();
   W.open=true;
+  swStart(); // the session clock runs while you train
   $('workout').hidden=false;$('workout').classList.remove('show');void $('workout').offsetWidth;$('workout').classList.add('show');
   document.body.classList.add('locked');
   try{history.pushState({workout:1},'')}catch(e){}
@@ -123,7 +124,7 @@ function timerRing(sec,label,sub){
 function wRender(){
   const steps=W.steps,st=steps[W.i];
   let h=`<div class="w-top"><button class="icon-btn" data-act="wClose" aria-label="Pause workout and close">${ic('x')}</button>
-    <span class="w-pos">${W.phase==='final'?'All done':st&&st.warm?'Warm-up':`Exercise ${W.i+(steps[0]&&steps[0].warm?0:1)} of ${steps.filter(s=>!s.warm).length}`}</span><span style="width:44px"></span></div>
+    <span class="w-pos"><span>${W.phase==='final'?'All done':st&&st.warm?'Warm-up':`Exercise ${W.i+(steps[0]&&steps[0].warm?0:1)} of ${steps.filter(s=>!s.warm).length}`}</span><b id="wElapsed">${fmtElapsed(swElapsed())}</b></span><span style="width:44px"></span></div>
     <div class="w-prog">${steps.map((s,i)=>`<button class="${stepDone(s)?'d':''}${i===W.i?' c':''}" data-act="wJump" data-arg="${i}" aria-label="Go to ${s.warm?'warm-up':esc(dn(s.item.name))}"></button>`).join('')}</div>`;
 
   if(W.phase==='final'){

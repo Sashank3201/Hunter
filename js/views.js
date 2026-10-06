@@ -119,7 +119,8 @@ function renderQuest(){
     <div class="count-big">${doneN}<small>/${items.length}</small></div></div>`;
 
   if(notStarted())h+=`<div class="card state-card"><div class="state-ic">${ic('calendar')}</div><div><p class="h3">Quest locked until ${fmtDate(S.startDate)}</p><p class="muted small">Look through today's moves so you're ready.</p><button class="btn sm" data-act="startToday">Start today instead</button></div></div>`;
-  else if(rec.completed)h+=`<div class="card ${rec.rested?'':'good'} state-card"><div class="state-ic">${ic(rec.rested?'moon':'check')}</div><div><p class="h3">${rec.rested?'Rest Pass active':'Quest cleared'}</p><p class="muted small">${rec.rested?'No training today. Recover well.':`+${rec.exp||0} EXP. See you tomorrow.`}</p></div></div>`;
+  else if(rec.completed)h+=`<div class="card ${rec.rested?'':'good'} state-card"><div class="state-ic">${ic(rec.rested?'moon':'check')}</div><div><p class="h3">${rec.rested?'Rest Pass active':'Quest cleared'}</p><p class="muted small">${rec.rested?'No training today. Recover well.':`+${rec.exp||0} EXP${rec.duration?` · ${rec.duration} min trained`:''}. See you tomorrow.`}</p></div></div>`;
+  else h+=timerCardHTML();
 
   if(penDue){
     const left=S.penaltyReps-S.penaltyProgress;
@@ -223,7 +224,8 @@ function dayState(ds){
 const DAY_LABEL={done:'Quest cleared',pass:'Rest Pass',miss:'Missed',rest:'Recovery day',today:'Today',none:'No record',future:'No data'};
 
 function historyHTML(){
-  const tiles=[['zap',S.totalQuests,'Quests cleared'],['flame',S.bestStreak,'Best streak'],['dumbbell',S.totalReps.toLocaleString(),'Total reps'],['skull',S.deaths,'Deaths']];
+  const durs=Object.values(S.log).map(r=>r.duration||0).filter(Boolean),mins=durs.reduce((a,b)=>a+b,0);
+  const tiles=[['timer',mins>=60?`${Math.floor(mins/60)}h ${mins%60}m`:`${mins}m`,'Time trained'],['calendar',durs.length?`${Math.round(mins/durs.length)}m`:'—','Avg session'],['zap',S.totalQuests,'Quests cleared'],['flame',S.bestStreak,'Best streak'],['dumbbell',S.totalReps.toLocaleString(),'Total reps'],['skull',S.deaths,'Deaths']];
   let h=`<div class="tiles">${tiles.map(([i,v,l])=>`<div class="tile"><span class="lead">${ic(i)}</span><b>${v}</b><span>${l}</span></div>`).join('')}</div>`;
 
   const W=12,start=addDays(mondayOf(todayStr()),-7*(W-1));

@@ -111,6 +111,7 @@ function completeDay(){
   if(!questReady())return;
   const rec=todayRec(),sp=todaysSplit(),w=weekNumber();
   rec.completed=true;
+  const mins=swFinish(rec);
   let gain=sp.rest?30:40+Math.floor(w/2);
   if(sp.boss)gain+=40;
   const bonus=[];
@@ -140,7 +141,7 @@ function completeDay(){
   S.exp+=gain;rec.exp=gain;
   const up=syncLevel();
   save();renderAll();
-  showReward({gain,leveled:up>0,points:up*POINTS_PER_LEVEL,bonus,ups,penDown});
+  showReward({gain,leveled:up>0,points:up*POINTS_PER_LEVEL,bonus,ups,penDown,mins});
 }
 
 function showReward(r){
@@ -148,6 +149,7 @@ function showReward(r){
     <div class="m-big"><span class="count-up" data-to="${r.gain}">+0</span><span>EXP earned</span></div>`;
   if(r.leveled)h+=`<div class="m-flag lvl-flag">${ic('zap')}Level up · ${S.level}</div><div class="m-flag">+${r.points} stat points to assign</div>`;
   r.bonus.forEach(b=>h+=`<div class="m-flag">${esc(b)}</div>`);
+  if(r.mins)h+=`<div class="m-flag">Session time · ${r.mins} min</div>`;
   if(r.penDown)h+=`<p class="m-text">Clean streak: penalty level down to ${S.penaltyLevel}.</p>`;
   if(r.ups.length)h+=`<div class="m-list"><span>New skill unlocked</span>${r.ups.map(u=>`<b>${esc(u)}</b>`).join('')}</div>`;
   const nx=SPLIT[(dayIndex()+1)%7];
@@ -161,7 +163,7 @@ function showReward(r){
 function useRestPass(){
   const rec=todayRec();
   if(rec.completed||passUsedThisWeek()||todaysSplit().rest||notStarted())return;
-  rec.completed=true;rec.rested=true;rec.exp=0;
+  rec.completed=true;rec.rested=true;rec.exp=0;if(rec.time)swFinish(rec);
   S.passes[mondayOf(todayStr())]=todayStr();
   save();renderAll();closeModal();
   toast('Rest Pass used. Streak protected. Recover well.');
