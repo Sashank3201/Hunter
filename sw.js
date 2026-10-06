@@ -2,9 +2,9 @@
 // Only handles caching of app files for offline use.
 // Never touches localStorage — game progress and diet data live there,
 // completely outside anything this file can see or affect.
-const CACHE='hunter-system-v4';
+const CACHE='hunter-system-v5';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png',
-  './css/app.css','./fonts/inter.woff2','./fonts/space-grotesk.woff2',
+  './css/app.css','./fonts/archivo.woff2','./fonts/plex-mono-400.woff2','./fonts/plex-mono-500.woff2','./fonts/plex-mono-600.woff2',
   './js/data.js','./js/util.js','./js/state.js','./js/engine.js','./js/views.js',
   './js/workout.js','./js/awaken.js','./js/menu.js','./js/main.js'];
 

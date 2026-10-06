@@ -148,7 +148,7 @@ function showReward(r){
   let h=`<div class="m-stamp">Quest complete</div>
     <div class="m-big"><span class="count-up" data-to="${r.gain}">+0</span><span>EXP earned</span></div>`;
   if(r.leveled)h+=`<div class="m-flag lvl-flag">${ic('zap')}Level up · ${S.level}</div>`;
-  r.bonus.forEach(b=>h+=`<div class="m-flag">${ic('sparkle')}${esc(b)}</div>`);
+  r.bonus.forEach(b=>h+=`<div class="m-flag">${esc(b)}</div>`);
   if(r.penDown)h+=`<p class="m-text">Clean streak: penalty level down to ${S.penaltyLevel}.</p>`;
   if(r.ups.length)h+=`<div class="m-list"><span>New skill unlocked</span>${r.ups.map(u=>`<b>${esc(u)}</b>`).join('')}</div>`;
   const nx=SPLIT[(dayIndex()+1)%7];

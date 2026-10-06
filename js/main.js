@@ -10,7 +10,7 @@ function openModal(html,tone,icon){
   m.className='modal open tone-'+tone;
   $('modalBox').innerHTML=tone==='death'
     ?`<div class="m-ic" style="background:var(--bad);width:72px;height:72px;border-radius:24px">${ic('skull')}</div>${html}`
-    :`<div class="m-card${tone==='red'?' red':''}"><div class="m-top"><span class="m-ic">${ic(icon||(tone==='red'?'alert':'sparkle'))}</span>
+    :`<div class="m-card${tone==='red'?' red':''}"><div class="m-top"><span class="m-ic">${ic(icon||(tone==='red'?'alert':'info'))}</span>
       <span class="overline">${tone==='red'?'Warning':'System'}</span></div><div class="m-inner">${html}</div></div>`;
   const f=$('modalBox').querySelector('input,button');
   if(f)try{f.focus({preventScroll:true})}catch(e){}
