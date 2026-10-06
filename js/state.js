@@ -51,6 +51,8 @@ function dietState(){
   if(typeof d.weight!=='number')d.weight=63;
   if(!DIET_TYPES[d.type])d.type='nonveg';
   delete d.eaten; // food logging was removed; drop any old log data
+  if(!d.grocery||!Array.isArray(d.grocery.ids))d.grocery={ids:[],checked:{}};
+  if(!d.grocery.checked)d.grocery.checked={};
   return d;
 }
 function saveDietState(d){

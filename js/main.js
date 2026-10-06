@@ -23,6 +23,8 @@ ACT.closeModal=closeModal;
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
   if($('modal').classList.contains('open'))closeModal();
+  else if(!$('recipeLayer').hidden)closeRecipe();
+  else if(!$('groceryLayer').hidden)closeGrocery();
   else if(!$('cardLayer').hidden)closeCard();
   else if(!$('menu').hidden)closeMenu();
 });
