@@ -36,7 +36,7 @@ function die(away){
   S=f;save();
   openModal(`<div class="m-stamp">You have died</div>
    <p class="m-text">${away?'You were gone for over a week.':'You missed too many days.'} The System reset your run.</p>
-   <p class="m-text">Title kept: <b>${esc(keptTitle)}</b><br>Ranks, stats and levels are gone. Your records and history remain. Start again from Week 1.</p>
+   <p class="m-text">Title kept: <b>${esc(keptTitle)}</b><br>Ranks, stats and levels are gone. Your records and history remain.</p>
    <button class="btn" data-act="closeModal">Rise again</button>`,'death');
   buzz('bad');
   renderAll();
@@ -46,7 +46,7 @@ function showPenaltyNotice(n){
   openModal(`<div class="m-stamp">Penalty</div>
    <div class="m-big">${S.penaltyReps}<span>reps owed</span></div>
    <p class="m-text">You missed ${n} quest day${n>1?'s':''}. Penalty level is now <b>${S.penaltyLevel} of 5</b>. Clear the reps before today's quest. At level 5 you die.</p>
-   <button class="btn" data-act="closeModal">Accept</button>`,'red');
+   <button class="btn danger" data-act="closeModal">Accept</button>`,'red','alert');
   buzz('bad');
 }
 
@@ -73,7 +73,7 @@ function toggleDone(id){
   const rec=todayRec();
   if(rec.completed||notStarted())return;
   const i=rec.done.indexOf(id);
-  if(i>=0)rec.done.splice(i,1);else{rec.done.push(id);buzz('tap')}
+  if(i>=0)rec.done.splice(i,1);else{rec.done.push(id);justToggled=id;buzz('tap')}
   save();renderAll();
 }
 
@@ -125,9 +125,7 @@ function completeDay(){
   Object.keys(gained).forEach(st=>{S.stats[st]+=gained[st]*0.22});
   STATS.forEach(st=>{S.stats[st]+=0.08});
   // weekly goal: 5 training days in a week boosts every stat
-  const wk=weekKey();
-  S.weekDays[wk]=(S.weekDays[wk]||0)+(sp.rest?0:1);
-  if(!sp.rest&&S.weekDays[wk]===5){STATS.forEach(st=>{S.stats[st]+=0.6});gain+=40;bonus.push('Weekly goal hit: all stats boosted, +40 EXP')}
+  if(!sp.rest&&trainedInWeek(mondayOf(todayStr()))===5){STATS.forEach(st=>{S.stats[st]+=0.6});gain+=40;bonus.push('Weekly goal hit: all stats boosted, +40 EXP')}
   // clean days slowly lower the penalty level
   let penDown=false;
   if(S.penaltyLevel>0&&S.streak>=3&&S.streak%3===0){S.penaltyLevel--;penDown=true}
@@ -148,14 +146,14 @@ function completeDay(){
 
 function showReward(r){
   let h=`<div class="m-stamp">Quest complete</div>
-    <div class="m-big"><span class="count-up" data-to="${r.gain}">+0</span><span>EXP</span></div>`;
-  if(r.leveled)h+=`<div class="m-flag lvl-flag">Level up · ${S.level}</div>`;
-  r.bonus.forEach(b=>h+=`<div class="m-flag">${esc(b)}</div>`);
+    <div class="m-big"><span class="count-up" data-to="${r.gain}">+0</span><span>EXP earned</span></div>`;
+  if(r.leveled)h+=`<div class="m-flag lvl-flag">${ic('zap')}Level up · ${S.level}</div>`;
+  r.bonus.forEach(b=>h+=`<div class="m-flag">${ic('sparkle')}${esc(b)}</div>`);
   if(r.penDown)h+=`<p class="m-text">Clean streak: penalty level down to ${S.penaltyLevel}.</p>`;
   if(r.ups.length)h+=`<div class="m-list"><span>New skill unlocked</span>${r.ups.map(u=>`<b>${esc(u)}</b>`).join('')}</div>`;
   const nx=SPLIT[(dayIndex()+1)%7];
-  h+=`<p class="m-text dim">Tomorrow: ${nx.name}, ${nx.type}.</p><button class="btn" data-act="closeModal">Continue</button>`;
-  openModal(h,'sys');
+  h+=`<p class="m-text">Tomorrow: ${nx.name}, ${nx.type}.</p><button class="btn" data-act="closeModal">Continue</button>`;
+  openModal(h,'sys','trophy');
   buzz(r.leveled?'level':'done');
   countUp();
 }
@@ -179,7 +177,7 @@ function takeRankTest(rankKey){
   let html=`<div class="m-stamp">Rank test: ${rankKey}</div><p class="m-text">Enter your best single-attempt numbers. You must hit every target.</p><form class="m-form" data-rank="${rankKey}" id="rtForm">`;
   rt.tests.forEach((t,i)=>{html+=`<label class="m-field"><span>${t[0]}</span><em>need ${t[1]}</em><input type="number" inputmode="numeric" id="rt${i}" min="0" max="999"></label>`});
   html+=`<div class="m-btns"><button class="btn" type="submit">Submit</button><button class="btn ghost" type="button" data-act="closeModal">Cancel</button></div></form>`;
-  openModal(html,'sys');
+  openModal(html,'sys','shield');
   $('rtForm').addEventListener('submit',e=>{e.preventDefault();submitRankTest(rankKey)});
 }
 function submitRankTest(rankKey){
@@ -187,12 +185,12 @@ function submitRankTest(rankKey){
   const ok=rt.tests.every((t,i)=>parseInt($('rt'+i).value||'0',10)>=t[1]);
   if(ok){
     S.rankTestsPassed.push(rankKey);S.exp+=150;delete S.rankFails[rankKey];
-    S.level=levelFromExp().level;save();renderAll();firstPaint=true;renderStatus();
-    openModal(`<div class="m-stamp">Rank up</div><div class="m-rank">${rankKey}</div><p class="m-text">You are now Rank ${rankKey}: ${esc(currentRank().name)}. +150 EXP</p><button class="btn" data-act="closeModal">Continue</button>`,'sys');
+    S.level=levelFromExp().level;save();renderAll();
+    openModal(`<div class="m-stamp">Rank up</div><div class="m-rank">${rankKey}</div><p class="m-text">You are now Rank ${rankKey}: ${esc(currentRank().name)}. +150 EXP</p><button class="btn" data-act="closeModal">Continue</button>`,'sys','shield');
     buzz('level');
   }else{
     S.rankFails[rankKey]=todayStr();save();renderAll();
-    openModal(`<div class="m-stamp">Test failed</div><p class="m-text">Not yet. You can retry on <b>${fmtDate(addDays(todayStr(),RANK_COOLDOWN))}</b>. Failing a test costs no penalty.</p><button class="btn" data-act="closeModal">Close</button>`,'red');
+    openModal(`<div class="m-stamp">Test failed</div><p class="m-text">Not yet. You can retry on <b>${fmtDate(addDays(todayStr(),RANK_COOLDOWN))}</b>. Failing a test costs no penalty.</p><button class="btn ghost" data-act="closeModal">Close</button>`,'red','x');
     buzz('bad');
   }
 }
@@ -211,5 +209,5 @@ ACT.startToday=startToday;
 ACT.restPass=()=>openModal(`<div class="m-stamp">Rest Pass</div>
   <p class="m-text">Use this only if you are sick or injured. Today counts as cleared: no EXP, but your streak and penalty level are safe.</p>
   <p class="m-text dim">1 per week. Next one: ${fmtDate(addDays(mondayOf(todayStr()),7))}.</p>
-  <div class="m-btns"><button class="btn" data-act="useRestPass">Use Rest Pass</button><button class="btn ghost" data-act="closeModal">Keep training</button></div>`,'sys');
+  <div class="m-btns"><button class="btn" data-act="useRestPass">Use Rest Pass</button><button class="btn ghost" data-act="closeModal">Keep training</button></div>`,'sys','moon');
 ACT.useRestPass=useRestPass;

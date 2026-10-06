@@ -1,13 +1,17 @@
 /* Hunter System: app shell. Modal, toast, tabs, startup and day rollover. */
 
-/* ---------- modal (System window) ----------
-   tone: 'sys' blue window, 'red' alert window, 'death' full red screen. */
+/* ---------- modal ----------
+   tone: 'sys' (accent card), 'red' (warning card), 'death' (full-screen red). */
 let lastFocus=null;
-function openModal(html,tone){
+function openModal(html,tone,icon){
+  tone=tone||'sys';
   lastFocus=document.activeElement;
   const m=$('modal');
-  m.className='modal open tone-'+(tone||'sys');
-  $('modalBox').innerHTML=tone==='death'?html:`<div class="win${tone==='red'?' red':''} m-win"><div class="win-h"><span class="win-ico" aria-hidden="true">!</span><span>${tone==='red'?'Warning':'Notification'}</span></div><div class="win-b m-inner">${html}</div></div>`;
+  m.className='modal open tone-'+tone;
+  $('modalBox').innerHTML=tone==='death'
+    ?`<div class="m-ic" style="background:var(--bad);width:72px;height:72px;border-radius:24px">${ic('skull')}</div>${html}`
+    :`<div class="m-card${tone==='red'?' red':''}"><div class="m-top"><span class="m-ic">${ic(icon||(tone==='red'?'alert':'sparkle'))}</span>
+      <span class="overline">${tone==='red'?'Warning':'System'}</span></div><div class="m-inner">${html}</div></div>`;
   const f=$('modalBox').querySelector('input,button');
   if(f)try{f.focus({preventScroll:true})}catch(e){}
 }
@@ -27,16 +31,23 @@ let toastT=null;
 function toast(msg){
   const t=$('toast');
   t.textContent=msg;t.classList.add('show');
-  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2400);
 }
 
-/* Animated EXP counter inside the reward window. */
+/* Animated EXP counter inside the reward card. */
 function countUp(){
   document.querySelectorAll('.count-up').forEach(el=>{
     const to=+el.dataset.to,t0=performance.now(),dur=matchMedia('(prefers-reduced-motion: reduce)').matches?0:900;
     const step=now=>{const k=dur?Math.min(1,(now-t0)/dur):1;el.textContent='+'+Math.round(to*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(step)};
     requestAnimationFrame(step);
   });
+}
+
+/* Replay the staggered entrance animation on a container (tab switch, sub-tab switch). */
+function animateIn(el){
+  if(!el)return;
+  el.classList.remove('enter');void el.offsetWidth;el.classList.add('enter');
+  clearTimeout(el._enterT);el._enterT=setTimeout(()=>el.classList.remove('enter'),1300);
 }
 
 /* ---------- tabs ---------- */
@@ -47,8 +58,12 @@ function showTab(id){
   });
   TABS.forEach(t=>$(t).hidden=(t!==id));
   window.scrollTo(0,0);
+  animateIn($(id));
 }
-document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>{buzz('tap');showTab(b.dataset.t)}));
+document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>{
+  if(b.getAttribute('aria-current')==='page'){window.scrollTo({top:0,behavior:'smooth'});return}
+  buzz('tap');showTab(b.dataset.t);
+}));
 ACT.goQuest=()=>showTab('quest');
 
 /* Hover/focus tooltip for anything with data-tip (heatmap cells, chart bars). */
@@ -76,4 +91,4 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 setInterval(checkDay,60000);
 
 if(needsAwakening()){renderAll();startAwakening()}
-else{processMissedDays();renderAll()}
+else{processMissedDays();renderAll();animateIn($('status'))}

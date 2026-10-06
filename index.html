@@ -3,20 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#050505">
+<meta name="theme-color" content="#08090D">
 <meta name="description" content="Solo Leveling style calisthenics quest tracker">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-512.png">
+<link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/space-grotesk.woff2" as="font" type="font/woff2" crossorigin>
 <title>Hunter System</title>
-<link rel="stylesheet" href="css/fonts.css">
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="gAccent" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5A8BFF"/><stop offset=".55" stop-color="#8A6DFF"/><stop offset="1" stop-color="#B36CFF"/></linearGradient>
+</defs></svg>
 <div class="app">
   <header class="bar">
-    <div class="brand"><i></i>Hunter System</div>
-    <div class="bar-r"><div class="when" id="when"></div><button class="sys-btn" data-act="menu" aria-label="Open System menu">System</button></div>
+    <div class="when" id="when"></div>
+    <button class="avatar" id="avatarBtn" data-act="menu" aria-label="Open profile and settings">E</button>
   </header>
   <main>
     <section id="status"></section>
@@ -26,13 +30,13 @@
   </main>
 </div>
 <nav class="nav" aria-label="Sections">
-  <button data-t="status" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4v6c0 4-3.5 7-8 8-4.5-1-8-4-8-8V7z"/></svg>Status</button>
-  <button data-t="quest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5zM9 8h6M9 12h6M9 16h3"/></svg>Quest</button>
-  <button data-t="progress"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V14M10 20V9M16 20V5M22 20H2"/></svg>Progress</button>
-  <button data-t="diet"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18a9 9 0 0 1-18 0zM8 8c0-2 2-2 2-4M13 8c0-2 2-2 2-4"/></svg>Diet</button>
+  <button data-t="status" aria-current="page"><span class="ic-wrap"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg></span>Status</button>
+  <button data-t="quest"><span class="ic-wrap"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M21 21l-1-1M3 3l1 1M18 22l4-4M2 6l4-4M3 10l7-7M14 21l7-7"/></svg></span>Quest</button>
+  <button data-t="progress"><span class="ic-wrap"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18M8 17v-4M13 17V8M18 17v-7"/></svg></span>Progress</button>
+  <button data-t="diet"><span class="ic-wrap"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3zm0 0v7"/></svg></span>Diet</button>
 </nav>
 <div class="layer" id="workout" role="dialog" aria-modal="true" aria-label="Workout" hidden></div>
-<div class="layer" id="menu" role="dialog" aria-modal="true" aria-label="System menu" hidden></div>
+<div class="layer" id="menu" role="dialog" aria-modal="true" aria-label="Profile and settings" hidden></div>
 <div class="layer" id="awaken" role="dialog" aria-modal="true" aria-label="Awakening" hidden></div>
 <div class="modal" id="modal" role="dialog" aria-modal="true"><div class="modal-box" id="modalBox"></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>

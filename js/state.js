@@ -100,5 +100,11 @@ function buildQuestItems(){
   return items;
 }
 
+/* Training days cleared in the calendar week (Mon-Sun) starting at monday. Rest Pass and recovery days don't count. */
+function trainedInWeek(monday){
+  let n=0;
+  for(let i=0;i<7;i++){const d=addDays(monday,i),r=S.log[d];if(r&&r.completed&&!r.rested&&!SPLIT[dowOf(d)].rest)n++}
+  return n;
+}
 /* Rest Pass: one per calendar week (Mon-Sun), kept across deaths. */
 function passUsedThisWeek(){return !!S.passes[mondayOf(todayStr())]}
