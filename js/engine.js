@@ -138,16 +138,15 @@ function completeDay(){
     }
   });
   S.exp+=gain;rec.exp=gain;
-  const before=S.level;
-  S.level=levelFromExp().level;
+  const up=syncLevel();
   save();renderAll();
-  showReward({gain,leveled:S.level>before,bonus,ups,penDown});
+  showReward({gain,leveled:up>0,points:up*POINTS_PER_LEVEL,bonus,ups,penDown});
 }
 
 function showReward(r){
   let h=`<div class="m-stamp">Quest complete</div>
     <div class="m-big"><span class="count-up" data-to="${r.gain}">+0</span><span>EXP earned</span></div>`;
-  if(r.leveled)h+=`<div class="m-flag lvl-flag">${ic('zap')}Level up · ${S.level}</div>`;
+  if(r.leveled)h+=`<div class="m-flag lvl-flag">${ic('zap')}Level up · ${S.level}</div><div class="m-flag">+${r.points} stat points to assign</div>`;
   r.bonus.forEach(b=>h+=`<div class="m-flag">${esc(b)}</div>`);
   if(r.penDown)h+=`<p class="m-text">Clean streak: penalty level down to ${S.penaltyLevel}.</p>`;
   if(r.ups.length)h+=`<div class="m-list"><span>New skill unlocked</span>${r.ups.map(u=>`<b>${esc(u)}</b>`).join('')}</div>`;
@@ -185,7 +184,7 @@ function submitRankTest(rankKey){
   const ok=rt.tests.every((t,i)=>parseInt($('rt'+i).value||'0',10)>=t[1]);
   if(ok){
     S.rankTestsPassed.push(rankKey);S.exp+=150;delete S.rankFails[rankKey];
-    S.level=levelFromExp().level;save();renderAll();
+    syncLevel();save();renderAll();
     openModal(`<div class="m-stamp">Rank up</div><div class="m-rank">${rankKey}</div><p class="m-text">You are now Rank ${rankKey}: ${esc(currentRank().name)}. +150 EXP</p><button class="btn" data-act="closeModal">Continue</button>`,'sys','shield');
     buzz('level');
   }else{
@@ -211,3 +210,79 @@ ACT.restPass=()=>openModal(`<div class="m-stamp">Rest Pass</div>
   <p class="m-text dim">1 per week. Next one: ${fmtDate(addDays(mondayOf(todayStr()),7))}.</p>
   <div class="m-btns"><button class="btn" data-act="useRestPass">Use Rest Pass</button><button class="btn ghost" data-act="closeModal">Keep training</button></div>`,'sys','moon');
 ACT.useRestPass=useRestPass;
+
+/* ---------- stat points ---------- */
+let alloc=null;
+function openAllocate(){
+  if(S.statPoints<=0)return;
+  alloc=Object.fromEntries(STATS.map(x=>[x,0]));
+  openModal(`<div class="m-stamp">Assign stat points</div>
+    <p class="m-text">Each point raises a stat by 1. Choose what kind of Hunter you become.</p>
+    <p class="overline" id="allocLeft"></p><ul class="alloc">${STATS.map(x=>`<li><span>${x}</span><b id="al-${x}"></b>
+      <button class="icon-btn" data-act="alloc" data-arg="${x}:-1" aria-label="Remove a point from ${x}">${ic('minus')}</button>
+      <button class="icon-btn" data-act="alloc" data-arg="${x}:1" aria-label="Add a point to ${x}">${ic('plus')}</button></li>`).join('')}</ul>
+    <div class="m-btns"><button class="btn" id="allocOk" data-act="allocOk">Confirm</button><button class="btn ghost" data-act="closeModal">Later</button></div>`,'sys','zap');
+  paintAlloc();
+}
+function paintAlloc(){
+  const used=Object.values(alloc).reduce((a,b)=>a+b,0),left=S.statPoints-used;
+  $('allocLeft').textContent=`${left} point${left===1?'':'s'} left`;
+  STATS.forEach(x=>{$('al-'+x).innerHTML=`${Math.floor(S.stats[x])+alloc[x]}${alloc[x]?` <small>+${alloc[x]}</small>`:''}`});
+  $('allocOk').disabled=used===0;
+}
+ACT.allocate=openAllocate;
+ACT.alloc=a=>{const [x,d]=a.split(':'),used=Object.values(alloc).reduce((p,q)=>p+q,0);
+  if(+d>0&&used>=S.statPoints)return;if(+d<0&&alloc[x]<=0)return;alloc[x]+=+d;buzz('tap');paintAlloc()};
+ACT.allocOk=()=>{const used=Object.values(alloc).reduce((a,b)=>a+b,0);if(!used)return;
+  STATS.forEach(x=>{S.stats[x]+=alloc[x]});S.statPoints-=used;save();closeModal();renderAll();buzz('done');toast(`${used} point${used>1?'s':''} assigned`)};
+
+/* ---------- sudden quests ----------
+   Rolled once per day from a seed, so reloading never re-rolls. Appears at a seeded
+   hour between 10:00 and 19:59 the first time the app is open after it. No penalty. */
+function seeded(str){let h=2166136261;for(const c of str)h=Math.imul(h^c.charCodeAt(0),16777619);return ((h>>>0)%100000)/100000}
+function maybeSudden(){
+  if(window.__NO_SUDDEN||!S.profile||notStarted()||todaysSplit().rest)return;
+  const today=todayStr(),seed=today+'|'+S.created;
+  if(S.sudden&&S.sudden.date===today)return;
+  if(seeded(seed+'roll')>=SUDDEN_CHANCE)return;
+  if(new Date().getHours()<10+Math.floor(seeded(seed+'hour')*10))return;
+  const [task,stat]=SUDDEN[Math.floor(seeded(seed+'task')*SUDDEN.length)];
+  S.sudden={date:today,task,stat,deadline:Date.now()+SUDDEN_MINUTES*60000,state:'open'};
+  save();renderAll();buzz('alarm');
+  openModal(`<div class="m-stamp">Sudden quest</div><p class="h2">${task}</p>
+    <p class="m-text">Complete it within <b>${SUDDEN_MINUTES} minutes</b> for +${SUDDEN_EXP} EXP. There is no penalty for missing it.</p>
+    <div class="m-btns"><button class="btn" data-act="suddenDone">Done it</button><button class="btn ghost" data-act="closeModal">Accept</button></div>`,'red','alert');
+}
+function suddenActive(){const q=S.sudden;return q&&q.date===todayStr()&&q.state==='open'&&Date.now()<q.deadline?q:null}
+ACT.suddenDone=()=>{
+  const q=suddenActive();if(!q)return;
+  q.state='done';S.exp+=SUDDEN_EXP;S.stats[q.stat]+=.3;const up=syncLevel();
+  save();closeModal();renderAll();buzz(up?'level':'done');
+  toast(`Sudden quest cleared · +${SUDDEN_EXP} EXP${up?` · Level ${S.level}`:''}`);
+};
+
+/* ---------- job change (after the S-rank test) ---------- */
+function jobAvailable(){return !S.job&&S.rankTestsPassed.includes('S')}
+let jobPick='fighter';
+function openJobChange(){
+  if(!jobAvailable())return;
+  openModal(`<div class="m-stamp">Job change</div>
+    <p class="m-text">You have reached the limit of an ordinary Hunter. Choose a path. It sets your program for the next 12 weeks and cannot be undone.</p>
+    <div class="a-opts" role="radiogroup" id="jobOpts"></div>
+    <div class="m-btns"><button class="btn" data-act="jobOk">Accept the job</button><button class="btn ghost" data-act="closeModal">Not yet</button></div>`,'sys','shield');
+  paintJobs();
+}
+function paintJobs(){
+  $('jobOpts').innerHTML=Object.entries(JOBS).map(([k,j])=>`<button role="radio" aria-checked="${jobPick===k}" class="a-opt${jobPick===k?' on':''}" data-act="jobPick" data-arg="${k}"><span class="grow"><b>${j.title}</b><span>${j.tag} · ${j.desc}</span></span><span class="chk${jobPick===k?' on':''}">${ic('check')}</span></button>`).join('');
+}
+ACT.jobChange=openJobChange;
+ACT.jobPick=k=>{jobPick=k;buzz('tap');paintJobs()};
+ACT.jobOk=()=>{
+  if(!jobAvailable())return;
+  const J=JOBS[jobPick];
+  S.job={path:jobPick,date:todayStr()};S.titles=Array.from(new Set([...S.titles,'Job: '+J.title]));
+  S.stats[J.stat]+=2;save();renderAll();buzz('level');
+  openModal(`<div class="m-stamp">Job change complete</div><div class="m-rank">${J.title[0]}</div>
+    <p class="m-text">You are now a <b>${J.title}</b>. ${J.desc} Your ${J.title} program runs weeks 25 to 36. +2 ${J.stat}.</p>
+    <button class="btn" data-act="closeModal">Continue</button>`,'sys','shield');
+};

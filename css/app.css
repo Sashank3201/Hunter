@@ -20,6 +20,18 @@
   --ease:cubic-bezier(.2,.8,.2,1);
   color-scheme:light;
 }
+/* Night print: the same manual on dark paper. Follows the phone's setting unless
+   the Player picks Light or Dark in Profile (stored as data-theme on <html>). */
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --paper:#141312; --paper-2:#1C1B19; --paper-3:#2D2B28;
+  --ink:#EAE5DA; --ink-2:#A7A194; --ink-3:#6F6A60; --hair:rgba(234,229,218,.17);
+  --red:#E5392E; --red-dk:#C42A21; --red-soft:rgba(229,57,46,.15);
+  --green:#46A872; --green-soft:rgba(70,168,114,.14); color-scheme:dark}}
+:root[data-theme=dark]{
+  --paper:#141312; --paper-2:#1C1B19; --paper-3:#2D2B28;
+  --ink:#EAE5DA; --ink-2:#A7A194; --ink-3:#6F6A60; --hair:rgba(234,229,218,.17);
+  --red:#E5392E; --red-dk:#C42A21; --red-soft:rgba(229,57,46,.15);
+  --green:#46A872; --green-soft:rgba(70,168,114,.14); color-scheme:dark}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{background:var(--paper)}
 body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
@@ -142,6 +154,8 @@ b{font-weight:650}
 .lv-big{font-weight:900;font-stretch:62%;font-size:100px;line-height:.78;letter-spacing:-.02em}
 .enter .lv-big{animation:stamp .5s .1s var(--ease) both}
 
+.license-link{display:flex;justify-content:space-between;align-items:center;width:calc(100% + 2 * var(--gut));margin:0 calc(-1 * var(--gut));padding:12px var(--gut);border-top:var(--rule);background:var(--paper-2)}
+.license-link:active{background:var(--paper-3)}
 .ex-num{font-family:var(--mono);font-size:12px;color:var(--ink-2);width:22px;flex:none}
 .cta-wrap{padding:16px 0 4px}
 .warn-line{display:flex;gap:8px;align-items:center;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--red);padding:10px 0 2px}
@@ -212,6 +226,8 @@ b{font-weight:650}
 .seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;box-shadow:inset 0 0 0 1.5px var(--ink);margin-bottom:20px}
 .seg button{min-height:42px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;border-left:1px solid var(--ink)}
 .seg button:first-child{border-left:0}
+.seg.mini{margin:0;flex:none}
+.seg.mini button{min-height:34px;padding:0 10px;font-size:10.5px}
 .seg button[aria-selected=true],.seg button[aria-checked=true]{background:var(--ink);color:var(--paper)}
 
 /* ---------- progress tab ---------- */
@@ -288,6 +304,22 @@ details.more[open] summary .ic{transform:rotate(180deg)}
 .food-row .s b{color:var(--ink);font-weight:600}
 .info-list p{padding:9px 0;border-top:1px solid var(--hair);color:var(--ink-2);font-size:15px}
 
+/* ---------- exercise demos ---------- */
+.demo{background:var(--paper-2);box-shadow:inset 0 0 0 1px var(--hair);margin-bottom:12px}
+.demo svg{display:block;width:100%;height:auto;max-height:230px}
+.demo .dfloor{stroke:var(--ink);stroke-width:1.5;fill:none}
+.demo .dp{stroke:var(--ink-3);stroke-width:2;fill:none;stroke-linecap:square}
+.demo .dr{stroke:var(--red);stroke-width:3;fill:none}
+.demo .dfig *{stroke:var(--ink);stroke-width:4.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.demo .dfig circle{fill:var(--ink);stroke-width:0}
+.demo .dfig .far{stroke:var(--ink-3)}
+.demo .dfig.front .far{stroke:var(--ink)}
+.demo .dfig .dtowel{stroke:var(--red);stroke-width:2.5}
+.demo .dfig .dbag{fill:var(--red);stroke:none}
+.ex-cue .demo{margin:0 0 10px}
+.w-body .demo{margin:-8px 0 16px}
+.w-body .demo svg{max-height:190px}
+
 /* ---------- tab bar ---------- */
 .nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(100%,560px);display:grid;grid-template-columns:repeat(4,1fr);
   height:calc(var(--tabbar) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);z-index:30;background:var(--paper);border-top:var(--rule)}
@@ -337,7 +369,14 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .tone-death .m-stamp{font-size:78px}
 .tone-death .m-text{color:#fff}
 .tone-death .m-text b{color:#fff}
-.tone-death .btn{width:100%;margin-top:8px;background:var(--ink);color:#fff}
+.tone-death .btn{width:100%;margin-top:8px;background:#121110;color:#fff}
+
+/* stat allocation */
+.alloc{list-style:none;border-top:var(--rule)}
+.alloc li{display:grid;grid-template-columns:1fr auto 44px 44px;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--hair)}
+.alloc li span{font-weight:700;font-stretch:80%;font-size:18px;text-transform:uppercase}
+.alloc li b{font-weight:850;font-stretch:62%;font-size:30px;min-width:2.6ch;text-align:right}
+.alloc li b small{font-family:var(--mono);font-size:11px;color:var(--red);font-weight:500}
 
 /* ---------- toast ---------- */
 .toast{position:fixed;left:50%;bottom:calc(var(--tabbar) + 92px + env(safe-area-inset-bottom));transform:translate(-50%,12px);opacity:0;z-index:150;max-width:calc(100% - 40px);
@@ -407,6 +446,17 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .w-final{justify-content:center;gap:12px}
 .w-final .badge{width:84px;height:84px;display:grid;place-items:center;background:var(--ink);color:var(--paper);animation:stamp .5s var(--ease) both;margin-bottom:6px}
 .w-final .badge .ic{width:44px;height:44px}
+
+.rem-row{display:flex;gap:8px;padding:0 var(--gut) 14px 64px}
+.rem-row .text-in{flex:none;width:120px;font-family:var(--mono)}
+.rem-row .btn{flex:1}
+.warn-line b{font-weight:600}
+
+/* hunter license */
+.card-frame{box-shadow:0 0 0 1.5px var(--ink),8px 8px 0 var(--red);margin:0 8px 0 0;background:#ECE7DD}
+.card-frame canvas{display:block;width:100%;height:auto}
+.card-actions{display:flex;gap:8px;margin:22px 0 4px}
+.card-actions .btn{flex:1}
 
 /* settings */
 .set-top{display:flex;justify-content:space-between;align-items:center;padding:calc(16px + env(safe-area-inset-top)) 0 16px}

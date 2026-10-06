@@ -23,6 +23,7 @@ ACT.closeModal=closeModal;
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
   if($('modal').classList.contains('open'))closeModal();
+  else if(!$('cardLayer').hidden)closeCard();
   else if(!$('menu').hidden)closeMenu();
 });
 
@@ -79,16 +80,35 @@ function tip(el){
   t.style.top=(r.top-t.offsetHeight-8)+'px';
 }
 
+/* ---------- theme ----------
+   'auto' follows the phone; 'light'/'dark' force it. Also keeps the browser bar colour in sync. */
+const darkMQ=matchMedia('(prefers-color-scheme: dark)');
+function applyTheme(){
+  const t=(S.profile&&S.profile.theme)||'auto',root=document.documentElement;
+  if(t==='auto')delete root.dataset.theme;else root.dataset.theme=t;
+  const dark=t==='dark'||(t==='auto'&&darkMQ.matches);
+  document.querySelector('meta[name=theme-color]').setAttribute('content',dark?'#141312':'#ECE7DD');
+}
+darkMQ.addEventListener('change',applyTheme);
+
 /* ---------- render + startup ---------- */
 let renderedDay=todayStr();
 function renderAll(){renderedDay=todayStr();renderTop();renderStatus();renderQuest();renderProgress();renderDiet()}
 
 /* If the app stays open past midnight, roll the day over when it comes back into view. */
 function checkDay(){
-  if(todayStr()!==renderedDay&&!needsAwakening()){processMissedDays();renderAll()}
+  if(needsAwakening())return;
+  if(todayStr()!==renderedDay){processMissedDays();renderAll()}
+  else{ // keep countdowns fresh without rebuilding the screen
+    const tl=$('timeLeft');if(tl)tl.textContent=timeLeft();
+    const q=S.sudden;
+    if(q&&q.state==='open'){if(Date.now()>=q.deadline){q.state='expired';save()}renderStatus()}
+  }
+  maybeSudden();
 }
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkDay()});
 setInterval(checkDay,60000);
 
+applyTheme();
 if(needsAwakening()){renderAll();startAwakening()}
-else{processMissedDays();renderAll();animateIn($('status'))}
+else{processMissedDays();renderAll();animateIn($('status'));setTimeout(maybeSudden,1200)}

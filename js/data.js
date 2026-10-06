@@ -186,3 +186,26 @@ const BRIEFING=[
   {h:'Death',red:true,lines:['At penalty level 5 you die. Your run resets to Week 1.','Stay away 9 days or more and you die.','You keep a title. The first 3 days of any run are safe.']},
   {h:'Rank & Rest Pass',lines:['Levels alone never raise your rank. You must pass a rank test.','Really sick or injured? You get 1 Rest Pass each week. It saves your streak.','Your health matters more than any streak. Pain is not progress.']}
 ];
+
+/* Sudden quests: short surprise tasks. [task, stat it trains] */
+const SUDDEN=[['20 bodyweight squats','Strength'],['30 jumping jacks','Speed'],['10 push-ups, any style','Strength'],
+  ['45-second plank','Strength'],['20 lunges, alternating','Agility'],['10 burpees','Speed'],
+  ['15 squat jumps','Agility'],['60-second deep squat hold','Mobility'],['40-second forward fold','Flexibility']];
+const SUDDEN_CHANCE=.4, SUDDEN_MINUTES=60, SUDDEN_EXP=25;
+
+/* Job change: unlocked by passing the S-rank test. Each path is a 12-week program (weeks 25-36).
+   days: ladder keys per weekday (1=Mon .. 6=Sat); Sunday stays recovery. */
+const JOBS={
+  fighter:{title:'Fighter',tag:'Strength path',desc:'Heavier pushing, pulling and legs. Four sets, higher targets.',stat:'Strength',rest:75,
+    days:{1:['push','pull','core'],2:['legs','core','mobility'],3:['pull','push','flex'],4:['legs','push','speed'],5:['pull','legs','core'],6:['push','pull','legs','core']},
+    focus:['Rebuild volume on your top steps.','Slow negatives on every push.','Pull day doubles: rows then holds.','Single-leg strength block.','Max-rep test week.','Deload: same moves, 3 sets.',
+      'Heavy week: last set to the limit.','Pause reps at the bottom.','Pull volume peak.','Legs peak: pistols and shrimps.','Strength test week.','Final trial: Fighter exam.']},
+  assassin:{title:'Assassin',tag:'Skill path',desc:'Agility, mobility and control. Fast feet, deep range, clean skills.',stat:'Agility',rest:60,
+    days:{1:['agility','core','flex'],2:['speed','mobility','legs'],3:['agility','push','flex'],4:['speed','core','mobility'],5:['agility','legs','flex'],6:['agility','speed','mobility','core']},
+    focus:['Footwork foundations, sharper.','Landing quality: stick every jump.','Range week: hold stretches longer.','L-sit and hollow control.','Speed under fatigue.','Deload: flow and mobility.',
+      'Jump power block.','Split progressions.','Reaction drills: shuffles and hops.','Skill test: L-sit and splits.','Agility peak week.','Final trial: Assassin exam.']},
+  ranger:{title:'Ranger',tag:'Endurance path',desc:'Speed and stamina. More volume, shorter rests, longer efforts.',stat:'Speed',rest:45,
+    days:{1:['speed','legs','core'],2:['agility','push','mobility'],3:['speed','pull','flex'],4:['legs','speed','core'],5:['agility','push','legs'],6:['speed','agility','legs','push']},
+    focus:['Build the base: steady pace.','Shorter rests, same reps.','Burpee volume week.','Sprint intervals extended.','Circuit week: minimal rest.','Deload: easy volume.',
+      'Tempo endurance block.','Long sets, clean form.','Interval peak week.','Mixed circuits.','Conditioning test week.','Final trial: Ranger exam.']}
+};
