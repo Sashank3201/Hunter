@@ -18,6 +18,7 @@ function openModal(html,tone,icon){
 function closeModal(){
   $('modal').classList.remove('open');
   if(lastFocus&&lastFocus.focus)try{lastFocus.focus({preventScroll:true})}catch(e){}
+  if(REVEALQ.length)setTimeout(()=>{if(revealIdle())nextReveal()},180); // queued rewards
 }
 ACT.closeModal=closeModal;
 document.addEventListener('keydown',e=>{
@@ -54,7 +55,7 @@ function animateIn(el){
 }
 
 /* ---------- tabs ---------- */
-const TABS=['status','quest','progress','diet'];
+const TABS=['status','quest','gates','progress','diet'];
 function showTab(id){
   document.querySelectorAll('.nav button').forEach(x=>{
     if(x.dataset.t===id)x.setAttribute('aria-current','page');else x.removeAttribute('aria-current');
@@ -95,12 +96,12 @@ darkMQ.addEventListener('change',applyTheme);
 
 /* ---------- render + startup ---------- */
 let renderedDay=todayStr();
-function renderAll(){renderedDay=todayStr();renderTop();renderStatus();renderQuest();renderProgress();renderDiet()}
+function renderAll(){renderedDay=todayStr();renderTop();renderStatus();renderQuest();renderGates();renderProgress();renderDiet()}
 
 /* If the app stays open past midnight, roll the day over when it comes back into view. */
 function checkDay(){
   if(needsAwakening())return;
-  if(todayStr()!==renderedDay){processMissedDays();renderAll()}
+  if(todayStr()!==renderedDay){processMissedDays();ensureWeekSnap();renderAll();maybeReport()}
   else{ // keep countdowns fresh without rebuilding the screen
     const tl=$('timeLeft');if(tl)tl.textContent=timeLeft();
     const q=S.sudden;
@@ -113,4 +114,4 @@ setInterval(checkDay,60000);
 
 applyTheme();
 if(needsAwakening()){renderAll();startAwakening()}
-else{processMissedDays();renderAll();animateIn($('status'));setTimeout(maybeSudden,1200)}
+else{processMissedDays();ensureWeekSnap();renderAll();animateIn($('status'));huntCatchUp();maybeReport();setTimeout(maybeSudden,1200)}

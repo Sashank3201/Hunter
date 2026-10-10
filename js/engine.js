@@ -26,12 +26,15 @@ function processMissedDays(){
 }
 
 function die(away){
+  if(holyWaterSaves()){renderAll();return}
   S.deaths++;
   const keptTitle='Survivor ×'+S.deaths;
   const f=fresh();
   // what survives death: identity, titles, history and records
   f.deaths=S.deaths;f.titles=Array.from(new Set([...S.titles,keptTitle]));f.bestStreak=S.bestStreak;
   f.profile=S.profile;f.log=S.log;f.prs=S.prs;f.passes=S.passes;f.totalReps=S.totalReps;
+  // achievements, shadows and gate history are records too; items are lost
+  ['feats','shadows','dungeons','titleEquipped','suddenDone','weekSnaps','reportSeen'].forEach(k=>f[k]=S[k]);
   f.log[todayStr()]=Object.assign(f.log[todayStr()]||{done:[]},{died:true});
   S=f;save();
   openModal(`<div class="m-stamp">You have died</div>
@@ -43,7 +46,7 @@ function die(away){
 }
 
 function showPenaltyNotice(n){
-  openModal(`<div class="m-stamp">Penalty</div>
+  reveal(`<div class="m-stamp">Penalty</div>
    <div class="m-big">${S.penaltyReps}<span>reps owed</span></div>
    <p class="m-text">You missed ${n} quest day${n>1?'s':''}. Penalty level is now <b>${S.penaltyLevel} of 5</b>. Clear the reps before today's quest. At level 5 you die.</p>
    <button class="btn danger" data-act="closeModal">Accept</button>`,'red','alert');
@@ -62,6 +65,7 @@ function logPenalty(n){
     save();renderAll();
     buzz('done');
     toast('Penalty cleared. Quest unlocked.');
+    checkFeats();
     return true;
   }
   save();renderAll();
@@ -91,6 +95,8 @@ function logSet(item,reps){
     }
   }
   save();
+  if(pr)extractShadow(item.name,reps,item.timed); // a beaten record extracts (or strengthens) a shadow
+  checkFeats();
   return pr;
 }
 function undoSet(item){
@@ -110,7 +116,7 @@ function questReady(){
 function completeDay(){
   if(!questReady())return;
   const rec=todayRec(),sp=todaysSplit(),w=weekNumber();
-  rec.completed=true;
+  rec.completed=true;rec.doneAt=Date.now();
   const mins=swFinish(rec);
   let gain=sp.rest?30:40+Math.floor(w/2);
   if(sp.boss)gain+=40;
@@ -119,14 +125,20 @@ function completeDay(){
   S.streak++;if(S.streak>S.bestStreak)S.bestStreak=S.streak;
   if(S.streak%7===0){gain+=30;bonus.push(`${S.streak}-day streak: +30 EXP`)}
   // reps logged in workout mode count toward lifetime volume
-  buildQuestItems().forEach(it=>{if(!it.warm&&!it.timed&&rec.sets[it.id])S.totalReps+=rec.sets[it.id].reduce((a,b)=>a+b,0)});
+  rec.reps=0;
+  buildQuestItems().forEach(it=>{if(!it.warm&&!it.timed&&rec.sets[it.id])rec.reps+=rec.sets[it.id].reduce((a,b)=>a+b,0)});
+  S.totalReps+=rec.reps;
+  const loot=[];
   // stat gain: each trained stat grows
   const gained={};
   sp.quests.forEach(k=>{const st=LADDERS[k].stat;gained[st]=(gained[st]||0)+1;S.ladders[k].streak++});
   Object.keys(gained).forEach(st=>{S.stats[st]+=gained[st]*0.22});
   STATS.forEach(st=>{S.stats[st]+=0.08});
   // weekly goal: 5 training days in a week boosts every stat
-  if(!sp.rest&&trainedInWeek(mondayOf(todayStr()))===5){STATS.forEach(st=>{S.stats[st]+=0.6});gain+=40;bonus.push('Weekly goal hit: all stats boosted, +40 EXP')}
+  if(!sp.rest&&trainedInWeek(mondayOf(todayStr()))===5){STATS.forEach(st=>{S.stats[st]+=0.6});gain+=40;bonus.push('Weekly goal hit: all stats boosted, +40 EXP');loot.push(grantItem('key'))}
+  if(sp.boss)loot.push(grantItem('box'));
+  if(rec.cooled){gain+=COOLDOWN_EXP;S.stats.Flexibility+=.2;S.stats.Mobility+=.2;bonus.push(`Cool-down: +${COOLDOWN_EXP} EXP, +0.2 FLX and MOB`)}
+  if(S.elixirActive){const extra=Math.round(gain*.5);gain+=extra;S.elixirActive=false;bonus.push(`Elixir of Growth: +${extra} EXP`)}
   // clean days slowly lower the penalty level
   let penDown=false;
   if(S.penaltyLevel>0&&S.streak>=3&&S.streak%3===0){S.penaltyLevel--;penDown=true}
@@ -141,7 +153,8 @@ function completeDay(){
   S.exp+=gain;rec.exp=gain;
   const up=syncLevel();
   save();renderAll();
-  showReward({gain,leveled:up>0,points:up*POINTS_PER_LEVEL,bonus,ups,penDown,mins});
+  showReward({gain,leveled:up>0,points:up*POINTS_PER_LEVEL,bonus,ups,penDown,mins,loot});
+  checkFeats();
 }
 
 function showReward(r){
@@ -150,6 +163,7 @@ function showReward(r){
   if(r.leveled)h+=`<div class="m-flag lvl-flag">${ic('zap')}Level up · ${S.level}</div><div class="m-flag">+${r.points} stat points to assign</div>`;
   r.bonus.forEach(b=>h+=`<div class="m-flag">${esc(b)}</div>`);
   if(r.mins)h+=`<div class="m-flag">Session time · ${r.mins} min</div>`;
+  if(r.loot&&r.loot.length)h+=`<p class="overline">Items obtained</p>${lootHTML(r.loot)}`;
   if(r.penDown)h+=`<p class="m-text">Clean streak: penalty level down to ${S.penaltyLevel}.</p>`;
   if(r.ups.length)h+=`<div class="m-list"><span>New skill unlocked</span>${r.ups.map(u=>`<b>${esc(u)}</b>`).join('')}</div>`;
   const nx=SPLIT[(dayIndex()+1)%7];
@@ -236,7 +250,7 @@ ACT.allocate=openAllocate;
 ACT.alloc=a=>{const [x,d]=a.split(':'),used=Object.values(alloc).reduce((p,q)=>p+q,0);
   if(+d>0&&used>=S.statPoints)return;if(+d<0&&alloc[x]<=0)return;alloc[x]+=+d;buzz('tap');paintAlloc()};
 ACT.allocOk=()=>{const used=Object.values(alloc).reduce((a,b)=>a+b,0);if(!used)return;
-  STATS.forEach(x=>{S.stats[x]+=alloc[x]});S.statPoints-=used;save();closeModal();renderAll();buzz('done');toast(`${used} point${used>1?'s':''} assigned`)};
+  STATS.forEach(x=>{S.stats[x]+=alloc[x]});S.statPoints-=used;save();closeModal();renderAll();buzz('done');toast(`${used} point${used>1?'s':''} assigned`);checkFeats()};
 
 /* ---------- sudden quests ----------
    Rolled once per day from a seed, so reloading never re-rolls. Appears at a seeded
@@ -251,16 +265,18 @@ function maybeSudden(){
   const [task,stat]=SUDDEN[Math.floor(seeded(seed+'task')*SUDDEN.length)];
   S.sudden={date:today,task,stat,deadline:Date.now()+SUDDEN_MINUTES*60000,state:'open'};
   save();renderAll();buzz('alarm');
-  openModal(`<div class="m-stamp">Sudden quest</div><p class="h2">${task}</p>
+  reveal(`<div class="m-stamp">Sudden quest</div><p class="h2">${task}</p>
     <p class="m-text">Complete it within <b>${SUDDEN_MINUTES} minutes</b> for +${SUDDEN_EXP} EXP. There is no penalty for missing it.</p>
     <div class="m-btns"><button class="btn" data-act="suddenDone">Done it</button><button class="btn ghost" data-act="closeModal">Accept</button></div>`,'red','alert');
 }
 function suddenActive(){const q=S.sudden;return q&&q.date===todayStr()&&q.state==='open'&&Date.now()<q.deadline?q:null}
 ACT.suddenDone=()=>{
   const q=suddenActive();if(!q)return;
-  q.state='done';S.exp+=SUDDEN_EXP;S.stats[q.stat]+=.3;const up=syncLevel();
+  q.state='done';S.exp+=SUDDEN_EXP;S.stats[q.stat]+=.3;S.suddenDone++;const up=syncLevel();
+  const box=Math.random()<.3;if(box)grantItem('box');
   save();closeModal();renderAll();buzz(up?'level':'done');
-  toast(`Sudden quest cleared · +${SUDDEN_EXP} EXP${up?` · Level ${S.level}`:''}`);
+  toast(`Sudden quest cleared · +${SUDDEN_EXP} EXP${box?' · Random Box!':''}${up?` · Level ${S.level}`:''}`);
+  checkFeats();
 };
 
 /* ---------- job change (after the S-rank test) ---------- */
