@@ -30,7 +30,7 @@ function openWorkout(){
 }
 function closeWorkout(fromPop){
   if(!W.open)return;
-  W.open=false;clearInterval(W.tick);
+  W.open=false;clearInterval(W.tick);BotGame.stop();
   $('workout').hidden=true;
   document.body.classList.remove('locked');
   if(W.wake){W.wake.release().catch(()=>{});W.wake=null}
@@ -133,8 +133,8 @@ ACT.coolNextNow=()=>{clearInterval(W.tick);coolNext()};
 ACT.coolSkip=()=>{clearInterval(W.tick);W.coolSkip=true;W.phase='final';wRender()};
 
 /* ---------- render ---------- */
-function timerRing(sec,label,sub){
-  return `<div class="ring-wrap"><svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true"><circle class="bg" cx="60" cy="60" r="54" stroke-width="7"/><circle id="wRing" class="fg" cx="60" cy="60" r="54" stroke-width="7" style="stroke-dasharray:339.3;stroke-dashoffset:${339.3*(1-sec/W.total)}"/></svg>
+function timerRing(sec,label,sub,cls){
+  return `<div class="ring-wrap${cls?' '+cls:''}"><svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true"><circle class="bg" cx="60" cy="60" r="54" stroke-width="7"/><circle id="wRing" class="fg" cx="60" cy="60" r="54" stroke-width="7" style="stroke-dasharray:339.3;stroke-dashoffset:${339.3*(1-sec/W.total)}"/></svg>
     <div class="ring-in"><span class="overline">${label}</span><b id="wClock" role="timer">${fmtClock(sec)}</b><span class="muted small">${sub}</span></div></div>`;
 }
 
@@ -170,8 +170,8 @@ function wRender(){
 
     if(W.phase==='rest'){
       const nx=W.after==='next'?steps[W.nextI]:null;
-      h+=timerRing(left(),'Rest','Breathe. Shake it out.')+
-        `<div class="next-card"><span class="lead">${ic(nx?'right':'timer')}</span><div class="grow"><p class="faint small">Up next</p><p class="h3">${nx?(nx.warm?'Warm-up':esc(dn(nx.item.name))):`Set ${n+1} of ${it.sets}`}</p></div></div></div>
+      h+=`<div class="rest-top">${timerRing(left(),'Rest','Breathe','sm')}
+        <div class="next-card"><div class="grow"><p class="faint small">Up next</p><p class="h3">${nx?(nx.warm?'Warm-up':esc(dn(nx.item.name))):`Set ${n+1} of ${it.sets}`}</p></div></div></div>${botGameHTML()}</div>
         <div class="w-foot two"><button class="btn ghost" data-act="wMore">+15 sec</button><button class="btn" data-act="wSkip">Skip rest</button></div>`;
     }else if(W.phase==='hold'){
       h+=timerRing(left(),`Set ${setNo} of ${it.sets}`,'Hold steady')+`</div>
@@ -193,4 +193,5 @@ function wRender(){
   }
   $('workout').innerHTML=h;
   startDemos();
+  BotGame.sync(()=>W.phase==='rest'?W.end-Date.now():0);
 }

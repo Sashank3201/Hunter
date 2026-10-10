@@ -1,4 +1,4 @@
-/* Hunter System: nutrition. A recipe book, not a food log.
+/* Hunter System: nutrition. A recipe book, plus the System bot's food log (foodlog.js).
    Diet type and weight set the protein target; the day plan suggests meals that
    hit it; recipes open as full cards; picked recipes build a grocery list. */
 const NF={q:'',filters:new Set(),meal:'all'};
@@ -60,6 +60,7 @@ function renderDiet(){
   const pTot=plan.reduce((a,r)=>a+r.p,0),kTot=plan.reduce((a,r)=>a+r.kcal,0),gCount=(ds.grocery&&ds.grocery.ids.length)||0;
   const inRange=pTot>=t.low&&pTot<=t.high+10;
   let h=`<div class="page-head"><h1 class="h1">Nutrition</h1><p class="muted">${RECIPES.length} recipes. Simple meals that hit your protein.</p></div>
+    ${fuelCardHTML()}
     <div class="seg" role="radiogroup" aria-label="Diet type">${Object.entries(DIET_TYPES).map(([k,v])=>`<button role="radio" aria-checked="${ds.type===k}" data-act="dietType" data-arg="${k}">${v.label}</button>`).join('')}</div>
 
     <div class="card"><div class="protein"><p class="overline">Daily protein target</p><p class="pt-num num">${t.low}–${t.high}<small>g</small></p></div>
@@ -87,6 +88,7 @@ function renderDiet(){
       <p>The day plan covers protein. Add plain rice, rotis or fruit around it to match your hunger and training.</p>
       <p>Values come from USDA FoodData Central and ICMR-NIN. Home cooking varies, so treat them as close estimates.</p></div>`;
   $('diet').innerHTML=h;
+  mountDietBot();
   renderRecipeResults();
   $('recQ').addEventListener('input',e=>{NF.q=e.target.value;renderRecipeResults()});
   $('dwForm').addEventListener('submit',e=>{
