@@ -5,7 +5,7 @@
 
 /* ---------- reveal queue ---------- */
 const REVEALQ=[];
-const revealIdle=()=>!$('modal').classList.contains('open')&&!ariseOpen()&&$('dungeon').hidden; // never over a raid
+const revealIdle=()=>!$('modal').classList.contains('open')&&!ariseOpen()&&!wfxOpen()&&$('dungeon').hidden; // never over a raid
 function reveal(html,tone,icon){REVEALQ.push([html,tone,icon]);if(revealIdle())nextReveal()}
 /* Run fn (e.g. open a full-screen layer) once every queued notice has been seen. */
 function afterReveals(fn){REVEALQ.push(fn);if(revealIdle())nextReveal()}
@@ -17,13 +17,14 @@ function keyCount(){return GRADES.reduce((a,g)=>a+S.inv.keys[g],0)}
 function itemCount(){return keyCount()+S.inv.box+S.inv.potion+S.inv.elixir+S.inv.holy}
 /* Add items. kind: 'key' (with grade) | 'box' | 'potion' | 'elixir' | 'holy'. Returns a label for reward lists. */
 function grantItem(kind,n=1,grade){
+  if(kind==='weapon')return grantWeapon(grade); // grade carries the weapon id
   if(kind==='key'){const g=grade||rankGrade();S.inv.keys[g]+=n;return `${n>1?n+'× ':''}${g}-grade Dungeon Key`}
   S.inv[kind]+=n;return `${n>1?n+'× ':''}${ITEMS[kind].name}`;
 }
 /* Item tile used in reward notices: pops in with a short stagger. */
 function lootHTML(labels){
-  return `<ul class="loot">${labels.map((l,i)=>{const kind=Object.keys(ITEMS).find(k=>l.includes(ITEMS[k].name))||'';
-    return `<li style="animation-delay:${.25+i*.18}s"><span class="loot-ic">${ic(kind?ITEMS[kind].icon:'zap')}</span><b>${esc(l)}</b></li>`}).join('')}</ul>`;
+  return `<ul class="loot">${labels.map((l,i)=>{const kind=Object.keys(ITEMS).find(k=>l.includes(ITEMS[k].name))||'',wid=WEAPON_ORDER.find(id=>l.startsWith(WEAPONS[id].name));
+    return `<li class="${wid?'loot-w':''}" style="animation-delay:${.25+i*.18}s${wid?`;--rc:${RARITY[WEAPONS[wid].rarity].c}`:''}"><span class="loot-ic">${ic(wid?'sword':kind?ITEMS[kind].icon:'zap')}</span><b>${esc(l)}</b>${wid?`<em>${RARITY[WEAPONS[wid].rarity].n}</em>`:''}</li>`}).join('')}</ul>`;
 }
 
 /* ---------- random box ----------

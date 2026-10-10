@@ -25,6 +25,7 @@ document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
   if($('modal').classList.contains('open'))closeModal();
   else if(!$('shadowLayer').hidden)closeShadow();
+  else if(!$('weaponLayer').hidden)closeWeapon();
   else if(!$('trial').hidden&&!S.trialRun)closeTrial();
   else if(!$('recipeLayer').hidden)closeRecipe();
   else if(!$('groceryLayer').hidden)closeGrocery();
@@ -116,4 +117,4 @@ setInterval(checkDay,60000);
 
 applyTheme();
 if(needsAwakening()){renderAll();startAwakening()}
-else{processMissedDays();ensureWeekSnap();renderAll();animateIn($('status'));huntCatchUp();maybeReport();setTimeout(maybeChest,1000);setTimeout(maybeSudden,1200)}
+else{processMissedDays();ensureWeekSnap();renderAll();animateIn($('status'));huntCatchUp();armoryCatchUp();maybeReport();setTimeout(maybeChest,1000);setTimeout(maybeSudden,1200)}

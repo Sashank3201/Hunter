@@ -39,6 +39,8 @@ function fresh(){return {
   army:{captain:null,vice:null}, // shadow ids (the move each shadow came from)
   trialRun:null,     // rank-up trial in progress
   login:{last:null,streak:0,shown:null}, // daily supply chest
+  weapons:{},        // id -> {refine, date}
+  weaponEquipped:null,
   profile:null       // {name, haptics, theme, remindAt} once awakened
 }}
 
@@ -57,7 +59,8 @@ function migrate(s){
   if(legacyHunt){s.huntPending=true;s.huntInit=true}
   if(!s.inv.keys)s.inv.keys={E:0,D:0,C:0,B:0,A:0,S:0};
   // shadows from before shadow XP existed keep their level
-  s.shadows.forEach((sh,i)=>{if(sh.xp===undefined)sh.xp=shadowXpAt(sh.lvl||1);if(!sh.no)sh.no=i+1});
+  s.shadows.forEach((sh,i)=>{if(sh.xp===undefined)sh.xp=shadowXpAt(sh.lvl||1);if(!sh.no)sh.no=i+1;
+    if(sh.n==='Fangs')sh.n=`Soldier ${String(sh.no).padStart(2,'0')}`}); // Fangs left the legends; that shadow serves on as a soldier
   if(!s.army.captain&&s.shadows.length)s.army.captain=s.shadows[0].ex;
   return s;
 }

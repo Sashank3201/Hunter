@@ -8,7 +8,7 @@ function minutesTrained(){return Object.values(S.log).reduce((a,r)=>a+(r.duratio
 function fullPushupDone(){const st=LADDERS.push.steps.map(s=>s[0]);return st.slice(3).some(n=>S.prs[n])||S.ladders.push.step>3}
 const FEAT=(id,title,desc,target,prog,reward,exp)=>({id,title,desc,target,prog,reward,exp});
 const FEATS=[
-  FEAT('first-quest','The Beginning','Clear your first daily quest.',1,()=>S.totalQuests,[['key',1,'E']],25),
+  FEAT('first-quest','The Beginning','Clear your first daily quest.',1,()=>S.totalQuests,[['key',1,'E'],['weapon',1,'rusty']],25),
   FEAT('streak-7','Persistent','Reach a 7-day streak.',7,()=>S.bestStreak,[['box',1]],50),
   FEAT('streak-30','Iron Will','Reach a 30-day streak.',30,()=>S.bestStreak,[['holy',1]],150),
   FEAT('streak-60','Unbreakable','Reach a 60-day streak.',60,()=>S.bestStreak,[['holy',1],['elixir',1]],300),
@@ -91,7 +91,7 @@ function featsHTML(){
   const order=[...FEATS].sort((a,b)=>(!!S.feats[b.id])-(!!S.feats[a.id])||featProgress(b)/b.target-featProgress(a)/a.target);
   h+=`<div class="sec-label"><span class="overline">All achievements</span></div><div class="card tight"><ul class="list plain">${order.map(f=>{
     const done=!!S.feats[f.id],p=featProgress(f);
-    const rw=[...(f.exp?[`+${f.exp} EXP`]:[]),...f.reward.map(([k,c,g])=>(c>1?c+'× ':'')+(k==='key'?`${g||'Rank'}-grade key`:ITEMS[k].name))].join(' · ');
+    const rw=[...(f.exp?[`+${f.exp} EXP`]:[]),...f.reward.map(([k,c,g])=>(c>1?c+'× ':'')+(k==='key'?`${g||'Rank'}-grade key`:k==='weapon'?WEAPONS[g].name:ITEMS[k].name))].join(' · ');
     return `<li class="feat${done?' won':''}"><div class="lrow" style="align-items:flex-start"><span class="lead">${ic(done?'medal':'shield')}</span><div class="grow">
       <p class="t">${f.title}</p><p class="s">${f.desc}</p>
       ${done?`<p class="log-line">Unlocked ${fmtDate(S.feats[f.id])}</p>`:`<div class="prog" style="margin-top:8px"><i style="width:${p/f.target*100}%"></i></div><p class="s">${p.toLocaleString('en-US')} / ${f.target.toLocaleString('en-US')}</p>`}

@@ -39,7 +39,7 @@ const swirlTex=color=>canvasTex(256,256,(g,w)=>{g.translate(w/2,w/2);const r=g.c
   for(let a=0;a<6;a++){g.beginPath();for(let t=0;t<1;t+=.02){const ang=a*Math.PI/3+t*5,rad=t*w*.48;g.lineTo(Math.cos(ang)*rad,Math.sin(ang)*rad)}g.stroke()}});
 
 /* ---------- the world ---------- */
-export function createWorld(canvas,{grade='E',waves=4,bossWave=3,reduced=false}={}){
+export function createWorld(canvas,{grade='E',waves=4,bossWave=3,reduced=false,weapon=null}={}){
   const T=THEMES[grade]||THEMES.E,rnd=rngOf(grade.charCodeAt(0)*7919);
   const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.6));
@@ -254,6 +254,70 @@ export function createWorld(canvas,{grade='E',waves=4,bossWave=3,reduced=false}=
   const ppts=new THREE.Points(pgeo2,keep(new THREE.PointsMaterial({color:'#ff6a5a',size:.08,map:GLOW,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending})));ppts.frustumCulled=false;portal.add(ppts);
   portal.position.set(0,1.6,0);
 
+  /* ----- first-person weapon: the equipped blade, held at the lower right ----- */
+  scene.add(camera);
+  const fp={hands:[],arcs:[],draw:0,flip:1};
+  function bladeShape(shape,len,w){
+    const s=new THREE.Shape();
+    if(shape==='fang'){s.moveTo(-w/2,0);s.lineTo(w/2,0);s.quadraticCurveTo(w*1.3,len*.6,-w*.15,len);s.quadraticCurveTo(-w*.25,len*.5,-w/2,0)}
+    else if(shape==='serrated'){s.moveTo(-w/2,0);s.lineTo(w/2,0);for(let i=1;i<=6;i++){s.lineTo(w*(i%2?.75:.45),len*(.12*i));}s.lineTo(w*.35,len*.82);s.lineTo(0,len);s.lineTo(-w/2,len*.8)}
+    else{s.moveTo(-w/2,0);s.lineTo(w/2,0);s.lineTo(w/2,len*.8);s.lineTo(0,len);s.lineTo(-w/2,len*.8)}
+    s.closePath();return s;
+  }
+  function makeBlade(look,type){
+    const g=new THREE.Group(),spear=type==='spear',len=type==='sword'?.86:spear?.26:.46,w=type==='sword'?.072:spear?.07:.056;
+    const bm=mat(look.blade,{metalness:.85,roughness:.26,flatShading:true,emissive:look.glow,emissiveIntensity:.32});
+    const dm=mat(look.dark,{metalness:.55,roughness:.45}),gm=mat(look.grip,{roughness:.9});
+    const bg=geo(new THREE.ExtrudeGeometry(bladeShape(spear?'straight':look.shape,len,w),{depth:.012,bevelEnabled:true,bevelThickness:.004,bevelSize:.005,bevelSegments:1}));bg.translate(0,0,-.006);
+    const blade=new THREE.Mesh(bg,bm),y0=spear?.62:0;blade.position.y=y0;g.add(blade);
+    const edge=new THREE.LineSegments(geo(new THREE.EdgesGeometry(bg)),keep(new THREE.LineBasicMaterial({color:look.edge,transparent:true,opacity:.85})));edge.position.y=y0;g.add(edge);
+    const aura=sprite(look.glow,1,.5);aura.scale.set(w*5,len*1.6,1);aura.position.y=y0+len*.5;g.add(aura);
+    if(spear){const sh=new THREE.Mesh(geo(new THREE.CylinderGeometry(.014,.016,1.2,8)),gm);sh.position.y=.02;g.add(sh);
+      [.3,.0,-.3].forEach(y=>{const b=new THREE.Mesh(geo(new THREE.CylinderGeometry(.022,.022,.03,8)),dm);b.position.y=y;g.add(b)})}
+    else{const guard=new THREE.Mesh(geo(new THREE.BoxGeometry(type==='sword'?.2:.15,.024,.036)),dm);g.add(guard);
+      const grip=new THREE.Mesh(geo(new THREE.CylinderGeometry(.017,.019,.15,8)),gm);grip.position.y=-.088;g.add(grip);
+      const pom=new THREE.Mesh(geo(new THREE.SphereGeometry(.024,8,6)),dm);pom.position.y=-.172;g.add(pom)}
+    g.scale.setScalar(type==='dagger'||type==='twin'?.62:.5);
+    g.userData={aura,swing:-1,spear};return g;
+  }
+  if(weapon){
+    const hands=weapon.type==='twin'?[1,-1]:[1];
+    hands.forEach(sd=>{const h=makeBlade(weapon.look,weapon.type);h.userData.sd=sd;h.visible=false;camera.add(h);fp.hands.push(h)});
+  }
+  // the slash: a glowing arc in front of the camera
+  const arcGeo=geo(new THREE.RingGeometry(.29,.345,48,1,0,Math.PI*.9)),arcCore=geo(new THREE.RingGeometry(.312,.322,48,1,0,Math.PI*.9));
+  function slash(big){
+    const col=weapon?weapon.look.glow:T.light,grp=new THREE.Group();
+    const m1=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,depthTest:false,depthWrite:false});
+    const m2=new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:0,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,depthTest:false,depthWrite:false});
+    grp.add(new THREE.Mesh(arcGeo,m1),new THREE.Mesh(arcCore,m2));
+    fp.flip=-fp.flip;grp.position.set(0,.07,-1);grp.rotation.z=-.47;grp.scale.set((big?1.45:1)*fp.flip,big?1.45:1,1); // mirrored every other cut
+    grp.renderOrder=10;camera.add(grp);fp.arcs.push({grp,m:[m1,m2],t:0,big});
+  }
+  function swing(big){
+    if(!fp.hands.length){slash(big);return}
+    const h=fp.hands.length>1?fp.hands[(fp.next=(fp.next||0)+1)%2]:fp.hands[0];
+    h.userData.swing=0;h.userData.big=big;setTimeout(()=>{if(!dead)slash(big)},70);
+  }
+  function updateWeapon(dt){
+    if(fp.draw<1&&fp.hands.length&&fp.hands[0].visible)fp.draw=Math.min(1,fp.draw+dt/.55);
+    const d=ease(fp.draw),bob=reduced?0:Math.sin(time*2.2)*.008;
+    fp.hands.forEach(h=>{const u=h.userData,sd=u.sd;
+      let a=0,px=0,py=0,pz=0;
+      if(u.swing>=0){u.swing+=dt;const k=Math.min(1,u.swing/(u.big?.5:.34));
+        if(u.spear){pz=-.45*Math.sin(k*Math.PI);py=.05*Math.sin(k*Math.PI);px=-.06*Math.sin(k*Math.PI)}
+        else{a=k<.22?.45*ease(k/.22):k<.48?.45-2.2*ease((k-.22)/.26):-1.75+1.75*ease((k-.48)/.52);px=-.2*Math.sin(k*Math.PI)*sd;py=.03*Math.sin(k*Math.PI)}
+        if(k>=1)u.swing=-1}
+      h.position.set(sd*.2+px,-.13+(1-d)*-.45+bob+py,-1.15+pz);
+      h.rotation.set(-.7,sd*-.85,sd*(.5+a));
+      u.aura.material.opacity=.38+Math.sin(time*4)*.12+(u.swing>=0?.3:0);
+    });
+    for(let i=fp.arcs.length-1;i>=0;i--){const s=fp.arcs[i];s.t+=dt;const k=s.t/(s.big?.5:.32);
+      const o=k<.15?k/.15:Math.max(0,1-(k-.15)/.85),sc=(s.big?1.45:1)*(.9+k*.25);s.m[0].opacity=o*.85;s.m[1].opacity=o;s.grp.scale.set(sc*Math.sign(s.grp.scale.x),sc,1);s.grp.rotation.z+=dt*(s.big?1.2:2)*Math.sign(s.grp.scale.x);
+      if(k>=1){camera.remove(s.grp);s.m.forEach(m=>m.dispose());fp.arcs.splice(i,1)}}
+  }
+  const showWeapon=()=>fp.hands.forEach(h=>h.visible=true);
+
   /* ----- camera choreography ----- */
   let active='dungeon',tw=null,shake=0,cur=0,dead=false,defeatT=0,victoryT=0,par={x:0,y:0};
   const camPos=V(0,1.6,8),camLook=V(0,1.4,-10);
@@ -313,6 +377,7 @@ export function createWorld(canvas,{grade='E',waves=4,bossWave=3,reduced=false}=
     // defeat: the dungeon closes in
     if(defeatT){defeatT+=dt;const k2=Math.min(1,defeatT/2);scene.fog.density=T.fog[1]*(1+k2*2.5);scene.fog.color.copy(fogBase).lerp(new THREE.Color('#3a0303'),k2);camPos.y=1.6-k2*.7}
     if(victoryT){victoryT+=dt}
+    updateWeapon(dt);
     // portal
     if(active==='portal'){ring.rotation.z+=dt*.6;ring2.rotation.z-=dt*1.4;disc.rotation.z-=dt*(1.6+portalSpin*4);
       const pa=pgeo2.attributes.position.array;pang.forEach((p,i)=>{p.a+=dt*(.6+portalSpin*3)*p.s;p.r-=dt*(.5+portalSpin*3)*p.s;if(p.r<.3)p.r=2.4+rnd()*4;
@@ -333,7 +398,7 @@ export function createWorld(canvas,{grade='E',waves=4,bossWave=3,reduced=false}=
   return {
     /* Fly through the Gate into the dungeon. onFlash fires as the camera passes the portal. */
     async enter(onFlash){
-      if(reduced){onFlash&&onFlash();return}
+      if(reduced){onFlash&&onFlash();showWeapon();return}
       active='portal';portal.scale.setScalar(.01);camPos.set(0,1.6,13);camLook.set(0,1.6,0);
       const t0=performance.now();
       await new Promise(res=>{const grow=()=>{const k=Math.min(1,(performance.now()-t0)/700);portal.scale.setScalar(.01+ease(k)*.99);if(k<1&&!dead)requestAnimationFrame(grow);else res()};grow()});
@@ -344,11 +409,12 @@ export function createWorld(canvas,{grade='E',waves=4,bossWave=3,reduced=false}=
       onFlash&&onFlash();
       active='dungeon';camera.fov=62;camera.updateProjectionMatrix();
       camPos.copy(stationPos(0)).add(V(0,0,6));camLook.copy(stationLook(0));
+      showWeapon();
       await tween(stationPos(0),stationLook(0),1.2);
     },
     /* Jump or walk to wave i. Waves before it are already cleared. */
     goto(i,instant){
-      cur=i;placeLights(i);
+      cur=i;placeLights(i);showWeapon();
       for(let w=0;w<i;w++)waveMobs[w].forEach(m=>{m.userData.alive=false;m.visible=false});
       showNear(i);
       if(i===bossWave)setTimeout(showBoss,instant?0:900);
@@ -363,11 +429,14 @@ export function createWorld(canvas,{grade='E',waves=4,bossWave=3,reduced=false}=
     /* A logged effort: a flash on whoever you are fighting. */
     hit(){
       const target=cur===bossWave?boss:(waveMobs[cur]||[]).find(m=>m.userData.alive);
-      if(target){target.userData.flash=.18;if(cur===bossWave)shake=reduced?0:Math.max(shake,.15)}
+      swing(false);
+      if(target){target.userData.flash=.18;if(cur===bossWave)shake=reduced?0:Math.max(shake,.15);
+        setTimeout(()=>{if(!dead)burst(target.position.clone().add(V(0,cur===bossWave?2.6:1.1,.4)),weapon?weapon.look.glow:T.light,26,2.2,.08)},90)}
     },
     /* Cleared the wave: the rest of its monsters die. */
     clearWave(){(waveMobs[cur]||[]).forEach((m,j)=>setTimeout(()=>{if(m.userData.alive){kill(m);burst(m.position.clone().add(V(0,1,0)),T.mob.eye,40,2.6)}},j*120))},
     victory(){
+      swing(true);setTimeout(()=>{if(!dead)swing(true)},220);
       if(boss&&boss.userData.alive){kill(boss);const p=boss.position.clone().add(V(0,2.5*boss.userData.base/1.9,0));burst(p,T.boss.eye,260,6,.18);burst(p,'#ffffff',120,4,.1);shake=reduced?0:.9}
       victoryT=.001;tween(stationPos(bossWave).add(V(0,.3,-2.5)),stationLook(bossWave).add(V(0,-1,0)),2.4);
     },

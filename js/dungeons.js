@@ -26,6 +26,7 @@ function renderGates(){
     <button class="btn block" style="margin-top:14px" data-act="gateResume">Return to the Gate</button></div>`;
   h+=`<div class="sec-label"><span class="overline">Rank-up trial</span></div>${trialCardHTML('gates')}`;
   h+=`<div class="sec-label"><span class="overline">Inventory</span><span class="small">${itemCount()} item${itemCount()===1?'':'s'}</span></div>${inventoryHTML()}`;
+  h+=armoryHTML();
   h+=`<div class="sec-label"><span class="overline">Gates</span><span class="small">${cleared} cleared</span></div>`;
   DUNGEONS.forEach(d=>{
     const k=keyFor(d.g),wins=S.dungeons.filter(x=>x.ok&&x.g===d.g).length,locked=gi(d.g)>gi(rankGrade())&&!k,lv=gateLevel(d.g);
@@ -33,6 +34,7 @@ function renderGates(){
       <div class="gate-g">${d.g}</div>
       <div class="grow"><p class="overline">${d.limit} min · ${d.waves.length} waves · Lv ${lv}${wins?` · cleared ${wins}×`:''}</p>
         <p class="h2">${d.name}</p><p class="s gate-focus">${d.focus}</p><p class="s">Boss: ${d.boss}</p>
+        <p class="s gate-drop" style="--rc:${RARITY[WEAPONS[GATE_WEAPON[d.g]].rarity].c}">${ic('sword')}${S.weapons[GATE_WEAPON[d.g]]?'':'Drops '}${esc(WEAPONS[GATE_WEAPON[d.g]].name)}${S.weapons[GATE_WEAPON[d.g]]?` · owned${refineOf(GATE_WEAPON[d.g])?' +'+refineOf(GATE_WEAPON[d.g]):''}`:''}</p>
         <p class="s faint">+${Math.round(d.exp*lvMult(lv))} EXP · ${dropText(d)}${S.titles.includes(d.title)?'':` · title "${d.title}"`}${lv>1?` · +${(lv-1)*10}% reps`:''}</p></div>
       ${run||S.trialRun?'':k?`<button class="btn sm" data-act="gateEnter" data-arg="${d.g}">Enter</button>`:`<span class="pill">${ic('key')}${d.g} key</span>`}</div>`;
   });
@@ -77,7 +79,8 @@ async function open3D(L,withPortal){
   const create=await load3D(),r=S.dungeonRun;
   if(!create||!r||L.hidden)return false;
   const d=gateOf(r.g);
-  try{W3=create($('d3c'),{grade:r.g,waves:d.waves.length,bossWave:d.waves.findIndex(w=>w.boss),reduced:reduceMotion.matches})}catch(e){W3=null;return false}
+  const wid=equippedWeapon(),weapon=wid?{type:WEAPONS[wid].type,look:WEAPONS[wid].look}:null;
+  try{W3=create($('d3c'),{grade:r.g,waves:d.waves.length,bossWave:d.waves.findIndex(w=>w.boss),reduced:reduceMotion.matches,weapon})}catch(e){W3=null;return false}
   L.onpointermove=e=>{if(W3)W3.look(e.clientX/innerWidth*2-1,e.clientY/innerHeight*2-1)};
   if(withPortal){buzz('alarm');await W3.enter(()=>{flash3D();buzz('set')})}
   if(!W3||!S.dungeonRun)return true;
@@ -102,7 +105,8 @@ ACT.dClose=closeDungeon;
 
 /* ---------- the raid ---------- */
 ACT.dBegin=()=>{const r=S.dungeonRun;if(!r||r.deadline)return;const d=gateOf(r.g);r.started=Date.now();r.deadline=r.started+Math.round(d.limit*60000*armyMult('gateTime'));save();buzz('set');dRender()};
-ACT.dAdd=n=>{const r=S.dungeonRun,w=waveOf(r);r.done=Math.min(w.amt,r.done+(+n));buzz('tap');save();if(W3){W3.hit();W3.progress(r.done/w.amt)}if(r.done>=w.amt)waveCleared();else dRender()};
+ACT.dAdd=n=>{const r=S.dungeonRun,w=waveOf(r);r.done=Math.min(w.amt,r.done+(+n));buzz('tap');save();if(W3){W3.hit();W3.progress(r.done/w.amt)}else slash2D=true;if(r.done>=w.amt)waveCleared();else dRender()};
+let slash2D=false; // the 2D screen gets a blade slash across the counter
 ACT.dHold=()=>{const r=S.dungeonRun,w=waveOf(r);r.hold=Date.now()+(w.amt-r.done)*1000;save();buzz('set');dRender()};
 ACT.dHoldStop=()=>{const r=S.dungeonRun,w=waveOf(r);r.done=Math.min(w.amt,w.amt-Math.ceil((r.hold-Date.now())/1000));r.hold=0;save();dRender()};
 ACT.dRetreat=()=>openModal(`<div class="m-stamp">Retreat?</div><p class="m-text">The Gate will close and the key is lost. No penalty.</p>
@@ -119,13 +123,14 @@ function waveCleared(){
   const f=document.querySelector('.d-flash');if(f){f.classList.remove('go');void f.offsetWidth;f.classList.add('go')}
 }
 function gateClear(){
-  const r=S.dungeonRun,d=gateOf(r.g),secs=Math.round((Date.now()-r.started)/1000);
+  const r=S.dungeonRun,d=gateOf(r.g),secs=Math.round((Date.now()-r.started)/1000),firstClear=!S.dungeons.some(x=>x.ok&&x.g===r.g);
   const reps=runWaves(r).filter(w=>!w.hold).reduce((a,w)=>a+w.amt*(w.side?2:1),0),lvBefore=gateLevel(r.g);
   const exp=Math.round(d.exp*lvMult(r.lv)*armyMult('gateExp'));
   S.totalReps+=reps;S.exp+=exp;
   const loot=[`+${exp} EXP`];
   const shUps=[];armyTrain(15*(gi(d.g)+1),shUps);const shLv=announceUps(shUps);
   Object.entries(d.drops).forEach(([k,p])=>{const n=p>=1?Math.floor(p):(Math.random()<p?1:0);if(n)loot.push(grantItem(k,n))});
+  const wid=GATE_WEAPON[r.g];if(wid&&(firstClear||Math.random()<WEAPON_DROP))loot.push(grantWeapon(wid)); // the boss's weapon
   const firstTitle=!S.titles.includes(d.title);
   if(firstTitle)S.titles=[...S.titles,d.title];
   S.dungeons.push({g:r.g,date:todayStr(),ok:true,secs});S.dungeonRun=null;
@@ -169,7 +174,7 @@ function dRender(){
     const remain=w.amt-r.done,holding=r.hold&&r.hold>Date.now();
     h+=`<div class="d-flash">Wave cleared</div><div class="w-body"><p class="overline">${w.boss?`Boss wave · ${d.boss}`:`Wave ${r.wave+1} of ${d.waves.length}`}</p>
       <h2 class="w-name${w.boss?' boss-name':''}">${w.n}</h2>${demoHTML(w.demo)}
-      <div class="w-target"><p class="overline">${w.work?'Seconds of work':w.hold?'Seconds to hold':w.side?'Reps left, each side':'Reps left'}</p><div class="big-num" id="dgLeft">${holding?Math.ceil((r.hold-Date.now())/1000):remain}</div>
+      <div class="w-target">${slash2D?(slash2D=false,`<i class="d2-slash" style="--rc:${equippedWeapon()?WEAPONS[equippedWeapon()].look.glow:'#D7261E'}"></i>`):''}<p class="overline">${w.work?'Seconds of work':w.hold?'Seconds to hold':w.side?'Reps left, each side':'Reps left'}</p><div class="big-num" id="dgLeft">${holding?Math.ceil((r.hold-Date.now())/1000):remain}</div>
       <div class="prog${w.boss?' bad':''}" style="width:100%"><i style="width:${r.done/w.amt*100}%"></i></div></div></div>`;
     h+=w.hold
       ?`<div class="w-foot">${holding?`<button class="btn ghost" data-act="dHoldStop">Stop</button>`:`<button class="btn" data-act="dHold">Start ${remain}s${w.work?'':' hold'}</button>`}</div>`
