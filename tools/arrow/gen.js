@@ -97,10 +97,16 @@ module.exports=function generate(app,seed=7){
   /* Hand-written chats collected separately (collected_*.tsv): real-sounding messages the templates
      can't produce. Each is used as written plus noisy copies, so they weigh more than template lines. */
   const fs=require('fs'),path=require('path');
+  /* Never train on anything that matches (or nearly matches) a blind-test message. */
+  const wset=t=>new Set(app.NLU.tokens(t));
+  const blind=fs.existsSync(path.join(__dirname,'blind_test.tsv'))?fs.readFileSync(path.join(__dirname,'blind_test.tsv'),'utf8').split('\n').filter(l=>l.trim()).map(l=>wset(l.split('\t')[1]||'')):[];
+  const near=t=>{const a=wset(t);return blind.some(b=>{let n=0;a.forEach(x=>{if(b.has(x))n++});return n/(a.size+b.size-n||1)>=.75})};
+  let dropped=0;
   fs.readdirSync(__dirname).filter(f=>/^collected_.*\.tsv$/.test(f)).forEach(f=>{
-    fs.readFileSync(path.join(__dirname,f),'utf8').split('\n').forEach(l=>{const [intent,text]=l.split('\t');if(!text||!T[intent])return;
+    fs.readFileSync(path.join(__dirname,f),'utf8').split('\n').forEach(l=>{const [intent,text]=l.split('\t');if(!text||!T[intent])return;if(near(text)){dropped++;return}
       const t=text.trim();out.push({text:t,intent,lang:'mix',src:t});for(let k=0;k<3;k++)out.push({text:noise(t,'en',intent),intent,lang:'mix',src:t})});
   });
+  if(dropped&&!module.exports.quiet)console.log(`collected chats: ${dropped} dropped for matching the blind test`);
   /* The same words under two intents confuse training: keep one owner (out_of_scope gives way). */
   const key=x=>app.NLU.tokens(x.text).join(' '),owner=new Map();
   out.forEach(x=>{const k=key(x);if(!k)return;const o=owner.get(k);if(!o||(o==='out_of_scope'&&x.intent!=='out_of_scope'))owner.set(k,x.intent)});
