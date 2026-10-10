@@ -1414,6 +1414,7 @@ details.acc .acc-body p{color:var(--ink-2);font-size:15px;padding:5px 0}
 .evc-ic{width:32px;height:32px;flex:none;display:grid;place-items:center;box-shadow:inset 0 0 0 1px var(--ink)}
 .evc-ic .ic{width:16px;height:16px}
 .ev-ch.done .evc-n{color:var(--ink-3)}
+.ev-ch.done .t{text-decoration:none;color:var(--ink-2)}
 .ev-ch.done .evc-ic{background:var(--green);color:#fff;box-shadow:none}
 .ev-ch.ready .evc-ic{background:var(--red);color:#fff;box-shadow:none;animation:evDot 1.6s ease-in-out infinite}
 .ev-ch.live{background:var(--red-soft);box-shadow:inset 4px 0 0 var(--red)}
@@ -1437,7 +1438,7 @@ details.acc .acc-body p{color:var(--ink-2);font-size:15px;padding:5px 0}
 .evr-art .skin-svg{width:60px;height:60px}
 .evr-art .sil{width:72px;height:86px}
 .evr-k{font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:#a9a3b8}
-.evr-tile b{font-weight:900;font-stretch:62%;font-size:15px;line-height:1;text-transform:uppercase;overflow-wrap:break-word;max-width:100%}
+.evr-tile b{font-weight:900;font-stretch:62%;font-size:13.5px;line-height:1;text-transform:uppercase;overflow-wrap:break-word;max-width:100%}
 .evr-s{font-family:var(--mono);font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:#ff8a7e;margin-top:3px}
 .evr-tile .fchip{height:26px;margin-top:5px;padding:0 8px;color:#ECE7DD;box-shadow:inset 0 0 0 1px rgba(236,231,221,.6)}
 .ev-next .lrow{gap:12px}
