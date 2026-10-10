@@ -1,0 +1,322 @@
+# Hand-written evaluation set for Arrow's intent model. NEVER used for training.
+# Written separately from the generator templates to measure how Arrow handles real phrasing.
+# intent<TAB>message
+log_food	Today I ate 5 Idlis in morning after that for lunch I ate rice with Drumstick curry and for dinner I'm eating 4 Idlis
+log_food	had 2 boiled eggs and a banana
+log_food	breakfast was poha and chai
+log_food	just finished a big plate of chicken biryani
+log_food	2 chapatis with paneer curry for dinner
+log_food	ate some curd rice
+log_food	3 dosas with chutney
+log_food	i had a glass of milk before bed
+log_food	lunch: rice, sambar, cabbage poriyal
+log_food	grabbed a samosa and tea in the evening
+log_food	rendu idlis tinna
+log_food	nenu ivala annam pappu tinnanu
+log_food	tiffin lo upma tinna
+log_food	moodu chapathi tinna rathri
+log_food	oka glass paalu taaganu
+log_food	madhyanam chicken biryani tinna
+log_food	do roti aur dal khayi
+log_food	maine aaj subah poha khaya
+log_food	raat ko khichdi khaya
+log_food	ek glass doodh piya
+log_food	lunch mein rajma chawal khaya
+log_food	3 glasses of water
+log_food	drank 2 litres of water today
+log_food	paani piya 2 glass
+log_food	neellu taaganu
+log_food	200g grilled chicken post workout
+log_food	half plate fried rice
+log_food	a bowl of oats with banana
+log_food	ate 4 idli and vada
+log_food	had maggi lol
+log_food	kodi guddu rendu tinna
+log_food	ande khaye do
+log_food	pesarattu upma tinna
+log_food	ragi mudde and natu kodi curry
+log_food	evening snacks mirchi bajji
+log_food	dinner chapathi and egg curry
+log_food	coffee with 2 biscuits
+log_food	morning a cup of coffee
+log_food	2 slices bread with peanut butter
+log_food	1 scoop whey after gym
+food_info	how many calories in a dosa
+food_info	protein in 100g paneer?
+food_info	is biryani high in calories
+food_info	how much protein does an egg have
+food_info	calories of 2 chapatis
+food_info	dosa lo entha protein untundi
+food_info	roti mein kitni calories hoti hai
+food_info	what are the macros of chicken breast
+food_info	how many kcal in a banana
+food_info	idli lo calories entha
+food_info	how healthy is curd rice
+food_info	does milk have a lot of protein
+undo	undo
+undo	oops remove that
+undo	delete the last thing
+undo	that was wrong, take it back
+undo	undo last entry pls
+undo	adi teeseyi
+undo	pichadi delete cheyyi
+undo	galti se add hua hata do
+undo	cancel the last log
+remove_item	remove the samosa
+remove_item	delete rice from today
+remove_item	take out the coke i logged
+remove_item	biryani teeseyi
+remove_item	chai hata do list se
+correction	drumstick curry is 150 kcal
+correction	actually a dosa is about 180 calories
+correction	2 rotis = 240 cal
+correction	my idli is 70 kcal each
+correction	paneer curry has 350 calories and 15 g protein
+summary	how am i doing today
+summary	whats my total so far
+summary	show me today's summary
+summary	how many calories have i eaten
+summary	ivala entha tinnanu
+summary	aaj kitna khaya maine
+summary	status check
+summary	how much protein did i get today
+summary	what's left for today
+targets	what's my calorie target
+targets	how much protein should i eat daily
+targets	how much water should i drink
+targets	naa target entha
+targets	mera daily goal kya hai
+targets	what are my macros
+set_goal	i want to lose fat
+set_goal	switch me to bulk
+set_goal	change my goal to maintenance
+set_goal	i wanna cut now
+set_goal	weight taggali
+set_goal	mujhe weight badhana hai
+suggest_meal	what should i eat for dinner
+suggest_meal	i'm hungry
+suggest_meal	suggest something high protein
+suggest_meal	what can i eat before workout
+suggest_meal	post workout meal ideas
+suggest_meal	emi tinali ippudu
+suggest_meal	aakali ga undi
+suggest_meal	kya khaun abhi
+suggest_meal	bhookh lagi hai
+suggest_meal	give me a snack idea
+suggest_meal	what's a good late night snack
+repeat_meal	same as yesterday
+repeat_meal	same breakfast as yesterday
+repeat_meal	the usual
+repeat_meal	log my usual breakfast
+repeat_meal	ninna laage tinna
+repeat_meal	kal jaisa hi khaya
+repeat_meal	same lunch as always
+skipped_meal	i skipped breakfast
+skipped_meal	didn't eat anything today
+skipped_meal	no lunch today
+skipped_meal	emi tinaledu
+skipped_meal	breakfast skip chesa
+skipped_meal	aaj kuch nahi khaya
+skipped_meal	i'm fasting today
+dont_know	i don't know what i ate
+dont_know	can't remember what i had
+dont_know	no idea how much i ate
+dont_know	gurtu ledu
+dont_know	pata nahi kya khaya
+dont_know	not sure what was in it
+kitchen_add	i have eggs paneer and spinach at home
+kitchen_add	bought chicken and onions
+kitchen_add	fridge lo paneer undi
+kitchen_add	ghar mein aloo aur pyaz hai
+kitchen_add	add tomatoes to my kitchen
+kitchen_add	we have rice, dal and curd
+kitchen_remove	out of eggs
+kitchen_remove	milk is finished
+kitchen_remove	eggs ayipoyayi
+kitchen_remove	doodh khatam ho gaya
+kitchen_remove	remove paneer from my kitchen
+kitchen_show	what's in my kitchen
+kitchen_show	show my pantry
+kitchen_show	what ingredients do i have
+kitchen_cook	what can i cook
+kitchen_cook	what can i make with eggs and rice
+kitchen_cook	emi vandali
+kitchen_cook	kya banau aaj
+kitchen_cook	recipe with what i have
+reset_log	reset today's food log
+reset_log	delete everything i ate today
+reset_log	start today's log over
+reset_log	clear all food entries
+clear_chat	Clear the chat please
+clear_chat	delete all messages
+clear_chat	wipe this conversation
+clear_chat	chat clear cheyyi
+clear_chat	chat saaf karo
+clear_chat	start a new chat
+greet	Hello
+greet	hey arrow
+greet	hi there
+greet	good morning
+greet	yo
+greet	namaste
+greet	hii
+greet	hey bro
+bye	bye
+bye	good night arrow
+bye	see you later
+bye	ok i'm done for now
+bye	tata
+thanks	thanks
+thanks	thank you so much
+thanks	thx bro
+thanks	dhanyavaad
+thanks	thanks ra
+praise	you're awesome
+praise	good bot
+praise	nice work arrow
+praise	you're actually smart
+praise	love you arrow
+insult	you're useless
+insult	stupid bot
+insult	you're so dumb
+insult	worst app ever
+how_are_you	how are you
+how_are_you	how's it going
+how_are_you	ela unnav
+how_are_you	kaise ho
+how_are_you	what's up
+who_are_you	who are you
+who_are_you	what's your name
+who_are_you	nuvvu evaru
+who_are_you	tum kaun ho
+who_are_you	are you a robot
+help	help
+help	what can you do
+help	how do i use you
+help	what are your features
+help	commands
+joke	tell me a joke
+joke	make me laugh
+joke	ek joke sunao
+joke	say something funny
+laugh	lol
+laugh	hahaha
+laugh	😂😂
+laugh	lmao
+affirm	yes
+affirm	yeah sure
+affirm	ok do it
+affirm	avunu
+affirm	haan
+affirm	yep go ahead
+deny	no
+deny	nope
+deny	don't
+deny	vaddu
+deny	nahi
+deny	not now
+out_of_scope	what's the weather today
+out_of_scope	who won the match yesterday
+out_of_scope	write my homework
+out_of_scope	what's 25 times 4
+out_of_scope	play a song
+out_of_scope	book a cab
+out_of_scope	cinema ki veldama
+out_of_scope	kal movie dekhne chalein
+out_of_scope	what is the capital of france
+out_of_scope	my phone is lagging
+ask_streak	what's my streak
+ask_streak	how many days in a row have i trained
+ask_streak	is my streak still alive
+ask_streak	naa streak entha
+ask_level	what level am i
+ask_level	what's my rank
+ask_level	how much exp do i have
+ask_level	how close am i to level up
+ask_level	mera rank kya hai
+ask_quest	what's my workout today
+ask_quest	today's quest?
+ask_quest	how many push ups do i have to do today
+ask_quest	did i finish today's quest
+ask_quest	ivala workout enti
+ask_quest	aaj ka workout kya hai
+ask_quest	is today a rest day
+ask_records	what's my best push up record
+ask_records	show my personal records
+ask_records	my max plank time
+ask_records	what are my PRs
+ask_shadows	who is my strongest shadow
+ask_shadows	how many shadows do i have
+ask_shadows	who's my captain
+ask_shadows	what level is igris
+ask_next_rank	when can i rank up
+ask_next_rank	what do i need for the next rank
+ask_next_rank	when is my next trial
+ask_next_rank	next rank ki entha undi
+ask_stats	what are my stats
+ask_stats	how much strength do i have
+ask_stats	show my agility
+ask_stats	do i have stat points to spend
+ask_items	how many keys do i have
+ask_items	what's in my inventory
+ask_items	which weapon do i have equipped
+ask_items	do i have any potions
+ask_week	how was my week
+ask_week	how many workouts this week
+ask_week	total reps so far
+ask_week	is baar kitne din workout kiya
+exercise_howto	how do i do a pull up
+exercise_howto	push up form tips
+exercise_howto	how to do a plank properly
+exercise_howto	pike push up ela cheyali
+exercise_howto	squat kaise karte hain
+exercise_howto	show me how to do diamond push ups
+exercise_howto	what's the right way to do lunges
+motivate	i don't feel like working out
+motivate	motivate me
+motivate	i'm so lazy today
+motivate	badhakam ga undi
+motivate	mann nahi kar raha
+motivate	give me some motivation
+motivate	i want to give up
+recovery	my legs are so sore
+recovery	should i train if i'm sore
+recovery	how to recover faster
+recovery	i slept only 4 hours should i still train
+recovery	body pains ga unnayi
+pain	my shoulder hurts when i do push ups
+pain	knee pain while squatting
+pain	i think i pulled a muscle
+pain	back lo noppi ga undi
+pain	kamar mein dard hai
+coach_tip	how do i get abs
+coach_tip	how to increase push ups
+coach_tip	tips to build muscle
+coach_tip	how long should i rest between sets
+coach_tip	how to get stronger fast
+open_tab	go to gates
+open_tab	open progress
+open_tab	show me the diet page
+open_tab	take me to the quest tab
+open_tab	show my shadows
+open_tab	open the armory
+open_tab	show my grocery list
+open_tab	open history
+open_tab	gates open cheyyi
+open_tab	progress dikhao
+start_workout	start my workout
+start_workout	let's train
+start_workout	begin today's quest
+start_workout	workout start cheyyi
+start_workout	workout shuru karo
+start_workout	let's go time to work out
+open_license	show my hunter license
+open_license	open my card
+open_license	show my id card
+open_settings	open settings
+open_settings	open my profile
+open_settings	settings kholo
+theme	dark mode
+theme	switch to light mode
+theme	turn on night mode
+theme	make it dark

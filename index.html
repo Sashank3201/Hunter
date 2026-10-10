@@ -44,7 +44,7 @@ if(p.theme==='light'||p.theme==='dark')document.documentElement.dataset.theme=p.
 <div class="layer" id="menu" role="dialog" aria-modal="true" aria-label="Profile and settings" hidden></div>
 <div class="layer" id="cardLayer" role="dialog" aria-modal="true" aria-label="Hunter License" hidden></div>
 <div class="layer" id="recipeLayer" role="dialog" aria-modal="true" aria-label="Recipe" hidden></div>
-<div class="layer bot-layer" id="botLayer" role="dialog" aria-modal="true" aria-label="System bot food log" hidden></div>
+<div class="layer bot-layer" id="botLayer" role="dialog" aria-modal="true" aria-label="Arrow" hidden></div>
 <div class="layer" id="groceryLayer" role="dialog" aria-modal="true" aria-label="Grocery list" hidden></div>
 <div class="layer" id="dungeon" role="dialog" aria-modal="true" aria-label="Gate" hidden></div>
 <div class="layer" id="reportLayer" role="dialog" aria-modal="true" aria-label="Weekly report" hidden></div>
@@ -53,6 +53,8 @@ if(p.theme==='light'||p.theme==='dark')document.documentElement.dataset.theme=p.
 <div class="layer sh-layer w-layer" id="weaponLayer" role="dialog" aria-modal="true" aria-label="Weapon" hidden></div>
 <div class="layer" id="awaken" role="dialog" aria-modal="true" aria-label="Awakening" hidden></div>
 <div class="modal" id="modal" role="dialog" aria-modal="true"><div class="modal-box" id="modalBox"></div></div>
+<button class="arrow-fab" id="arrowFab" data-act="arrowOpen" aria-label="Talk to Arrow" hidden><span class="af-stage" id="arrowFabStage"></span></button>
+<div class="arrow-nudge" id="arrowNudge" role="status" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="tip" id="tip" hidden></div>
 <div class="arise" id="arise" role="dialog" aria-label="Shadow extraction" hidden></div>
@@ -62,6 +64,8 @@ if(p.theme==='light'||p.theme==='dark')document.documentElement.dataset.theme=p.
 <script src="js/util.js"></script>
 <script src="js/vendor/avatar-runtime.js"></script>
 <script src="js/bot.js"></script>
+<script src="js/arrow-lex.js"></script>
+<script src="js/arrow-nlu.js"></script>
 <script src="js/state.js"></script>
 <script src="js/engine.js"></script>
 <script src="js/demos.js"></script>
@@ -83,6 +87,7 @@ if(p.theme==='light'||p.theme==='dark')document.documentElement.dataset.theme=p.
 <script src="js/trials.js"></script>
 <script src="js/chest.js"></script>
 <script src="js/report.js"></script>
+<script src="js/arrow.js"></script>
 <script src="js/main.js"></script>
 <script>
 if('serviceWorker' in navigator){

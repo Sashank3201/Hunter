@@ -1349,3 +1349,26 @@ details.acc .acc-body p{color:var(--ink-2);font-size:15px;padding:5px 0}
 .bg-pop{position:absolute;z-index:3;font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--red);pointer-events:none;animation:bgPop .8s var(--ease) both}
 .bg-pop.m{color:var(--ink-3)}
 @keyframes bgPop{from{opacity:1;transform:translate(-50%,-50%)}to{opacity:0;transform:translate(-50%,-190%)}}
+
+/* ---------- Arrow: the floating orb and its nudges ---------- */
+.arrow-fab{position:fixed;right:max(14px,calc((100vw - 560px) / 2 + 14px));bottom:calc(var(--tabbar) + 14px + env(safe-area-inset-bottom));z-index:30;width:66px;height:66px;padding:0;cursor:pointer}
+.arrow-fab.raised{bottom:calc(var(--tabbar) + 96px + env(safe-area-inset-bottom))}
+.af-stage{position:absolute;inset:0;display:block;transition:transform .15s var(--ease)}
+.arrow-fab:active .af-stage{transform:scale(.9)}
+.arrow-nudge{position:fixed;right:calc(max(14px,calc((100vw - 560px) / 2 + 14px)) + 78px);bottom:calc(var(--tabbar) + 24px + env(safe-area-inset-bottom));z-index:31;
+  width:max-content;max-width:min(250px,calc(100vw - 118px));display:flex;align-items:flex-start;background:var(--paper);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.arrow-nudge.raised{bottom:calc(var(--tabbar) + 106px + env(safe-area-inset-bottom))}
+.arrow-nudge.in{animation:fadeUp .3s var(--ease) both}
+.arrow-nudge::before{content:'';position:absolute;right:-9px;bottom:16px;border:8px solid transparent;border-right:0;border-left:9px solid var(--ink)}
+.arrow-nudge::after{content:'';position:absolute;right:-6px;bottom:18px;border:6px solid transparent;border-right:0;border-left:7px solid var(--paper)}
+.an-say{flex:1;text-align:left;padding:10px 2px 10px 12px;font-size:14px;line-height:1.3;font-weight:550}
+.an-x{width:34px;height:36px;display:grid;place-items:center;color:var(--ink-3);flex:none}
+.an-x .ic{width:14px;height:14px}
+
+/* ---------- Arrow: chat extras ---------- */
+.msg-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.msg-demo{width:100%;box-shadow:inset 0 0 0 1.5px var(--ink);margin-top:-1.5px;padding:8px 12px 4px}
+.msg-demo .demo{margin:0}
+.msg-demo svg{width:100%;max-height:150px}
+.msg-wrong{margin-top:6px;padding:4px 0;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);text-decoration:underline;text-underline-offset:3px}
+.msg.bot:has(.msg-demo){max-width:100%;width:100%}

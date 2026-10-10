@@ -1,0 +1,800 @@
+log_food	ivala breakfast lo rendu dosalu oka vada tinna ra
+log_food	lunch ki annam pappu perugu tinanu anna, side lo konchem gongura pachadi kuda
+log_food	podduna pongal oka plate, 2 idlys sambar tho tinnaanu
+log_food	ippude oka pedda glass majjiga tagaanu 🥛
+log_food	raatri 3 chapathi chepa pulusu tho tinna bro
+log_food	ra office nunchi vastu bandi daggara rendu mirchi bajji tinna sorry 😅 add cheyyi
+log_food	madhyanam chicken biryani full plate laginchesa 😋😋
+log_food	gym ayyaka 4 boiled eggs oka arati pandu tinnanu raa
+log_food	aaj subah do aloo paratha khaye dahi ke saath
+log_food	bhai abhi ek plate poha khaaya
+log_food	lunch mein rajma chawal khaya hai ek bada katora
+log_food	yaar shaam ko dosto ke saath tapri pe 2 samose aur ek cutting chai pi li, gym ke baad bahut bhookh lagi thi
+log_food	raat ko paneer bhurji aur teen roti khayi
+log_food	abhi abhi ek glass meethi lassi piya 😋
+log_food	had 2 chapatis n a bowl of dal for dinner
+log_food	just ate 200g grilled chicken with rice
+food_info	oka dosa lo entha calories untayi ra
+food_info	pesarattu lo protein entha undi
+food_info	biryani healthy aa kaadaa? 🤔
+food_info	weight loss ki idli manchidaa leka upma aa
+food_info	100g kodi kura lo protein enta anna
+food_info	pongal lo entha calories, ghee chala vestaru kada
+food_info	gongura pachadi tinte fat perugutunda ra
+food_info	ra cheppu pulihora lo carbs chala ekkuva untaya, cutting lo tinochaa
+food_info	ek samose mein kitni calories hoti hai
+food_info	paneer mein protein kitna hota hai bhai
+food_info	chole bhature healthy hai kya ya bas tasty 😂
+food_info	ek ande mein kitna protein hota h
+food_info	rajma chawal ke macros batao na zara
+food_info	how many calories in a plate of chicken biryani
+food_info	is poha good for cutting?
+food_info	whats the protien in 1 cup of dal
+undo	last entry undo cheyyi ra
+undo	ippudu add chesindi teeseyi, tappu ayyindi
+undo	aa last di delete cheyyi anna
+undo	ayyo wrong button nokkesa, ippude add ayyindi kada adi undo cheyyi 😩
+undo	last log chesindi cancel cheyyi plz
+undo	arey tappuga add chesa ra, adi venakki teesuko
+undo	ippude pettina entry remove cheyi
+undo	chivari entry okkati teesesey chaalu
+undo	last wala hata do bhai
+undo	abhi jo add kiya woh undo karo
+undo	galti se daal diya, last entry delete kar
+undo	pichli entry hatao yaar
+undo	undo kar de jaldi 🙏
+undo	undo that
+undo	remove the last entry pls
+undo	oops wrong one, undo the last log
+remove_item	list lo nunchi dosa teeseyi
+remove_item	aa pulihora entry delete cheyyi ra, actually nenu tinaledu adi
+remove_item	biryani ni ivalti log nunchi remove cheyyi
+remove_item	lassi teesey anna, adi ninna tagindi
+remove_item	log lo unna chapathi teeseyi ra
+remove_item	vada delete cheyyi bro tinaledu
+remove_item	majjiga entry remove chey
+remove_item	kodi kura teeseyi list lo nundi, adi friend ki ichesa
+remove_item	paratha hata do aaj ke log se
+remove_item	chai wali entry delete karo
+remove_item	samosa remove kar do yaar, woh actually dost ne khaya tha maine bas ek bite liya
+remove_item	paneer bhurji hatao list se
+remove_item	poha nikal do log se bhai
+remove_item	rajma chawal wali entry delete kar de
+remove_item	remove the rice from todays log
+remove_item	delete the banana entry
+correction	aa dosa 150 kcal ra, 300 kaadu
+correction	ra naa biryani hotel di kaadu intlo chesindi, actually 650 calories 28g protein, adi update cheyyi
+correction	idli okati 40 calories maatrame anna, correct cheyyi
+correction	pesarattu 180 kcal, protein 9g ani pettu
+correction	kodi kura oka bowl ki 320 cal 30g protein
+correction	tappu chupistunnav ra, upma 250 calories
+correction	aa chapathi 120 kaadu ra 90 kcal ye
+correction	majjiga glass ki 40 calories anthe, nuvvu ekkuva vesav
+correction	samosa 260 kcal hai bhai update kar
+correction	ek paratha 200 calories ka hota hai, tune galat likha
+correction	paneer bhurji 350 cal aur 20g protein hai
+correction	mera lassi 180 kcal tha, change karo
+correction	poha 270 calories hai yaar, protein 6g
+correction	the chicken breast was 165 kcal and 31g protein
+correction	actually that roti is 110 calories
+correction	fix it, dal is 150 kcal per bowl
+summary	ivala entha tinnanu ippati varaku
+summary	inka enni calroies migilayi ra
+summary	naa protein ivala entha ayyindi
+summary	ivalti total cheppu anna
+summary	ippati daaka entha tinna, limit dhaatana 😬
+summary	inka entha tinochu ivala
+summary	today summary chupinchu ra
+summary	ra ivala motham entha calories ayyayi protein entha vachindi, dinner ki inka space undaa
+summary	aaj kitna khaya maine ab tak
+summary	kitni calories bachi hai aaj ki
+summary	aaj ka protein kitna hua bhai
+summary	aaj ka hisaab batao
+summary	limit cross toh nahi hua na aaj
+summary	abhi aur kitna kha sakta hu aaj
+summary	how much have i eaten today
+summary	calories left for today?
+targets	naa daily calorie target enta ra
+targets	roju ki entha protein tinali naaku
+targets	naa water target entha, enni litres
+targets	naa targets cheppu anna
+targets	roju entha kalori tinali ani set chesav
+targets	carbs fat protein target enti naaku
+targets	nuvvu naaku pettina limits enti ra, calories protein water
+targets	daily ga enni glasses neellu tagali
+targets	mera daily calorie target kya hai
+targets	mujhe roz kitna protein khana chahiye
+targets	paani ka target kitna hai mera
+targets	bhai ek baar phir se bata mera roz ka calorie aur protein target kitna rakha hai
+targets	din ka calorie limit kitna set hai
+targets	what are my daily targets
+targets	whats my protein target
+targets	how much water am i supposed to drink daily
+set_goal	naa goal cut ki maarchu ra
+set_goal	bulk cheyyali anukuntunna, goal chnage cheyyi
+set_goal	fat taggali anna, aa goal pettu
+set_goal	weight perugali, gain weight ki set cheyyi
+set_goal	maintain lo pettu ika, cut chalu
+set_goal	repati nunchi lean bulk start cheddam, goal update cheyyi
+set_goal	potta taggali ra cutting mode on cheyyi
+set_goal	naa goal ni weight loss ga marchu
+set_goal	goal bulk pe set kar do
+set_goal	yaar next month shaadi hai, mujhe fat lose karna hai, goal badlo
+set_goal	ab maintenance pe daal do bhai
+set_goal	weight gain karna hai goal change karo
+set_goal	cutting shuru karni hai mujhe, goal update kar
+set_goal	mera goal ab vajan kam karna hai
+set_goal	change my goal to cut
+set_goal	switch me to maintenance
+suggest_meal	aakali ga undi ra emi tinali
+suggest_meal	ippudu emi tinali cheppu
+suggest_meal	workout mundu emi tinte manchidi
+suggest_meal	post wrkout ki emi tinali anna
+suggest_meal	dinner ki emi tinamantav
+suggest_meal	high protein breakfast edaina cheppu
+suggest_meal	aakalitho chachipotunna ra, quick ga edaina suggest cheyyi 😩
+suggest_meal	sayantram 5 ki aakali vestundi ra, dinner ki inka time undi, madhyalo light snack emi tinochu
+suggest_meal	bhai bahut bhookh lagi hai kya khaun abhi
+suggest_meal	raat ko kya khana chahiye
+suggest_meal	workout ke baad kya khau
+suggest_meal	koi achha protein wala nashta batao
+suggest_meal	lunch mein kya khaun aaj
+suggest_meal	what should i eat for dinner
+suggest_meal	suggest a pre workout meal
+suggest_meal	hungry af, any meal ideas?
+repeat_meal	ninna tinnade ivala kuda tinna
+repeat_meal	same as ninna ra, adhe log cheyyi
+repeat_meal	eppudu tine breakfast ye
+repeat_meal	ninnati lunch ne repeat cheyyi
+repeat_meal	ra roju same breakfast eh kada, ivala kuda adhe pesarattu upma, ninnati la ne pettu
+repeat_meal	ninna dinner ae malli
+repeat_meal	same old idli sambar, usual ye pettu
+repeat_meal	ninnati meals anni ivalaki copy cheyyi
+repeat_meal	kal jaisa hi khaya aaj bhi
+repeat_meal	same as kal wala log kar do
+repeat_meal	wahi roz wala nashta
+repeat_meal	kal ka dinner repeat kar do
+repeat_meal	usual wala hi hai bhai
+repeat_meal	aaj bhi wahi purana lunch, repeat maar do
+repeat_meal	same as yesterday
+repeat_meal	log my usual breakfast
+skipped_meal	ivala breakfst skip chesa ra
+skipped_meal	lunch tinaledu time ledu
+skipped_meal	podduna nunchi emi tinaledu
+skipped_meal	dinner skip chestunna ivala
+skipped_meal	office meeting lo padi lunch tinadame marchipoya, skip ayyindi
+skipped_meal	ivala emi tinledu anna, upavasam
+skipped_meal	breakfast cheyyaledu, direct lunch ye
+skipped_meal	ratri annam tinaledu ra aakali ledu
+skipped_meal	aaj nashta skip kar diya
+skipped_meal	lunch nahi kiya aaj
+skipped_meal	subah se kuch nahi khaya
+skipped_meal	raat ka khana skip kiya
+skipped_meal	aaj vrat hai kuch nahi khaya
+skipped_meal	skipped breakfast today
+skipped_meal	didn't eat lunch
+skipped_meal	i ate nothing today
+dont_know	emi tinnano gurtu ledu ra
+dont_know	entha tinnano teliyadu anna
+dont_know	edo tinna kaani emi tinnano marchipoya
+dont_know	lunch lo emi tinnano gurthu raavatledu
+dont_know	entha annam pettukunnano idea ledu
+dont_know	telidu ra, party lo edo tinna anthe
+dont_know	quantity teliyadu, konchem ekkuve tinna anukunta
+dont_know	ammamma intlo tinna, enni chapathilu tinnano lekka ledu
+dont_know	pata nahi kya khaya
+dont_know	yaad nahi kitna khaya tha
+dont_know	bhool gaya subah kya khaya
+dont_know	kitni roti khayi pata nahi yaar
+dont_know	kuch toh khaya tha par yaad nahi
+dont_know	shaadi mein kya kya khaya kuch idea nahi 😅
+dont_know	i dont remember what i ate
+dont_know	no idea how much i had
+kitchen_add	intlo 12 eggs unnai, kitchen lo add cheyyi
+kitchen_add	ivala Rythu Bazaar ki vellanu ra, tomatoes ullipayalu bendakayalu konna
+kitchen_add	kitchen lo paneer pettu, 200g techanu
+kitchen_add	5 kg biyyam konna ra
+kitchen_add	intlo pesarapappu kandipappu unnayi
+kitchen_add	chicken 1 kg tecchanu, list lo add cheyyi
+kitchen_add	naa daggara oats, palu, arati pandlu unnayi
+kitchen_add	kitchen ki perugu and palakura add cheyyi
+kitchen_add	ghar pe aloo pyaaz tamatar hai
+kitchen_add	aaj dukaan se ande aur paneer le aaya
+kitchen_add	kitchen mein besan aur atta add karo
+kitchen_add	maine 2 kg chawal khareeda
+kitchen_add	fridge mein dahi aur palak hai
+kitchen_add	add eggs and milk to my kitchen
+kitchen_add	i bought chicken, rice and broccoli
+kitchen_add	got oats and peanut butter at home
+kitchen_remove	ninna egg curry chesa, eggs anni aipoyayi ra
+kitchen_remove	paneer ayipoyindi kitchen nunchi teeseyi
+kitchen_remove	intlo biyyam aipoyindi
+kitchen_remove	palu levu ika, remove cheyyi
+kitchen_remove	tomatoes anni vaadesa, list nunchi teeseyi
+kitchen_remove	pesarapappu khaali ayipoyindi
+kitchen_remove	chicken motham vandesa, inka ledu
+kitchen_remove	oats dabba khaali ra
+kitchen_remove	ande khatam ho gaye
+kitchen_remove	doodh khatam, kitchen se hata do
+kitchen_remove	atta khatam ho gaya bhai
+kitchen_remove	paneer nahi bacha ab
+kitchen_remove	pyaaz sab use ho gaye, remove karo
+kitchen_remove	ghar mein dal khatam hai ab
+kitchen_remove	we're out of rice
+kitchen_remove	remove bread from kitchen, its finished
+kitchen_show	kitchen lo ippudu emi emi unnayi
+kitchen_show	naa kitchen list chupinchu
+kitchen_show	intlo vanta ki emi saamaanlu unnayi ippudu
+kitchen_show	naa daggara emi ingredients unnayi ra
+kitchen_show	kitchen stock cheppu anna
+kitchen_show	fridge lo emi undi chudu
+kitchen_show	vantillu lo emi migilayo cheppu
+kitchen_show	naa kitchen lo items enni unnayi list cheyyi
+kitchen_show	kitchen mein kya kya hai
+kitchen_show	mere ghar pe kya saman hai dikhao
+kitchen_show	kitchen list batao bhai
+kitchen_show	bhai market jaane se pehle bata kitchen mein kya kya bacha hai
+kitchen_show	stock mein kya hai
+kitchen_show	show my kitchen
+kitchen_show	what's in my pantry
+kitchen_show	list my ingredients
+kitchen_cook	intlo unna vaatitho emi vandagalanu
+kitchen_cook	eggs tomatoes unnayi, emi vandochu
+kitchen_cook	kitchen lo unnadaanitho recipe cheppu
+kitchen_cook	paneer palakura tho emi vandali ra
+kitchen_cook	ivala emi vandukovali, unnavaatitho
+kitchen_cook	chicken undi, high protein recipe edaina cheppu
+kitchen_cook	amma ooru vellindi ra nene vandukovali, intlo unna items tho easy ga emi cheyyochu
+kitchen_cook	pesarapappu tho emi chesukovachu
+kitchen_cook	ghar ke saman se kya bana sakta hu
+kitchen_cook	ande aur pyaaz hai, kya banau
+kitchen_cook	paneer se kuch bana sakta hoon kya
+kitchen_cook	kitchen mein jo hai usse kya pakau
+kitchen_cook	atta aur besan hai, kya banega
+kitchen_cook	chicken aur dahi hai, koi recipe batao jo main bana saku
+kitchen_cook	what can i cook with what i have
+kitchen_cook	i have rice and eggs, what can i make
+reset_log	ivala log motham delete cheyyi
+reset_log	ivalti entries anni teeseyi ra
+reset_log	today food list motham clear cheyyi, anni tappulu
+reset_log	ivalavi anni entries reset cheyyi
+reset_log	ivala tinnavi anni erase cheyyi, fresh ga malli start chesta
+reset_log	ivaldi full log teesesey anna
+reset_log	ivala food log reset kottu
+reset_log	ra ivala log antha gandaragolam ayyindi, anni teesesi zero nunchi start cheddam
+reset_log	aaj ka pura log delete kar do
+reset_log	aaj ki saari entries hata do
+reset_log	aaj ka food log reset karo
+reset_log	sab mita do aaj ka, phir se daalunga
+reset_log	aaj ka khana wala log poora saaf karo bhai
+reset_log	reset today's log
+reset_log	delete all food entries for today
+reset_log	wipe today's food log
+clear_chat	chat motham clear cheyyi
+clear_chat	mesages anni delete cheyyi ra
+clear_chat	ee chat teeseyi anna
+clear_chat	conversation clear cheyyi, chala messy ga undi
+clear_chat	chat history erase cheyyi
+clear_chat	inni messages scroll cheyyalekapotunna, chat motham teesesey
+clear_chat	screen lo messages anni clean cheyyi
+clear_chat	chat saaf chey ra
+clear_chat	poori chat saaf kar do
+clear_chat	saare messages delete karo
+clear_chat	ye baatcheet mita do
+clear_chat	chat clear kar bhai
+clear_chat	purani chat hatao
+clear_chat	sab messages uda do yaar
+clear_chat	clear chat
+clear_chat	wipe this conversation
+greet	hi ra Arrow
+greet	hello anna
+greet	namaskaram
+greet	hey bava
+greet	good morning ra 🌞
+greet	hello Arrow, chala rojulaindi kada matladi 😅
+greet	oy Arrow 👋
+greet	hii mama
+greet	namaste bhai
+greet	hello yaar
+greet	ram ram
+greet	oye hello
+greet	salaam bhai
+greet	hey there
+greet	good evening
+greet	yo
+bye	bye ra
+bye	sare ra, vellostha
+bye	malli kaluddam anna
+bye	nenu velthunna bye
+bye	good night ra, padukuntunna
+bye	tata, repu kaluddam
+bye	ika chalu potha bye
+bye	sare ra ika padukunta, repu podduna 6 ki workout ki lechi malli vasta, bye
+bye	chalta hoon bhai
+bye	bye yaar kal milte hain
+bye	chalo phir milenge
+bye	good night bhai, sone ja raha hu
+bye	alvida 👋
+bye	accha chalo nikalta hu
+bye	see you later
+bye	gotta go, talk tomorrow
+thanks	thanks ra
+thanks	thank you anna
+thanks	chala thanks bava
+thanks	dhanyavadalu
+thanks	tq ra help ayyindi
+thanks	thenks ra Arrow 🙏
+thanks	thanku andi
+thanks	nuvvu cheppina diet follow ayyi 2 kilos taggaanu ra, thank you so much
+thanks	shukriya bhai
+thanks	thanks yaar
+thanks	dhanyavaad
+thanks	bahut bahut shukriya
+thanks	thnx bhai kaam aa gaya
+thanks	thank you
+thanks	thanks a lot
+thanks	appreciate it
+praise	nuvvu keka ra Arrow
+praise	super ga cheptunnav anna
+praise	nuvvu mass ra 🔥
+praise	bhale smart bot ra nuvvu
+praise	nee answers adhurs ra, vere apps la kaadu
+praise	nuvvu best coach ra
+praise	kirrak ra nuvvu
+praise	neelanti bot ekkada ledu
+praise	tu toh mast hai yaar
+praise	zabardast bot hai bhai
+praise	kamaal kar diya tune
+praise	tu bahut smart hai
+praise	ekdum jhakaas Arrow
+praise	tere jaisa coach nahi dekha
+praise	you're awesome
+praise	best bot ever
+insult	nuvvu waste ra
+insult	pichi bot
+insult	panikiraani bot nuvvu
+insult	nee bonda, nuvvu cheppedi anni tappe
+insult	bokka bot ra idi 🙄
+insult	neeku asalu emi teliyadu ra
+insult	erri pappa la matladaku
+insult	nenu adigindi okati nuvvu cheppedi okati, neelanti panikimaalina bot ni ekkada chudaledu
+insult	tu bekaar hai
+insult	bakwaas bot
+insult	pagal hai kya tu
+insult	nikamma bot hai yaar ye
+insult	tujhe kuch nahi aata
+insult	you're useless
+insult	dumb bot
+insult	worst chatbot ever
+how_are_you	ela unnav ra
+how_are_you	bagunnava Arrow
+how_are_you	ela unnaru andi
+how_are_you	emi sangathi, antha bagunda
+how_are_you	nee mood ela undi ivala
+how_are_you	antha ok na neeku
+how_are_you	ela undi nee roju
+how_are_you	ela unnav mama, antha set aa
+how_are_you	kaise ho bhai
+how_are_you	kya haal hai Arrow
+how_are_you	sab badhiya?
+how_are_you	tu kaisa hai yaar
+how_are_you	aur bata kya haal chaal
+how_are_you	aur bhai kaisa chal raha hai tera, sab theek?
+how_are_you	how are you
+how_are_you	how's your day going
+who_are_you	nuvvu evaru ra
+who_are_you	nee peru enti
+who_are_you	nuvvu manishiva leka robot aa
+who_are_you	asalu nuvvu enti
+who_are_you	nuvvu ChatGPT aa leka vere AI aa
+who_are_you	ninnu evaru tayaru chesaru
+who_are_you	nijam cheppu ra, nuvvu bot aa leka evaro manishi type chestunnara
+who_are_you	Arrow ante evaru
+who_are_you	tum kaun ho
+who_are_you	tera naam kya hai
+who_are_you	insaan ho ya bot
+who_are_you	tu asli banda hai kya
+who_are_you	kaun hai tu bhai
+who_are_you	who are you
+who_are_you	are you a real person
+who_are_you	what's your name
+help	nuvvu emi cheyagalav
+help	naaku help kaavali
+help	ee app ela vadali
+help	nee features enti ra
+help	kotha ga app install chesa ra, ninnu emi emi adagochu cheppu
+help	help cheyyi anna emi artham kaavatledu
+help	ninnu ela use cheyyali
+help	naaku emi emi chesi pettagalav
+help	tum kya kar sakte ho
+help	help chahiye bhai
+help	kya kya puch sakta hu tumse
+help	ye bot kaise use karu
+help	mujhe samajh nahi aa raha, madad karo
+help	tere features kya hai
+help	help
+help	what can you do
+joke	oka joke cheppu ra
+joke	navvinchu konchem
+joke	edaina funny ga cheppu
+joke	bore kodutundi anna, kaasepu navvinchu
+joke	gym meeda oka joke undaa neeku
+joke	mood off ga undi, oka manchi joke veyyi
+joke	oka PJ cheppu ra 😄
+joke	comedy cheyyi konchem
+joke	ek joke sunao
+joke	koi chutkula suna de bhai
+joke	hasa do yaar
+joke	kuch funny bolo
+joke	ek mast joke maar re
+joke	tell me a joke
+joke	make me laugh
+joke	got any jokes?
+laugh	hahaha
+laugh	navvu aagatledu ra 😂
+laugh	lol ra
+laugh	😂😂😂
+laugh	hahaha keka
+laugh	navvi navvi chachipoyanu 🤣
+laugh	hehehe
+laugh	padi padi navvutunna ra
+laugh	hahahaha bhai
+laugh	lol yaar
+laugh	hass hass ke pagal ho gaya 😂
+laugh	hehe mast
+laugh	hasi nahi ruk rahi
+laugh	haha kya baat hai 😂
+laugh	lmao
+laugh	haha good one
+affirm	avunu
+affirm	sare ra
+affirm	haa cheyyi
+affirm	ok anna
+affirm	avunu ra correct ye
+affirm	sare sare
+affirm	avunandi
+affirm	ok pettu ra
+affirm	haan bhai
+affirm	theek hai
+affirm	haan kar do
+affirm	chalo thik hai
+affirm	bilkul
+affirm	yes
+affirm	yeah sure
+affirm	ok
+deny	vaddu
+deny	ledu ra
+deny	vaddu anna cancel
+deny	kaadu
+deny	oddu bey
+deny	ledu ledu ala kaadu
+deny	vaddu le
+deny	cheyyaku ra
+deny	nahi
+deny	rehne do
+deny	nahi bhai mat karo
+deny	na yaar
+deny	cancel karo
+deny	bilkul nahi
+deny	no
+deny	nope
+out_of_scope	ivala varsham padutunda
+out_of_scope	India match score entha ra
+out_of_scope	Pushpa 3 eppudu release
+out_of_scope	exams lo pass avutana anna
+out_of_scope	college ki late ayyindi sir ki emi cheppali
+out_of_scope	naa girlfriend ki emi gift ivvali
+out_of_scope	Hyderabad lo traffic ela undi ippudu
+out_of_scope	sdfghjk lkjh
+out_of_scope	aaj mausam kaisa hai
+out_of_scope	Kohli ne kitne run banaye
+out_of_scope	koi achi movie batao
+out_of_scope	kal mera exam hai padhai nahi hui
+out_of_scope	petrol ka rate kya hai
+out_of_scope	who won the ipl last year
+out_of_scope	what's the capital of australia
+out_of_scope	qwertyuiop
+ask_streak	naa streak ippudu entha undi ra
+ask_streak	enni rojulu continous ga workout chesanu
+ask_streak	streak break ayyinda ra
+ask_streak	naa current streak cheppu
+ask_streak	nenu enni days nunchi miss avvakunda chestunna
+ask_streak	ninna miss chesa anukunta, streak inka undaa leka poyinda
+ask_streak	streak lo enni rojulu ayyayi
+ask_streak	🔥 streak count entha anna
+ask_streak	mera streak kitna hai
+ask_streak	kitne din se lagatar workout kar raha hu
+ask_streak	streak toota toh nahi na re
+ask_streak	meri streak batao bhai
+ask_streak	kitne din ki streak chal rahi hai
+ask_streak	streak abhi bhi zinda hai kya
+ask_streak	what's my streak
+ask_streak	how many days in a row have i trained
+ask_level	naa level entha
+ask_level	nenu ippudu ye rank lo unna
+ask_level	naa EXP entha undi ra
+ask_level	ninna workout tarvata level up ayyana
+ask_level	ippudu naa rank enti, E aa D aa
+ask_level	enni XP sampadinchanu ippati varaku 💪
+ask_level	nenu ye level hunter ni
+ask_level	naa current level inka rank cheppu
+ask_level	mera level kya hai abhi
+ask_level	main kaunse rank pe hu
+ask_level	mera EXP kitna hua
+ask_level	kitna XP hai mere paas
+ask_level	bhai kitna level ho gaya mera ab
+ask_level	what level am i
+ask_level	what's my rank
+ask_level	how much exp do i have
+ask_quest	ivala quest enti
+ask_quest	ivala workout emi undi ra
+ask_quest	ivala rest day aa
+ask_quest	ivalti quest complete ayyinda
+ask_quest	ivala ye exercises cheyyali
+ask_quest	ra ivala office nunchi late ga vachanu, ivalti quest lo emi unnayi chala ekkuva unnaya
+ask_quest	ivala enni push-ups cheyyali
+ask_quest	nenu ivala workout chesana leda
+ask_quest	aaj ka quest kya h
+ask_quest	aaj kya workout hai bhai
+ask_quest	aaj rest day hai kya
+ask_quest	aaj ka quest ho gaya kya
+ask_quest	aaj kaun kaun se exercise karne hai
+ask_quest	aaj kitne squats karne hai
+ask_quest	what's today's quest
+ask_quest	did i finish today's workout
+ask_records	naa personal best entha
+ask_records	naa friend 50 push-ups ani boasting chestunnadu, naa max entha ra
+ask_records	okkasari ekkuva pull-ups enni chesanu
+ask_records	naa longest plank entha sepu
+ask_records	naa records chupinchu
+ask_records	squats lo naa best entha
+ask_records	naa PR lu cheppu anna
+ask_records	ippati varaku naa highest reps enti
+ask_records	mere personal records kya hai
+ask_records	sabse zyada push-ups kitne kiye maine
+ask_records	mera best plank time kya hai
+ask_records	meri PB batao bhai
+ask_records	pull-ups mein mera record kitna hai
+ask_records	what are my personal bests
+ask_records	show my PRs
+ask_records	what's my max burpees in one set
+ask_shadows	naa shadows evaru
+ask_shadows	naa shadow army lo enni unnai
+ask_shadows	strongest shadow evaru ra
+ask_shadows	Igris naa daggara unnada
+ask_shadows	naa army lo captain evaru
+ask_shadows	Beru ni unlock chesana
+ask_shadows	enni shadows extract chesanu
+ask_shadows	Bellion eppudu vastadu naa army ki
+ask_shadows	meri shadow army mein kaun kaun hai
+ask_shadows	sabse strong shadow kaun hai
+ask_shadows	Tank aur Iron mere paas hai kya
+ask_shadows	kitne shadows hai mere
+ask_shadows	Kaisel kab milega bhai
+ask_shadows	Tusk unlock hua kya
+ask_shadows	who's in my shadow army
+ask_shadows	do i have Greed and Jima yet
+ask_next_rank	next rank ki eppudu velthanu
+ask_next_rank	rank up ela cheyyali
+ask_next_rank	next trial eppudu ra
+ask_next_rank	E rank lo chala rojula nunchi unna ra, next rank ki inka entha XP kavali
+ask_next_rank	D rank ki ravadaniki emi cheyyali
+ask_next_rank	rank promotion trial ela untundi
+ask_next_rank	C rank ki enni rojulu padutundi
+ask_next_rank	next rank ki inka entha dooram
+ask_next_rank	agla rank kab milega
+ask_next_rank	rank up kaise karu
+ask_next_rank	next trial kab hai
+ask_next_rank	agle rank ke liye kitna XP chahiye
+ask_next_rank	B rank tak pahuchne mein kitna time lagega
+ask_next_rank	how do i rank up
+ask_next_rank	how much xp to next rank
+ask_next_rank	when is my next rank trial
+ask_stats	naa stats enti
+ask_stats	naa strength entha undi
+ask_stats	agility stat enta ra
+ask_stats	naa speed stat chupinchu
+ask_stats	stat points enni unnayi naa daggara
+ask_stats	flexibility entha perigindi
+ask_stats	mobility stat cheppu anna
+ask_stats	naa weak stat edi
+ask_stats	mere stats batao
+ask_stats	meri strength kitni hai
+ask_stats	mere paas kitne stat points bache hai
+ask_stats	speed aur agility kitni hai bhai
+ask_stats	flexibility ka stat kya hai
+ask_stats	sabse kam kaunsa stat hai mera
+ask_stats	show my stats
+ask_stats	how many unspent stat points do i have
+ask_items	naa inventory lo emi unnayi
+ask_items	enni keys unnayi naa daggara
+ask_items	potions enni unnayi ra
+ask_items	naa equipped weapon enti
+ask_items	elixir unda naa daggara
+ask_items	naa titles enti anna
+ask_items	mystery boxes enni unnayi
+ask_items	dungeon nunchi vachina loot emi undi naa daggara
+ask_items	mere inventory mein kya hai
+ask_items	kitni keys hai mere paas
+ask_items	konsa weapon equip kiya hai
+ask_items	mere titles kya kya hai
+ask_items	potion bacha hai kya
+ask_items	what's in my inventory
+ask_items	how many boxes do i have
+ask_items	which weapon do i have equipped
+ask_week	ee week naa progress ela undi
+ask_week	ee vaaram enni workouts chesanu
+ask_week	ee week total reps entha
+ask_week	ee week enni gates clear chesanu
+ask_week	weekly progress cheppu ra
+ask_week	ee week lo nenu improve ayyana leda
+ask_week	monday nunchi enni sarlu workout chesa
+ask_week	ee week emaina miss chesana
+ask_week	is hafte kitne wrkout kiye
+ask_week	is week ka progress batao
+ask_week	hafte bhar mein total reps kitne hue
+ask_week	is week kitne gates clear kiye
+ask_week	weekly progress kaisa hai bhai
+ask_week	is hafte kitne din miss kiye
+ask_week	how was my week
+ask_week	how many workouts this week
+exercise_howto	pull up ela cheyali ra
+exercise_howto	push-up correct form enti
+exercise_howto	squats chestunte mokaalu lopaliki velthunnayi, emi cheyyali
+exercise_howto	plank lo naa naduma kindaki padipotundi
+exercise_howto	muscle up ela nerchukovali
+exercise_howto	handstand ela practice cheyyali anna
+exercise_howto	burpee step by step cheppu
+exercise_howto	dand ela cheyyali correct ga
+exercise_howto	push-up sahi se kaise karte hai
+exercise_howto	baithak ka sahi tarika batao
+exercise_howto	pull-up mein chin bar tak nahi pahuchti
+exercise_howto	plank karte waqt kamar neeche jhuk jaati hai kya karu
+exercise_howto	pistol squat kaise kare
+exercise_howto	how do i do a proper pull up
+exercise_howto	my hips sag during push ups how to fix
+exercise_howto	how to do a wall handstand
+motivate	ivala workout cheyyalani ledu ra
+motivate	chala lazy ga undi
+motivate	quit cheyyali anipistundi anna
+motivate	motivation ledu asalu 😞
+motivate	3 nelala nunchi chestunna ra body lo emi change ledu, ika aapeddam anukuntunna
+motivate	bed lo nunchi levali anipinchatledu
+motivate	naaku interest poyindi workout meeda
+motivate	konchem motivate cheyyi ra please
+motivate	aaj mann nahi kar raha
+motivate	bahut aalas aa raha hai yaar
+motivate	sab chhod dene ka mann hai
+motivate	motivation chahiye bhai
+motivate	kuch farak nahi pad raha, kyun karu ye sab
+motivate	himmat nahi ho rahi workout ki
+motivate	i feel lazy today
+motivate	i want to quit
+recovery	body motham noppulu ra, ninna leg day tarvata
+recovery	kaalu pattesayi, DOMS taggadaniki emi cheyyali
+recovery	workout tarvata chala alasata ga undi 😴
+recovery	muscle recovery ki enni gantalu padukovali
+recovery	rest day lo emi cheyyali
+recovery	sore ga unnappudu workout cheyyocha
+recovery	nidra saripoledu ra, ivala train cheyyala
+recovery	week ki enni rest days teesukovali
+recovery	pura badan akda hua hai workout ke baad
+recovery	bahut thakaan hai aaj
+recovery	neend achhi nahi aa rahi, recovery kaise hogi
+recovery	soreness kab tak rahegi
+recovery	rest day pe kya karna chahiye
+recovery	my muscles are so sore
+recovery	how much sleep do i need for recovery
+recovery	should i take a rest day if im tired
+pain	squats chesinappudu mokaalu noppi vastundi
+pain	push-ups tarvata bhujam lo pain ra 😣
+pain	naduma pattesindi, vanga lekapotunna
+pain	wrist twist ayyindi anna
+pain	running lo ankle benikindi
+pain	workout lo chest lo sharp pain vachindi
+pain	pull-ups valla meda noppi
+pain	3 rojula nunchi elbow noppi taggatledu
+pain	parso se kamar mein dard hai bhai
+pain	squats se ghutne mein dard ho raha hai
+pain	kandhe mein chot lag gayi
+pain	push-up karte waqt kalai mud gayi
+pain	gardan mein bahut dard hai
+pain	pair mein moch aa gayi
+pain	my shoulder hurts when i do pull ups
+pain	i think i injured my knee
+coach_tip	abs ravalante emi cheyali
+coach_tip	chest perugalante ela train cheyyali
+coach_tip	sets madhyalo entha rest teesukovali
+coach_tip	push-ups count ela penchali
+coach_tip	stamina ela penchukovali ra
+coach_tip	muscle build cheyyalante tips cheppu
+coach_tip	calisthenics lo biceps pedda avvalante emi cheyyali
+coach_tip	pull-ups 5 nunchi 15 ki ela vellali
+coach_tip	six pack abs kaise banaye
+coach_tip	bina gym ke muscle kaise badhaye
+coach_tip	sets ke beech kitna rest lena chahiye
+coach_tip	stamina kaise badhau bhai
+coach_tip	legs mote kaise kare
+coach_tip	tips to build muscle at home
+coach_tip	how to increase my push up reps
+coach_tip	how do i get wider shoulders
+open_tab	status page open cheyyi
+open_tab	quest tab ki teesukellu
+open_tab	gates page open chey ra
+open_tab	progress screen open chey anna
+open_tab	diet tab open cheyyi
+open_tab	history page ki vellu
+open_tab	feats tab teruvu
+open_tab	army page open cheyyi ra
+open_tab	armory kholo
+open_tab	grocery list wala page khol do
+open_tab	weekly report wala page kholo bhai
+open_tab	shadows ka page kholo
+open_tab	history tab pe le chalo
+open_tab	diet wala section dikhao
+open_tab	open the weapons page
+open_tab	take me to the gates screen
+start_workout	workout start cheyyi ra, ready ga unna
+start_workout	ippude workout modaledadam ra
+start_workout	quest start cheyyi anna
+start_workout	lets go workout start chey
+start_workout	ivalti workout begin cheyyi
+start_workout	nenu ready, start kottu
+start_workout	training modalu pettu ra
+start_workout	ippudu workout cheddam, start
+start_workout	workout shuru karo
+start_workout	chalo bhai exercise start karte hai
+start_workout	aaj ka workout chalu kar do
+start_workout	main ready hu, shuru kar
+start_workout	abhi workout start karna hai
+start_workout	start workout
+start_workout	let's begin the workout now
+start_workout	start my quest
+open_license	naa hunter license chupinchu
+open_license	license open cheyyi ra
+open_license	naa ID card chupinchu anna
+open_license	hunter card teruvu
+open_license	naa license chudali
+open_license	naa hunter ID open cheyyi
+open_license	naa hunter ID card screen lo pettu
+open_license	friends ki chupinchali, naa license card open cheyyi
+open_license	mera hunter license dikhao
+open_license	ID card kholo bhai
+open_license	license dikha de
+open_license	mera hunter card dekhna hai
+open_license	license wala page khol
+open_license	apna hunter ID dikhao zara
+open_license	show my hunter license
+open_license	open my id card
+open_settings	settings open cheyyi
+open_settings	naa profile open cheyyi ra
+open_settings	settings ki teesukellu
+open_settings	profile edit cheyyali, open chey
+open_settings	settings ekkada undi
+open_settings	profile lo weight update cheyyali, settings teruvu
+open_settings	account settings chupinchu anna
+open_settings	preferences open cheyyi
+open_settings	settings kholo
+open_settings	mera profile dikhao
+open_settings	settings mein le chalo
+open_settings	profile edit karna hai
+open_settings	setting wala page khol do bhai
+open_settings	open settings
+open_settings	take me to my profile
+open_settings	where are the settings
+theme	dark mode on chey
+theme	light mode ki maarchu ra
+theme	night mode pettu anna 🌙
+theme	theme maarchu
+theme	screen chala bright ga undi, dark theme pettu
+theme	white theme kaavali
+theme	dark mode off cheyyi
+theme	black theme ki switch cheyyi
+theme	dark mode chalu karo
+theme	light mode laga do
+theme	theme badal do bhai
+theme	night mode on kar
+theme	safed wala theme chahiye
+theme	andhere wala mode laga de
+theme	switch to dark mode
+theme	turn on light theme
