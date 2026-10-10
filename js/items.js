@@ -29,7 +29,7 @@ function lootHTML(labels){
 /* ---------- random box ----------
    40% EXP, 20% stat point, 15% potion, 10% elixir, 10% key, 5% holy water. */
 function rollBox(){
-  const r=Math.random();
+  const r=Math.min(.999,Math.random()+armyBonus('luck')/100); // Greed's luck pushes rolls toward the rarer end
   if(r<.40){const x=30+Math.floor(Math.random()*6)*10;S.exp+=x;syncLevel();return `+${x} EXP`}
   if(r<.60){S.statPoints++;return '+1 stat point'}
   if(r<.75)return grantItem('potion');

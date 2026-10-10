@@ -63,6 +63,7 @@ function renderStatus(){
     <button data-act="goProg" data-arg="army"><b>${S.shadows.length}</b><span>Shadows</span></button>
     <button data-act="goProg" data-arg="feats"><b>${Object.keys(S.feats).length}<small>/${FEATS.length}</small></b><span>Feats</span></button></div>
   <button class="license-link" data-act="card"><span class="overline">Hunter License</span><span class="overline">View card →</span></button>
+  ${chestReady()?`<button class="chest-strip" data-act="chest"><span class="cs-ic">${ic('box')}</span><span class="grow"><b>Daily supply ready</b><span>Day ${chestDay().day} of 7 · ${rewardLabel(LOGIN_REWARDS[chestDay().day-1])}</span></span><span class="overline">Open →</span></button>`:''}
   ${S.elixirActive?`<div class="card" style="border-top:1px solid var(--hair);padding:12px var(--gut)"><p class="overline" style="color:var(--red)">${ic('elixir')} Elixir active · next quest gives 1.5× EXP</p></div>`:''}`;
   const sq=suddenActive();
   if(sq)h+=`<div class="card bad"><div class="card-head"><span class="h3">Sudden quest</span><span class="pill bad">${Math.max(1,Math.ceil((sq.deadline-Date.now())/60000))} min left</span></div>
@@ -95,19 +96,7 @@ function renderStatus(){
     </ul></div>`;
   }
 
-  if(nx){
-    const t=RANK_TESTS[nx.r],retry=rankRetryDate(nx.r);
-    const lvOk=S.level>=t.level,wkOk=weekNumber()>=t.week,ready=lvOk&&wkOk&&!retry;
-    h+=`<div class="card"><div class="card-head"><span class="overline">Next rank</span><span class="pill accent">${nx.r}-Rank</span></div>
-      <p class="h2">${nx.name}</p>
-      <ul class="req">
-        <li><i class="chk${lvOk?' on':''}">${ic('check')}</i><span>Reach level ${t.level}</span><em>you're ${S.level}</em></li>
-        <li><i class="chk${wkOk?' on':''}">${ic('check')}</i><span>Train until week ${t.week}</span><em>week ${weekNumber()}</em></li>
-        <li><i class="chk">${ic('check')}</i><span>Pass the rank test</span><em>${retry?'retry '+fmtDate(retry):plural(t.tests.length,'move')}</em></li>
-      </ul>
-      <details class="more"><summary>What's in the test ${ic('down')}</summary><ul class="list plain">${t.tests.map(x=>`<li class="lrow" style="padding:8px 0;min-height:0"><span class="grow">${x[0]}</span><b class="target">${x[1]}</b></li>`).join('')}</ul></details>
-      <button class="btn block" style="margin-top:12px" ${ready?`data-act="rankTest" data-arg="${nx.r}"`:'disabled'}>${ready?'Take rank test':retry?'Test on cooldown':'Locked'}</button></div>`;
-  }
+  h+=trialCardHTML('status');
   if(S.titles.length)h+=`<div class="card"><p class="h3" style="margin-bottom:12px">Titles</p><div class="chips">${S.titles.map(t=>`<span class="pill accent">${ic('trophy')}${esc(t)}</span>`).join('')}</div></div>`;
   $('status').innerHTML=h;
 }
@@ -206,7 +195,7 @@ function planHTML(){
       <div class="card tight phase"><div style="padding:14px 20px 6px"><p class="h2">${p.name.replace(/^Phase \d+: /,'')}</p><p class="muted small" style="margin-top:4px">${p.goal}</p></div><ul class="list">`;
     for(let w=p.weeks[0];w<=p.weeks[1];w++){
       const cls=w===cw?'now':(w<cw?'past':'');
-      h+=`<li class="lrow wk-row ${cls}"${w===cw?' aria-current="step"':''}><span class="lead">${w<cw?ic('check'):w}</span><div class="grow"><p class="t" style="font-weight:500;font-size:15px">${w>24?JOBS[S.job.path].focus[w-25]:WEEKLY_FOCUS[w]}</p></div>${testWeek[w]?`<span class="pill accent">${ic('trophy')}Test ${testWeek[w]}</span>`:''}</li>`;
+      h+=`<li class="lrow wk-row ${cls}"${w===cw?' aria-current="step"':''}><span class="lead">${w<cw?ic('check'):w}</span><div class="grow"><p class="t" style="font-weight:500;font-size:15px">${w>24?JOBS[S.job.path].focus[w-25]:WEEKLY_FOCUS[w]}</p></div>${testWeek[w]?`<span class="pill accent">${ic('shield')}Trial ${testWeek[w]}</span>`:''}</li>`;
     }
     h+=`</ul></div>`;
   });

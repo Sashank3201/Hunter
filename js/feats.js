@@ -30,7 +30,10 @@ const FEATS=[
   FEAT('time-10h','Ten Hours','Train for 10 hours in total.',600,minutesTrained,[['box',1]],100),
   FEAT('cool-10','Supple','Finish 10 cool-downs.',10,()=>Object.values(S.log).filter(r=>r.cooled).length,[['potion',1]],50),
   FEAT('balanced','Jack of All Trades','Raise all five stats to 15.',15,()=>Math.floor(Math.min(...STATS.map(x=>S.stats[x]))),[['key',1]],150),
-  FEAT('paid','Paid in Full','Clear a penalty quest.',1,()=>Object.values(S.log).filter(r=>r.penaltyDone).length,[],50)
+  FEAT('paid','Paid in Full','Clear a penalty quest.',1,()=>Object.values(S.log).filter(r=>r.penaltyDone).length,[],50),
+  FEAT('login-7','Devoted','Open the daily supply chest 7 days in a row.',7,()=>Math.max(S.login.best||0,S.login.streak||0),[['box',1]],50),
+  FEAT('shadow-lv10','Shadow Trainer','Raise a shadow to Lv 10.',10,()=>Math.max(0,...S.shadows.map(s=>s.lvl)),[['elixir',1]],100),
+  FEAT('captain','Chain of Command','Appoint both a captain and a vice-captain.',1,()=>S.army.captain&&S.army.vice?1:0,[['potion',1]],25)
 ];
 
 function featProgress(f){return Math.min(f.target,Math.max(0,f.prog()||0))}

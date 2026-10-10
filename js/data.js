@@ -105,14 +105,22 @@ const WEEKLY_FOCUS={
  23:'Peak week.',24:'Final trial: Monarch test.'
 };
 
-/* Final tests for each rank. Numbers are what you must hit in one attempt. */
+/* Rank-up trials (Hunter Association re-assessments). Each move: [name, target, demo, kind]
+   kind: 'hold' = seconds held, a number = reps inside that many seconds, otherwise reps in one set.
+   Every move must be hit; each has two attempts. */
 const RANK_TESTS={
-  D:{level:4,week:4, tests:[['Push-ups (any style, good form)',10],['Bodyweight squats',25],['Plank (secs)',30]]},
-  C:{level:8,week:10,tests:[['Push-ups (full)',10],['Table rows',10],['Squats',30],['Plank (secs)',45]]},
-  B:{level:12,week:16,tests:[['Full push-ups',20],['Table rows, feet elevated',10],['Split squats each leg',10],['Hollow hold (secs)',30]]},
-  A:{level:16,week:20,tests:[['Diamond push-ups',15],['Archer table rows',8],['Assisted pistol each leg',5],['L-sit (secs)',10]]},
-  S:{level:20,week:24,tests:[['Full push-ups',40],['Pistol squat each leg',3],['L-sit (secs)',20],['Burpees in 60s',20]]}
+  D:{level:4,week:4,gate:'Double Dungeon',line:'Show the Association you are more than the weakest hunter.',
+    tests:[['Push-ups, any style',10,'Knee push-up'],['Bodyweight squats',25,'Bodyweight squat'],['Plank',30,'Plank (secs)','hold']]},
+  C:{level:8,week:10,gate:'Instant Dungeon',line:'Iron body. Prove that it holds.',
+    tests:[['Full push-ups',10,'Full push-up'],['Table rows',10,'Table row, feet flat'],['Bodyweight squats',30,'Bodyweight squat'],['Plank',45,'Plank (secs)','hold']]},
+  B:{level:12,week:16,gate:'Knight\'s Keep',line:'Elite hunters do not stall. Neither should you.',
+    tests:[['Full push-ups',20,'Full push-up'],['Table rows, feet elevated',10,'Table row, feet elevated'],['Split squats, each leg',10,'Split squat'],['Hollow hold',30,'Hollow hold (secs)','hold']]},
+  A:{level:16,week:20,gate:'Hall of Trials',line:'Few hunters reach this hall. Fewer leave it promoted.',
+    tests:[['Diamond push-ups',15,'Diamond push-up'],['Archer table rows, each side',8,'Archer table row'],['Assisted pistols, each leg',5,'Assisted pistol (hold support)'],['L-sit',10,'L-sit on floor (secs)','hold']]},
+  S:{level:20,week:24,gate:'The Monarch\'s Trial',line:'Everything you built, all at once.',
+    tests:[['Full push-ups',40,'Full push-up'],['Pistol squats, each leg',3,'Pistol squat'],['L-sit',20,'L-sit on floor (secs)','hold'],['Burpees in 60 seconds',20,'Full burpee',60]]}
 };
+const TRIAL_REST=90, TRIAL_EXP=150;
 
 
 /* Which food tags each diet type may eat. */
@@ -187,11 +195,53 @@ const DUNGEONS=[
 ];
 
 /* ---------- shadow army ----------
-   Beating a personal record on a move extracts that move's shadow; beating it
-   again levels the shadow up. The first ten shadows carry legendary names. */
+   Beating a personal record on a move extracts that move's shadow. Shadows earn
+   XP from your training, level up, get promoted, and each carries a passive skill.
+   The first ten shadows carry legendary names, looks and skills. */
 const SHADOW_LEGENDS=[['Igris','Knight Commander'],['Iron','Elite Knight'],['Tank','Elite'],['Tusk','Elite Knight'],['Beru','Marshal'],
   ['Bellion','Grand Marshal'],['Kaisel','Elite'],['Greed','Elite Knight'],['Jima','Knight'],['Fangs','Knight']];
 const SHADOW_GRADES=['Normal','Normal','Elite','Elite','Knight','Knight','Elite Knight','Elite Knight'];
+/* Promotion ladder: a shadow moves up one grade at Lv 10, 20 and 30. */
+const SHADOW_RANKS=['Normal','Elite','Knight','Elite Knight','Knight Commander','Marshal','Grand Marshal'];
+const SHADOW_MAX_LV=40;
+/* Base ATK/DEF/SPD and look. Legends use their own; soldiers use the ladder their move belongs to. */
+const SHADOW_BODY={
+  Igris:{atk:16,def:10,spd:14,look:'knight',epithet:'The Blood-Red Commander'},
+  Iron:{atk:12,def:18,spd:6,look:'heavy',epithet:'The Iron Wall'},
+  Tank:{atk:14,def:16,spd:6,look:'bear',epithet:'Ice Bear of the North'},
+  Tusk:{atk:17,def:7,spd:9,look:'orc',epithet:'Great Shaman of the High Orcs'},
+  Beru:{atk:18,def:12,spd:18,look:'ant',epithet:'The Ant King'},
+  Bellion:{atk:20,def:16,spd:16,look:'marshal',epithet:'Grand Marshal of the Army'},
+  Kaisel:{atk:10,def:8,spd:20,look:'wyvern',epithet:'Sky Wyvern'},
+  Greed:{atk:15,def:11,spd:12,look:'horned',epithet:'The Fallen Knight'},
+  Jima:{atk:12,def:14,spd:10,look:'naga',epithet:'Naga of the Deep'},
+  Fangs:{atk:13,def:9,spd:12,look:'orc',epithet:'High Orc Pack Leader'},
+  push:{atk:14,def:8,spd:8,look:'soldier'},pull:{atk:12,def:9,spd:9,look:'soldier'},legs:{atk:11,def:12,spd:7,look:'spiked'},
+  core:{atk:8,def:14,spd:8,look:'spiked'},speed:{atk:8,def:7,spd:15,look:'hooded'},agility:{atk:9,def:7,spd:14,look:'hooded'},
+  mobility:{atk:7,def:12,spd:11,look:'hooded'},flex:{atk:6,def:13,spd:11,look:'soldier'}
+};
+/* Passive skills. kind decides where the bonus applies; v is the base value in percent.
+   Skills grow with the shadow's level (up to 2x at Lv 21). Captain doubles, vice-captain 1.5x. */
+const SHADOW_SKILLS={
+  Igris:{name:'Commander\'s Edge',kind:'expPush',v:5,text:v=>`+${v}% EXP on push days`},
+  Iron:{name:'Iron Body',kind:'stat:Strength',v:8,text:v=>`+${v}% Strength gains`},
+  Tank:{name:'Iron Hide',kind:'penalty',v:10,text:v=>`−${v}% penalty reps`},
+  Tusk:{name:'Shaman\'s Blessing',kind:'expBoss',v:8,text:v=>`+${v}% EXP on boss days`},
+  Beru:{name:'Hunger of the King',kind:'gateExp',v:10,text:v=>`+${v}% Gate EXP`},
+  Bellion:{name:'Grand Marshal\'s Order',kind:'expAll',v:3,text:v=>`+${v}% EXP on every quest`},
+  Kaisel:{name:'Wings of the Sky',kind:'gateTime',v:10,text:v=>`+${v}% Gate time limit`},
+  Greed:{name:'Greed',kind:'luck',v:5,text:v=>`+${v}% luck on Random Boxes and daily chests`},
+  Jima:{name:'Coils of the Deep',kind:'stat:Flexibility,Mobility',v:8,text:v=>`+${v}% Flexibility and Mobility gains`},
+  Fangs:{name:'Pack Hunter',kind:'stat:Speed,Agility',v:8,text:v=>`+${v}% Speed and Agility gains`}
+};
+/* Soldiers: a small boost to the stat their move trains. */
+const SOLDIER_SKILL=st=>({name:`${st} Drill`,kind:'stat:'+st,v:3,text:v=>`+${v}% ${st} gains`});
+/* Caps on the combined army bonus, in percent. */
+const SKILL_CAP={expPush:30,expBoss:30,expAll:20,gateExp:40,gateTime:40,penalty:50,luck:25,stat:40};
+
+/* ---------- daily supply chest ----------
+   One per day for opening the app. Day 7 of an unbroken run pays a Dungeon Key; missing a day restarts at day 1. */
+const LOGIN_REWARDS=[['exp',10],['exp',15],['box',1],['exp',20],['elixir',1],['exp',30],['key',1]];
 
 /* ---------- cool-down ----------
    Three stretches of 60 seconds after the last exercise. */
