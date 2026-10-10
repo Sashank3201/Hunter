@@ -4,15 +4,18 @@ function openMenu(){
   const passNext=fmtDate(addDays(mondayOf(todayStr()),7));
   const acc=(icn,title,lines,red)=>`<li><details class="acc"><summary class="lrow"><span class="lead"${red?' style="color:var(--bad);background:var(--bad-soft)"':''}>${ic(icn)}</span><span class="grow t">${title}</span><span class="chev">${ic('right')}</span></summary><div class="acc-body">${lines.map(l=>`<p>${l}</p>`).join('')}</div></details></li>`;
   $('menu').innerHTML=`<div class="set-top"><h1 class="h1">Profile</h1><button class="icon-btn" data-act="menuClose" aria-label="Close">${ic('x')}</button></div>
-  <div class="card"><div class="profile"><span class="avatar">${rk.r}</span><div class="grow"><p class="h2">${esc(p.name)}</p><p class="muted small">Level ${S.level} · ${rk.name} · ${S.totalQuests} quests</p></div></div>
+  <div class="card"><div class="profile"><label class="avatar photo" title="Change photo"><img src="${hunterPhoto()}" alt="Hunter photo"><b>${rk.r}</b><input type="file" id="mPhoto2" accept="image/*" hidden></label><div class="grow"><p class="h2">${esc(p.name)}</p><p class="muted small">Level ${S.level} · ${rk.name} · ${S.totalQuests} quests</p></div></div>
     <div class="prog" style="margin-top:16px"><i style="width:${lv.into/lv.need*100}%"></i></div>
     <button class="btn block" style="margin-top:16px" data-act="cardFromMenu">View Hunter License</button></div>
 
   <div class="sec-label"><span class="overline">Player</span></div>
   <div class="card tight"><ul class="list">
     <li><form id="nameForm" class="lrow"><span class="lead">${ic('user')}</span><input id="mName" class="text-in" maxlength="20" value="${esc(p.name)}" aria-label="Player name"><button class="btn sm ghost" type="submit">Save</button></form></li>
+    <li class="lrow photo-row"><span class="ph-thumb"><img src="${hunterPhoto()}" alt=""></span><div class="grow"><p class="t">Hunter photo</p><p class="s">Shown on your Hunter License</p></div>
+      <label class="btn sm ghost file-btn">Change<input type="file" id="mPhoto" accept="image/*" hidden></label>${hasCustomPhoto()?`<button class="btn sm quiet" data-act="photoReset">Reset</button>`:''}</li>
     <li class="lrow"><span class="lead">${ic('moon')}</span><span class="grow t">Theme</span>
       <span class="seg mini" role="radiogroup" aria-label="Theme">${[['auto','Auto'],['light','Light'],['dark','Night']].map(([k,l])=>`<button role="radio" aria-checked="${(p.theme||'auto')===k}" data-act="theme" data-arg="${k}">${l}</button>`).join('')}</span></li>
+    <li><label class="lrow" for="mWorld" style="cursor:pointer"><span class="lead">${ic('gate')}</span><span class="grow"><span class="t" style="display:block">3D dungeons</span><span class="s" style="display:block">Enter Gates as 3D worlds. Turn off to save battery.</span></span><span class="switch"><input type="checkbox" id="mWorld" ${p.world3d!==false?'checked':''}><i></i></span></label></li>
     <li><label class="lrow" for="mHaptics" style="cursor:pointer"><span class="lead">${ic('vibrate')}</span><span class="grow t">Vibration</span><span class="switch"><input type="checkbox" id="mHaptics" ${p.haptics!==false?'checked':''}><i></i></span></label></li>
     <li><form id="remForm" class="rem"><div class="lrow" style="padding-bottom:4px"><span class="lead">${ic('timer')}</span><div class="grow"><p class="t">Daily reminder</p><p class="s">A repeating alarm in your phone's calendar, plus a 9 pm penalty warning</p></div></div>
       <div class="rem-row"><input id="mRemind" type="time" class="text-in" value="${p.remindAt||'18:00'}" aria-label="Reminder time"><button class="btn sm" type="submit">Add to calendar</button></div></form></li>
@@ -42,7 +45,9 @@ function openMenu(){
     S.profile=Object.assign(S.profile||{},{name:v});save();renderAll();openMenu();toast('Name saved');
   });
   $('mHaptics').addEventListener('change',e=>{S.profile=Object.assign(S.profile||{},{haptics:e.target.checked});save();buzz('set')});
+  $('mWorld').addEventListener('change',e=>{S.profile=Object.assign(S.profile||{},{world3d:e.target.checked});save();toast(e.target.checked?'Gates open as 3D worlds':'3D dungeons off')});
   $('mImport').addEventListener('change',importData);
+  ['mPhoto','mPhoto2'].forEach(id=>$(id).addEventListener('change',e=>{setHunterPhoto(e.target.files[0]);e.target.value=''}));
   $('remForm').addEventListener('submit',e=>{e.preventDefault();const v=$('mRemind').value||'18:00';
     S.profile=Object.assign(S.profile||{},{remindAt:v});save();downloadReminder(v)});
 }

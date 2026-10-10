@@ -28,6 +28,28 @@ function hunterPower(){
 function hashStr(s){let h=2166136261;for(const c of String(s))h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0}
 function licenceNo(){const h=hashStr(S.created+'|'+(S.profile?S.profile.name:''));return String(h%10000).padStart(4,'0')+'-'+String((h>>>14)%10000).padStart(4,'0')}
 
+/* ---------- Hunter photo ----------
+   A custom photo lives in its own key (as a small JPEG data URL); otherwise the default. */
+const PHOTO_KEY='hunter_photo_v1',PHOTO_DEFAULT='img/hunter.jpg';
+function hunterPhoto(){try{return localStorage.getItem(PHOTO_KEY)||PHOTO_DEFAULT}catch(e){return PHOTO_DEFAULT}}
+function hasCustomPhoto(){try{return !!localStorage.getItem(PHOTO_KEY)}catch(e){return false}}
+function loadImg(src){return new Promise((ok,no)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=no;im.src=src})}
+/* Square-crop an uploaded image to 512px (biased up, where faces usually are) and store it. */
+function setHunterPhoto(file){
+  if(!file||!/^image\//.test(file.type))return;
+  const url=URL.createObjectURL(file);
+  loadImg(url).then(im=>{
+    const s=Math.min(im.width,im.height),c=document.createElement('canvas');c.width=c.height=512;
+    c.getContext('2d').drawImage(im,(im.width-s)/2,(im.height-s)*.3,s,s,0,0,512,512);
+    try{localStorage.setItem(PHOTO_KEY,c.toDataURL('image/jpeg',.86));toast('Photo updated')}catch(e){toast('Could not save that photo')}
+    URL.revokeObjectURL(url);renderAll();if(!$('menu').hidden)openMenu();
+  }).catch(()=>{URL.revokeObjectURL(url);toast('Could not read that image')});
+}
+function resetHunterPhoto(){try{localStorage.removeItem(PHOTO_KEY)}catch(e){}renderAll();if(!$('menu').hidden)openMenu();toast('Photo reset')}
+ACT.photoReset=resetHunterPhoto;
+/* Draw img to cover a w x h box (like CSS object-fit: cover). */
+function drawCover(ctx,img,x,y,w,h){const s=Math.max(w/img.width,h/img.height),sw=w/s,sh=h/s;ctx.drawImage(img,(img.width-sw)/2,(img.height-sh)/2,sw,sh,x,y,w,h)}
+
 /* ---------- drawing ---------- */
 const CW=1080,CH=1440,M=54;
 const C={paper:'#ECE7DD',paper2:'#E3DDD0',paper3:'#D6CFBF',ink:'#121110',ink2:'#55514A',ink3:'#8C867B',red:'#D7261E'};
@@ -57,12 +79,17 @@ async function drawCard(canvas){
   ctx.font=F.m(26);ctx.fillStyle=C.paper;const no='Nº '+licenceNo();ctx.textAlign='right';ctx.fillText(no,CW-M-14,M/2+52);
   ctx.font=F.m(20);ctx.fillStyle=C.paper3;ctx.fillText('WEEK '+weekNumber()+' · LV '+S.level,CW-M-14,M/2+88);ctx.textAlign='left';
 
-  // rank block with red offset
+  // ID photo with red offset, official rank stamped on its corner
   const bx=M+18,by=196,bs=330;
   ctx.fillStyle=C.red;ctx.fillRect(bx+22,by+22,bs,bs);
   ctx.fillStyle=C.ink;ctx.fillRect(bx,by,bs,bs);
-  ctx.fillStyle=C.paper;ctx.textAlign='center';ctx.font=F.d(900,380);ctx.fillText(rk.r,bx+bs/2,by+bs-34);ctx.textAlign='left';
-  ctx.fillStyle=C.ink2;ctx.font=F.m(20);spaced(ctx,'OFFICIAL RANK',bx,by+bs+64,3);
+  const photo=await loadImg(hunterPhoto()).catch(()=>null);
+  if(photo){drawCover(ctx,photo,bx,by,bs,bs);ctx.strokeStyle=C.ink;ctx.lineWidth=6;ctx.strokeRect(bx+3,by+3,bs-6,bs-6)}
+  else{ctx.fillStyle=C.paper;ctx.textAlign='center';ctx.font=F.d(900,380);ctx.fillText(rk.r,bx+bs/2,by+bs-34);ctx.textAlign='left'}
+  if(photo){const rb=124,rx=bx+bs-rb+34,ry=by+bs-rb+34;
+    ctx.fillStyle=C.paper;ctx.fillRect(rx-6,ry-6,rb+12,rb+12);ctx.fillStyle=C.ink;ctx.fillRect(rx,ry,rb,rb);
+    ctx.fillStyle=C.paper;ctx.textAlign='center';ctx.font=F.d(900,140);ctx.fillText(rk.r,rx+rb/2,ry+rb-14);ctx.textAlign='left'}
+  ctx.fillStyle=C.ink2;ctx.font=F.m(20);spaced(ctx,photo?'HOLDER · OFFICIAL RANK':'OFFICIAL RANK',bx,by+bs+64,3);
 
   // identity column
   const ix=bx+bs+70,iw=CW-M-18-ix;

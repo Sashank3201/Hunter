@@ -131,6 +131,13 @@ function silhouette(sh,cls=''){
     ${L.dk?`<g class="sil-d">${L.dk.map(d=>`<path d="${d}"/>`).join('')}</g>`:''}${L.visor?`<path class="sil-v" d="M${L.visor[0]} ${L.visor[1]}H${L.visor[2]}"/>`:''}<circle class="sil-e" cx="${x1}" cy="${y}" r="2.6"/><circle class="sil-e" cx="${x2}" cy="${y}" r="2.6"/></svg>`;
 }
 
+/* Full art for legends that have it, otherwise the silhouette. */
+function shadowArt(sh,cls='',big){
+  const a=bodyOf(sh).art;if(!a)return silhouette(sh,cls);
+  const z=big?a.zoom:a.mzoom,o=big?a.origin:a.morigin;
+  return `<img class="sh-art ${cls}" src="${a.src}" alt="" style="object-position:${big?a.pos:a.mini};--z:${z||1};transform-origin:${o||'50% 30%'}" draggable="false">`;
+}
+
 /* ---------- ARISE ---------- */
 let ariseTimer=0;
 function ariseOpen(){const a=$('arise');return a&&!a.hidden}
@@ -140,7 +147,7 @@ function arise(sh){
   a.innerHTML=`<div class="ar-smoke">${smoke}</div>
     <p class="ar-sub">Shadow extraction</p>
     <h2 class="ar-word">${'ARISE'.split('').map((c,i)=>`<span style="animation-delay:${.35+i*.09}s">${c}</span>`).join('')}</h2>
-    <div class="ar-card">${silhouette(sh)}<div><p class="overline">${esc(shadowRank(sh))}</p><p class="ar-name">${esc(sh.n)}</p>
+    <div class="ar-card">${bodyOf(sh).art?`<span class="ar-art">${shadowArt(sh)}</span>`:silhouette(sh)}<div><p class="overline">${esc(shadowRank(sh))}</p><p class="ar-name">${esc(sh.n)}</p>
       <p class="ar-ex">${esc(dn(sh.ex))} · record ${sh.best}${sh.timed?'s':''}</p><p class="ar-skill">${esc(skillOf(sh).name)} · ${esc(skillText(sh))}</p></div></div>
     <button class="btn quiet ar-skip" data-act="ariseClose">Tap to continue</button>`;
   a.hidden=false;a.classList.remove('go');void a.offsetWidth;a.classList.add('go');
@@ -165,17 +172,19 @@ function armyOrder(){
 function miniCard(sh,extra=''){
   const st=shadowStats(sh),role=roleOf(sh);
   return `<button class="mcard g${rankIdx(sh)}${role?' '+role:''} ${extra}" data-act="shadowOpen" data-arg="${esc(sh.ex)}" aria-label="${esc(sh.n)}, open card">
-    <span class="mc-art">${silhouette(sh)}</span>${role?`<span class="mc-role">${role==='captain'?'Captain':'Vice'}</span>`:''}
+    <span class="mc-art">${shadowArt(sh)}</span>${role?`<span class="mc-role">${role==='captain'?'Captain':'Vice'}</span>`:''}
     <span class="mc-grade">${esc(shadowRank(sh))}</span><b class="mc-name">${esc(sh.n)}</b><span class="mc-lv">Lv ${sh.lvl} · ${fmtN(st.cp)} CP</span></button>`;
 }
 function bigCard(sh){
   const st=shadowStats(sh),role=roleOf(sh),sk=skillOf(sh),b=bodyOf(sh),max=Math.max(40,...['atk','def','spd'].map(x=>st[x]));
   const into=sh.xp-shadowXpAt(sh.lvl),need=shadowXpAt(sh.lvl+1)-shadowXpAt(sh.lvl),maxed=sh.lvl>=SHADOW_MAX_LV;
-  return `<article class="scard g${rankIdx(sh)}${role?' '+role:''}" id="scard">
+  const full=!!b.art;
+  return `<article class="scard g${rankIdx(sh)}${role?' '+role:''}${full?' full':''}" id="scard">
+    ${full?`${shadowArt(sh,'sc-bg',true)}<div class="sc-shade"></div>`:''}
     <div class="sc-in">
-      <header class="sc-head"><span>${esc(shadowRank(sh))}</span><span>Lv <b>${sh.lvl}</b></span></header>
-      <div class="sc-art"><svg class="sc-rune" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="92"/><circle cx="100" cy="100" r="78" class="d"/><circle cx="100" cy="100" r="62"/></svg>
-        <span class="sc-fog"><i></i><i></i><i></i></span>${silhouette(sh,'xl')}<span class="sc-no">No. ${String(sh.no||S.shadows.indexOf(sh)+1).padStart(3,'0')}</span>
+      <header class="sc-head"><span>${esc(shadowRank(sh))}${full?' <em class="sc-leg">Legend</em>':''}</span><span>Lv <b>${sh.lvl}</b></span></header>
+      <div class="sc-art">${full?'':`<svg class="sc-rune" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="92"/><circle cx="100" cy="100" r="78" class="d"/><circle cx="100" cy="100" r="62"/></svg>`}
+        <span class="sc-fog"><i></i><i></i><i></i></span>${full?'':silhouette(sh,'xl')}<span class="sc-no">No. ${String(sh.no||S.shadows.indexOf(sh)+1).padStart(3,'0')}</span>
         ${role?`<div class="sc-ribbon">${ROLE_NAME[role]}</div>`:''}</div>
       <div class="sc-id"><div class="sc-name"><h2>${esc(sh.n)}</h2><p>${esc(b.epithet||`${(LADDERS[ladderOf(sh.ex)]||LADDERS.push).title} soldier`)}</p></div>
         <div class="sc-cp"><span>Combat power</span><b>${fmtN(st.cp)}</b></div></div>
