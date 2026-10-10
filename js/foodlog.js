@@ -17,7 +17,7 @@ const FL_UNIT_OF={};Object.entries(FL_UNITS).forEach(([u,w])=>w.split(' ').forEa
 const FL_UNIT_G={cup:200,bowl:200,plate:300,glass:250,slice:30,tbsp:15,tsp:5,scoop:30,handful:30,can:330,bottle:500};
 const FL_PIECES={plate:3,bowl:2,serving:2,packet:1}; // a plate of idli = 3 idlis
 const FL_SIZE={small:.7,mini:.6,little:.6,medium:1,regular:1,normal:1,large:1.4,big:1.4,huge:1.8,jumbo:1.8,extra:1.3};
-const FL_FILL=new Set('i im ive i\'ve had have has ate eat eaten eating drank drink drinking just also then some of the my for at in on me today todays tonight around about approx approximately like kind homemade home made fresh got took consumed finished bit lot lots plus more glass\'s'.split(' '));
+const FL_FILL=new Set('i im i\'m ive i\'ve i\'ll i\'d gonna going will had have has ate eat eaten eating drank drink drinking just also then some of the my for at in on me today todays tonight around about approx approximately like kind homemade home made fresh got took consumed finished bit lot lots plus more glass\'s'.split(' '));
 const FL_MEAL={breakfast:'breakfast',brunch:'breakfast',morning:'breakfast',lunch:'lunch',afternoon:'lunch',dinner:'dinner',supper:'dinner',night:'dinner',
   snack:'snack',snacks:'snack',evening:'snack',preworkout:'snack',postworkout:'snack'};
 const MEAL_NAME={breakfast:'Breakfast',lunch:'Lunch',snack:'Snack',dinner:'Dinner'};
@@ -64,11 +64,11 @@ function flParseSeg(seg){
   const used=new Set(),hits=[];
   for(let guard=0;guard<8;guard++){
     let best=null;
-    for(const e of flIndex){const L=e.toks.length;if(best&&L*100+e.toks.join(' ').length<=best.sc)continue;
+    for(const e of flIndex){const L=e.toks.length;if(best&&L*100+e.toks.join(' ').length+(e.f.custom?.5:0)<=best.sc)continue;
       for(let s=0;s+L<=words.length;s++){let ok=true;
         for(let j=0;j<L;j++){const wi=words[s+j];if(used.has(wi)||!flTokEq(toks[wi].t,e.toks[j])){ok=false;break}}
         if(ok&&L>1&&words[s+L-1]-words[s]>L+1)ok=false; // keep multi-word names together
-        if(ok){const sc=L*100+e.toks.join(' ').length;if(!best||sc>best.sc)best={e,s,L,sc}}}}
+        if(ok){const sc=L*100+e.toks.join(' ').length+(e.f.custom?.5:0);if(!best||sc>best.sc)best={e,s,L,sc}}}}
     if(!best)break;
     for(let j=0;j<best.L;j++)used.add(words[best.s+j]);
     hits.push({f:best.e.f,first:words[best.s],last:words[best.s+best.L-1]});
@@ -99,32 +99,39 @@ const flR1=x=>Math.round(x*10)/10;
 const flPlural=w=>/[^aeiou]y$/.test(w)?w.slice(0,-1)+'ies':/(s|x|ch|sh)$/.test(w)?w+'es':w+'s';
 /* "2 rotis", "1 glass of milk", "200 g chicken breast", "500 ml milk". */
 function flLabel(f,n,unit,qty){
-  const name=f.custom?f.n:f.n.toLowerCase();
+  const name=f.n.toLowerCase();
   if(unit==='g'||unit==='kg'||unit==='ml'||unit==='l'){const m=unit==='kg'||unit==='l'?qty*1000:qty,liq=unit==='ml'||unit==='l';return `${Math.round(m)} ${liq?'ml':'g'} ${name}`}
   if(f.u==='g')return `${Math.round(n*100)} g ${name}`;
   const q=flR1(n);
-  if(f.u==='piece'||f.u==='serving')return `${q} ${q>1&&!f.custom?name.replace(/^([^(,]*?)(\s*[(,].*)?$/,(_,a,b)=>(/s$/.test(a)?a:flPlural(a))+(b||'')):name}`;
+  if(f.u==='piece'||f.u==='serving')return `${q} ${q>1&&f.u==='piece'?name.replace(/^([^(,]*?)(\s*[(,].*)?$/,(_,a,b)=>(/s$/.test(a)?a:flPlural(a))+(b||'')):name}`;
   return `${q} ${q>1?flPlural(f.u):f.u} of ${name}`;
 }
 /* Turn a whole message into foods, water and unknown phrases. */
 function flParse(text,custom){
   flBuildIndex(custom);
-  const meal0=(flTokens(text).find(t=>t.k==='meal')||{}).m||null;
   /* Keep names like "oats with milk" in one piece before splitting on "with"/"and". */
   flGlue.forEach(al=>{text=text.replace(new RegExp('\\b'+al.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi'),m=>m.replace(/\s+/g,'_'))});
   const segs=text.split(/,|;|\n|&|\+|\band\b|\bwith\b|\bplus\b|\balong\b|\bthen\b|\balso\b|\bafter that\b/i).map(s=>s.trim()).filter(Boolean);
   const items=[],unknown=[];let water=0;
-  segs.forEach(seg=>{
+  /* Each piece gets its own meal. A meal word after the food ("rice and dal for lunch") covers
+     the pieces before it; one before the food ("for dinner 4 idlis") covers the pieces after it. */
+  const own=segs.map(sg=>{const tk=flTokens(sg),mi=tk.findIndex(t=>t.k==='meal');if(mi<0)return null;
+    const food=t=>t.k==='w'||t.k==='num'||t.k==='unit';return {m:tk[mi].m,close:tk.slice(0,mi).some(food)&&!tk.slice(mi+1).some(food)}});
+  const meals=own.map(o=>o&&o.m);
+  own.forEach((o,i)=>{if(o&&o.close)for(let j=i-1;j>=0&&!own[j]&&!meals[j];j--)meals[j]=o.m});
+  const first=meals.find(Boolean)||null;let prev=null;
+  meals.forEach((m,i)=>{meals[i]=(prev=m||prev)||first});
+  segs.forEach((seg,si)=>{
     const r=flParseSeg(seg);
     r.hits.forEach(h=>{
       const n=flUnits(h.f,h.qty,h.unit,h.size);
       if(h.f.tags==='water'){water+=h.unit==='ml'?h.qty/250:h.unit==='l'?h.qty*4:h.unit==='bottle'?(h.qty||1)*2:n;return}
-      items.push({n:h.f.n,q:flLabel(h.f,n,h.unit,h.qty),k:Math.round(h.f.k*n),p:flR1(h.f.p*n),c:flR1(h.f.c*n),f:flR1(h.f.f*n),fb:flR1(h.f.fb*n),s:flR1(h.f.s*n),tags:h.f.tags,units:n,custom:!!h.f.custom});
+      items.push({n:h.f.n,q:flLabel(h.f,n,h.unit,h.qty),k:Math.round(h.f.k*n),p:flR1(h.f.p*n),c:flR1(h.f.c*n),f:flR1(h.f.f*n),fb:flR1(h.f.fb*n),s:flR1(h.f.s*n),tags:h.f.tags,units:n,custom:!!h.f.custom,est:!!h.f.est,meal:meals[si]});
     });
     const left=r.unknown.filter(w=>w.length>1&&!/^(it|that|this|and|or|but|so|very|too|really|yeah|ok|okay|pls|please)$/.test(w));
-    if(!r.hits.length&&left.length)unknown.push({phrase:left.join(' '),qty:r.qty,unit:r.unit});
+    if(!r.hits.length&&left.length)unknown.push({phrase:left.join(' '),qty:r.qty,unit:r.unit,meal:meals[si]});
   });
-  return {items,water:Math.round(water*10)/10,unknown,meal:meal0};
+  return {items,water:Math.round(water*10)/10,unknown,meal:first};
 }
 
 /* ---------- targets (lean bulk by default) ---------- */
@@ -146,6 +153,41 @@ function flDay(ds,date=todayStr()){
 function flTotals(day){const t={k:0,p:0,c:0,f:0,fb:0,s:0};day.items.forEach(i=>Object.keys(t).forEach(x=>t[x]+=i[x]||0));Object.keys(t).forEach(x=>t[x]=x==='k'?Math.round(t[x]):flR1(t[x]));return t}
 const mealNow=()=>{const h=new Date().getHours();return h<11?'breakfast':h<16?'lunch':h<19?'snack':'dinner'};
 const fmtK=n=>Math.round(n).toLocaleString('en-US');
+
+/* ---------- estimates and corrections ----------
+   When you don't know a food's calories, the bot estimates from similar foods in its
+   records (a "drumstick curry" is priced like other vegetable curries), or from the kind
+   of dish. You can correct any food later: "drumstick curry is 150 kcal". */
+const FL_MEATY=/chicken|mutton|lamb|goat|fish|prawn|shrimp|egg|anda|paneer|keema|meat|beef|pork|whey/;
+const FL_KIND=[[/curry|stew|kura|koora|sabzi|sabji|masala|gravy|fry|vepudu|poriyal|kootu|thoran|bhaji|pulusu|kuzhambu/,180,6],[/rice|biryani|pulao|bath|annam|khichdi/,330,7],
+  [/dal|pappu|sambar|rasam/,180,9],[/sweet|halwa|kheer|payasam|laddu|ladoo|barfi|cake|pastry|mithai|jamun/,250,4],[/juice|shake|lassi|smoothie|drink|soda/,150,3],
+  [/salad/,120,4],[/soup/,110,5],[/roti|chapati|paratha|naan|bread|dosa|idli/,150,4],[/chicken|mutton|fish|egg|prawn|meat|keema/,280,22],[/paneer|tofu|soya/,280,16]];
+const flUnitWord=f=>f.u==='g'?'100 g':f.u;
+function flGuess(phrase,unit){
+  const words=flTokens(phrase).filter(t=>t.k==='w'&&t.t.length>2).map(t=>t.t),meaty=FL_MEATY.test(phrase.toLowerCase());
+  const per=f=>unit&&FL_UNIT_G[unit]?f.k/f.g*FL_UNIT_G[unit]:f.u==='g'?f.k*(f.serv||100)/100:f.k;
+  const kind=FL_KIND.find(([re])=>re.test(phrase.toLowerCase()));
+  let like=FOODS.filter(f=>f.k>0&&f.tags!=='water'&&(meaty||!FL_MEATY.test(f.n.toLowerCase()))&&f.a.some(al=>al.split(' ').some(x=>x.length>2&&words.some(w=>flTokEq(w,x)))));
+  if(kind)like=like.filter(f=>kind[0].test(f.n.toLowerCase()+' '+f.a.join(' '))); // a "stew" is priced like curries, not like biryani
+  const med=a=>{a=a.slice().sort((x,y)=>x-y);return a.length%2?a[(a.length-1)/2]:(a[a.length/2-1]+a[a.length/2])/2};
+  if(like.length)return {k:Math.round(med(like.map(per))/5)*5,p:flR1(med(like.map(f=>f.p*per(f)/f.k))),from:like.slice(0,3).map(f=>f.n.toLowerCase())};
+  return kind?{k:kind[1],p:kind[2],from:[]}:{k:200,p:6,from:[]};
+}
+/* "drumstick curry is 150 kcal", "2 rotis = 220 cal and 7 g protein" -> fix the food and today's entries. */
+function flCorrect(ds,name,k,p){
+  flBuildIndex(ds.custom);
+  const r=flParseSeg(name),h=r.hits[0];ds.custom=ds.custom||{};
+  let base,units=1;
+  if(h){base=h.f;units=flUnits(h.f,h.qty,h.unit,h.size)||1}
+  else{const key=r.unknown.join(' ');if(!key)return null;units=r.qty||1;
+    const u=r.unit&&!FL_BYG.includes(r.unit)?r.unit:'serving';base=ds.custom[key]||{n:key.replace(/\b\w/g,c=>c.toUpperCase()),a:[key],u,g:FL_UNIT_G[u]||100,k:0,p:0,c:0,f:0,fb:0,s:0,tags:''}}
+  const k1=k/units,p1=p===null?null:p/units,sc=base.k?k1/base.k:0,pr=p1!==null?p1:sc?base.p*sc:flGuess(base.n,base.u).p;
+  const rest=Math.max(0,k1-pr*4);
+  const nf=Object.assign({},base,{k:Math.round(k1),p:flR1(pr),custom:true,est:false},sc&&base.c+base.f>0?{c:flR1(base.c*sc),f:flR1(base.f*sc),fb:flR1(base.fb*sc),s:flR1(base.s*sc)}:{c:flR1(rest*.55/4),f:flR1(rest*.45/9)});
+  ds.custom[base.custom?Object.keys(ds.custom).find(x=>ds.custom[x]===base)||base.a[0]:base.a[0]]=nf;
+  let fixed=0;flDay(ds).items.forEach(i=>{if(i.n===base.n){['k','p','c','f','fb','s'].forEach(x=>i[x]=x==='k'?Math.round(nf.k*i.units):flR1((nf[x]||0)*i.units));i.est=false;fixed++}});
+  return {f:nf,fixed};
+}
 
 /* ---------- the bot's brain ---------- */
 const FL_LINES={
@@ -171,7 +213,7 @@ function flHandle(ds,text){
   if(/^(hi|hello|hey|yo|sup|hola|namaste)\b/.test(low)&&low.split(/\s+/).length<=3)return {say:pickL('hello'),mood:'happy'};
   if(/\b(thanks|thank you|thx|ty|good bot|love you|nice bot|awesome|great job|well done)\b/.test(low))return {say:pickL('thanks'),mood:'shy'};
   if(/\b(lol|haha+|hehe+|lmao|rofl)\b|😂|🤣/.test(low))return {say:pickL('lol'),mood:'laughing'};
-  if(/\b(help|what can you do|how do i|how to use)\b/.test(low))return {say:'Tell me what you ate in plain words: "2 rotis, dal and a glass of milk", "200g chicken for lunch", "3 glasses of water". Say "undo" to remove the last entry, "summary" for your day, or "goal cut/bulk/maintain".',mood:'curious'};
+  if(/\b(help|what can you do|how do i|how to use)\b/.test(low))return {say:'Tell me what you ate in plain words: "2 rotis, dal and a glass of milk", "200g chicken for lunch", "3 glasses of water". Say "undo" to remove the last entry, "summary" for your day, "goal cut/bulk/maintain", or fix a food with "drumstick curry is 150 kcal".',mood:'curious'};
   const gm=low.match(/\b(goal|target)\b.*\b(cut|lose|loss|bulk|gain|maintain|recomp)\b/);
   if(gm){ds.goal=/cut|lose|loss/.test(gm[2])?'cut':/bulk|gain/.test(gm[2])?'bulk':'maintain';const t=foodTargets(ds);
     return {say:`Goal set to ${GOALS[ds.goal].n}: ${fmtK(t.kcal)} kcal and ${t.p} g protein a day.`,mood:'proud'}}
@@ -179,16 +221,22 @@ function flHandle(ds,text){
   if(rm){const i=[...day.items].reverse().find(x=>x.n.toLowerCase().includes(rm[2].trim())||rm[2].includes(x.n.toLowerCase()));
     if(!i)return {say:`I can't find "${rm[2]}" in today's log.`,mood:'confused'};
     day.items=day.items.filter(x=>x!==i);return {say:`Removed ${i.q}. ${sumLine()}`,mood:'sad'}}
+  const cm=low.match(/^(.+?)\s+(?:is|=|has|was|are|equals)\s+(?:about\s+|around\s+|roughly\s+|~\s*)?(\d+(?:\.\d+)?)\s*(?:kcal|cal|cals|calories)\b(?:.*?(\d+(?:\.\d+)?)\s*g?\s*(?:of\s+)?protein)?/);
+  if(cm&&!/\b(had|ate|eaten|eat|drank|having|eating)\b/.test(cm[1])){const res=flCorrect(ds,cm[1],+cm[2],cm[3]!==undefined?+cm[3]:null);
+    if(!res)return {say:`Which food is that? Try "drumstick curry is 150 kcal".`,mood:'confused'};
+    return {say:`Updated ${res.f.n.toLowerCase()}: ${fmtK(res.f.k)} kcal and ${Math.round(res.f.p)} g protein per ${flUnitWord(res.f)}.${res.fixed?` Fixed ${res.fixed} entr${res.fixed>1?'ies':'y'} from today. ${sumLine()}`:''}`,mood:'proud'}}
   if(/\b(summary|total|totals|status|report|how am i doing|how much|left|remaining|so far)\b/.test(low)&&!/\d/.test(low))return {summary:true,mood:'working'};
   const r=flParse(text,ds.custom);
   if(!r.items.length&&!r.water&&!r.unknown.length)return {say:'I didn\'t catch a food there. Try "2 eggs and toast" or say "help".',mood:'confused'};
   const meal=r.meal||mealNow(),batch=Date.now();
-  r.items.forEach((it,k)=>day.items.push(Object.assign({id:batch+'-'+k,batch,meal,t:batch},it)));
+  r.items.forEach(it=>{it.meal=it.meal||meal});
+  r.items.forEach((it,k)=>day.items.push(Object.assign({id:batch+'-'+k,batch,t:batch},it)));
   if(r.water)day.water=Math.max(0,flR1(day.water+r.water));
   const out={items:r.items.map((it,k)=>batch+'-'+k),mood:'happy'};
   const big=r.items.reduce((a,i)=>a+i.k,0),prot=r.items.reduce((a,i)=>a+i.p,0),sweet=r.items.some(i=>/junk|sweet/.test(i.tags||'')||(i.s>=40&&!/drink/.test(i.tags||'')));
   const silly=r.items.some(i=>i.units>=10&&!/ g /.test(' '+i.q+' '))||big>3000;
-  let say=r.items.length?`${pickL('logged')} ${MEAL_NAME[meal]}: ${r.items.map(i=>`${i.q} (${fmtK(i.k)} kcal, ${Math.round(i.p)} g protein)`).join(', ')}.`:'';
+  const groups=[];r.items.forEach(it=>{let g=groups.find(x=>x.m===it.meal);if(!g)groups.push(g={m:it.meal,a:[]});g.a.push(it)});
+  let say=r.items.length?`${pickL('logged')} ${groups.map(g=>`${MEAL_NAME[g.m]}: ${g.a.map(i=>`${i.q} (${i.est?'about ':''}${fmtK(i.k)} kcal, ${Math.round(i.p)} g protein)`).join(', ')}.`).join(' ')}`:'';
   if(r.water)say+=`${say?' ':''}+${r.water} glass${r.water===1?'':'es'} of water.`;
   if(silly){out.mood='suspicious';say+=' That\'s… a lot. Logged anyway. I\'m watching you.'}
   else if(big>=900){out.mood='surprised';say+=` ${fmtK(big)} kcal in one go!`}
@@ -199,7 +247,7 @@ function flHandle(ds,text){
   if(t.p>=T.p&&!day.flags.protein){day.flags.protein=true;out.after={mood:'proud',say:`Protein target reached: ${Math.round(t.p)} g. Muscle has what it needs.`}}
   if(t.k>=T.kcal*.9&&t.k<=T.kcal*1.1&&t.p>=T.p&&day.water>=T.water&&!day.flags.done){day.flags.done=true;out.after={mood:'celebrate',say:'Every target hit today. Calories, protein, water. Flawless, Hunter.'}}
   else if(t.k>T.kcal*1.3&&!day.flags.over){day.flags.over=true;out.after={mood:'scared',say:`You're at ${Math.round(t.k/T.kcal*100)}% of today's calories. Even a bulk has limits.`}}
-  if(r.unknown.length){const u=r.unknown[0];ds.pending={phrase:u.phrase,qty:u.qty,unit:u.unit,meal};out.ask='teach';out.mood=r.items.length||r.water?out.mood:'confused';
+  if(r.unknown.length){const u=r.unknown[0];ds.pending={phrase:u.phrase,qty:u.qty,unit:u.unit,meal:u.meal||meal};out.ask='teach';out.mood=r.items.length||r.water?out.mood:'confused';
     say+=`${say?' ':''}${pickL('unknown')} How many calories in ${FL_BYG.includes(u.unit)?'100 g':'one '+(u.unit||'serving')} of "${u.phrase}"?`}
   out.say=say+(r.items.length||r.water?' '+sumLine():'');
   return out;
@@ -308,11 +356,13 @@ function renderBot(){
     if(m.w==='me')return `<div class="msg me"><p>${esc(m.x)}</p></div>`;
     const its=(m.items||[]).map(item).filter(Boolean);
     const form=m.kind&&mi===day.msgs.length-1&&(m.kind==='setup'||ds.pending);
-    return `<div class="msg bot${form?' wide':''}"><p>${esc(m.x)}</p>${its.length?`<ul class="msg-items">${its.map(i=>`<li><span>${esc(i.q)}</span><em>${fmtK(i.k)} kcal · ${Math.round(i.p)} g P</em><button data-act="flDel" data-arg="${i.id}" aria-label="Remove ${esc(i.q)}">${ic('x')}</button></li>`).join('')}</ul>`:''}
+    const multi=new Set(its.map(i=>i.meal)).size>1;
+    return `<div class="msg bot${form?' wide':''}"><p>${esc(m.x)}</p>${its.length?`<ul class="msg-items">${its.map((i,ii)=>`${multi&&(!ii||its[ii-1].meal!==i.meal)?`<li class="mh">${MEAL_NAME[i.meal]||''}</li>`:''}<li><span>${esc(i.q)}</span><em>${i.est?'~':''}${fmtK(i.k)} kcal · ${Math.round(i.p)} g P</em><button data-act="flDel" data-arg="${i.id}" aria-label="Remove ${esc(i.q)}">${ic('x')}</button></li>`).join('')}</ul>`:''}
       ${m.kind==='setup'&&mi===day.msgs.length-1?setupForm(ds):''}${m.kind==='teach'&&mi===day.msgs.length-1&&ds.pending?teachForm(ds):''}</div>`}).join('');
   chat.scrollTop=chat.scrollHeight;
   const sf=$('flSetup');if(sf)sf.addEventListener('submit',e=>{e.preventDefault();flSaveSetup()});
-  const tf=$('flTeach');if(tf)tf.addEventListener('submit',e=>{e.preventDefault();flSaveTeach()});
+  const tf=$('flTeach');if(tf){tf.addEventListener('submit',e=>{e.preventDefault();flSaveTeach()});
+    $('ftK').addEventListener('input',()=>{$('ftGo').textContent=$('ftK').value?'Save':'Estimate it'})}
 }
 function setupForm(ds){const b=ds.body||{};return `<form class="msg-form" id="flSetup">
   <label><span>Height</span><input id="fsH" type="number" inputmode="numeric" min="120" max="230" value="${b.h||''}" placeholder="cm" required></label>
@@ -323,9 +373,10 @@ function setupForm(ds){const b=ds.body||{};return `<form class="msg-form" id="fl
 const FL_BYG=['g','kg','ml','l'];
 const teachUnit=p=>FL_BYG.includes(p.unit)?'100 g':p.unit||'serving';
 function teachForm(ds){const p=ds.pending;return `<form class="msg-form" id="flTeach">
-  <label><span>kcal per ${esc(teachUnit(p))}</span><input id="ftK" type="number" inputmode="numeric" min="1" max="3000" required></label>
-  <label><span>Protein (g)</span><input id="ftP" type="number" inputmode="decimal" min="0" max="200" placeholder="optional"></label>
-  <div class="msg-btns"><button class="btn sm" type="submit">Save</button><button class="btn sm ghost" type="button" data-act="flTeachSkip">Skip</button></div></form>`}
+  <label><span>kcal per ${esc(teachUnit(p))}</span><input id="ftK" type="number" inputmode="numeric" min="1" max="3000" placeholder="not sure"></label>
+  <label><span>Protein (g)</span><input id="ftP" type="number" inputmode="decimal" min="0" max="200" placeholder="not sure"></label>
+  <p class="msg-hint">Don't know? Leave both blank and I'll estimate from similar foods.</p>
+  <div class="msg-btns"><button class="btn sm" type="submit" id="ftGo">Estimate it</button><button class="btn sm ghost" type="button" data-act="flTeachSkip">Skip</button></div></form>`}
 function flSaveSetup(){
   const ds=dietState(),h=+$('fsH').value,a=+$('fsA').value,sx=(document.querySelector('input[name=fsS]:checked')||{}).value||'m',g=(document.querySelector('input[name=fsG]:checked')||{}).value||'bulk';
   if(!h||!a)return;ds.body={h,age:a,sex:sx};ds.goal=g;
@@ -334,11 +385,14 @@ function flSaveSetup(){
   saveDietState(ds);renderBot();Bot.react('proud',2600);buzz('level');
 }
 function flSaveTeach(){
-  const ds=dietState(),p=ds.pending;if(!p)return;const k=+$('ftK').value,pr=+($('ftP').value||0);if(!k)return;
-  const rest=Math.max(0,k-pr*4),key=p.phrase.toLowerCase(),byG=FL_BYG.includes(p.unit),u=byG?'g':p.unit||'serving';
+  const ds=dietState(),p=ds.pending;if(!p)return;
+  const kIn=+$('ftK').value||0,pIn=$('ftP').value===''?null:+$('ftP').value,byG=FL_BYG.includes(p.unit),u=byG?'g':p.unit||'serving';
+  const g=flGuess(p.phrase,byG?null:u),est=!kIn,k=kIn||g.k,pr=pIn!==null?pIn:est?g.p:flR1(g.p*kIn/g.k);
+  const rest=Math.max(0,k-pr*4),key=p.phrase.toLowerCase();
   /* Remembered in the unit it was described in: "a dragonfruit bowl" -> per bowl, "200 g tofu" -> per 100 g. */
-  ds.custom=ds.custom||{};ds.custom[key]={n:p.phrase.replace(/\b\w/g,c=>c.toUpperCase()),a:[key],u,g:byG?100:FL_UNIT_G[u]||100,serv:byG?100:0,k,p:pr,c:Math.round(rest*.55/4),f:Math.round(rest*.45/9),fb:0,s:0,tags:'',custom:true};
+  ds.custom=ds.custom||{};ds.custom[key]={n:p.phrase.replace(/\b\w/g,c=>c.toUpperCase()),a:[key],u,g:byG?100:FL_UNIT_G[u]||100,serv:byG?100:0,k,p:pr,c:Math.round(rest*.55/4),f:Math.round(rest*.45/9),fb:0,s:0,tags:'',custom:true,est};
   delete ds.pending;flDay(ds).msgs.forEach(m=>{if(m.kind==='teach')m.kind=null});
+  if(est)flSay(ds,`I'll count "${p.phrase}" as about ${k} kcal and ${Math.round(pr)} g protein per ${byG?'100 g':u}${g.from.length?`, like ${g.from.join(', ')}`:''}. If you find the real number, tell me: "${p.phrase} is ${k} kcal".`);
   saveDietState(ds);
   flSend(`${p.qty||1} ${p.unit?p.unit+' ':''}${p.phrase} for ${p.meal}`,true);
 }
