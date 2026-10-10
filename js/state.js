@@ -36,10 +36,15 @@ function fresh(){return {
   weekSnaps:{},      // monday -> stats at the start of that week (weekly report)
   reportSeen:null,   // monday of the last weekly report shown
   huntInit:true,     // marks saves that already got retroactive feats and shadows
+  army:{captain:null,vice:null}, // shadow ids (the move each shadow came from)
+  trialRun:null,     // rank-up trial in progress
+  login:{last:null,streak:0,shown:null}, // daily supply chest
   profile:null       // {name, haptics, theme, remindAt} once awakened
 }}
 
 /* Older saves are upgraded in place: any missing field gets its default. */
+/* Total shadow XP needed to reach level L (Lv2 100, Lv3 300, Lv5 1000, Lv10 4500). */
+const shadowXpAt=L=>50*L*(L-1);
 function migrate(s){
   const legacy=s.pointsInit===undefined,legacyHunt=s.huntInit===undefined;
   const f=fresh();
@@ -51,6 +56,9 @@ function migrate(s){
   // saves from before items/feats/shadows get them retroactively on next start
   if(legacyHunt){s.huntPending=true;s.huntInit=true}
   if(!s.inv.keys)s.inv.keys={E:0,D:0,C:0,B:0,A:0,S:0};
+  // shadows from before shadow XP existed keep their level
+  s.shadows.forEach((sh,i)=>{if(sh.xp===undefined)sh.xp=shadowXpAt(sh.lvl||1);if(!sh.no)sh.no=i+1});
+  if(!s.army.captain&&s.shadows.length)s.army.captain=s.shadows[0].ex;
   return s;
 }
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&typeof s==='object')return migrate(s)}catch(e){}return fresh()}

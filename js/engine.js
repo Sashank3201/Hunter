@@ -14,7 +14,7 @@ function processMissedDays(){
     const rec=S.log[day];
     if(SPLIT[dowOf(day)].rest||dayDiff(S.startDate,day)<=2)continue;
     if(!rec||!rec.completed){
-      S.penaltyLevel++;S.penaltyReps+=10*S.penaltyLevel;S.streak=0;penalties++;
+      S.penaltyLevel++;S.penaltyReps+=Math.round(10*S.penaltyLevel*(1-armyBonus('penalty')/100));S.streak=0;penalties++;
       if(rec)rec.missed=true;else S.log[day]={done:[],missed:true};
       if(S.penaltyLevel>=5){died=true;break}
     }
@@ -96,6 +96,7 @@ function logSet(item,reps){
   }
   save();
   if(pr)extractShadow(item.name,reps,item.timed); // a beaten record extracts (or strengthens) a shadow
+  else if(!item.warm)trainShadow(item.name,reps,item.timed); // every set trains that move's shadow
   checkFeats();
   return pr;
 }
@@ -132,12 +133,16 @@ function completeDay(){
   // stat gain: each trained stat grows
   const gained={};
   sp.quests.forEach(k=>{const st=LADDERS[k].stat;gained[st]=(gained[st]||0)+1;S.ladders[k].streak++});
-  Object.keys(gained).forEach(st=>{S.stats[st]+=gained[st]*0.22});
-  STATS.forEach(st=>{S.stats[st]+=0.08});
+  Object.keys(gained).forEach(st=>{S.stats[st]+=gained[st]*0.22*armyMult('stat:'+st)});
+  STATS.forEach(st=>{S.stats[st]+=0.08*armyMult('stat:'+st)});
   // weekly goal: 5 training days in a week boosts every stat
   if(!sp.rest&&trainedInWeek(mondayOf(todayStr()))===5){STATS.forEach(st=>{S.stats[st]+=0.6});gain+=40;bonus.push('Weekly goal hit: all stats boosted, +40 EXP');loot.push(grantItem('key'))}
   if(sp.boss)loot.push(grantItem('box'));
   if(rec.cooled){gain+=COOLDOWN_EXP;S.stats.Flexibility+=.2;S.stats.Mobility+=.2;bonus.push(`Cool-down: +${COOLDOWN_EXP} EXP, +0.2 FLX and MOB`)}
+  const armyPct=armyBonus('expAll')+(sp.quests.includes('push')?armyBonus('expPush'):0)+(sp.boss?armyBonus('expBoss'):0);
+  if(armyPct){const extra=Math.round(gain*armyPct/100);if(extra){gain+=extra;bonus.push(`Shadow army skills: +${extra} EXP`)}}
+  const shUps=[];armyTrain(sp.rest?5:10,shUps);
+  const shLv=shUps.filter(u=>!u.promo).map(u=>`${u.sh.n} Lv ${u.sh.lvl}`);if(shLv.length)bonus.push(`Shadows leveled: ${shLv.join(', ')}`);
   if(S.elixirActive){const extra=Math.round(gain*.5);gain+=extra;S.elixirActive=false;bonus.push(`Elixir of Growth: +${extra} EXP`)}
   // clean days slowly lower the penalty level
   let penDown=false;
@@ -154,6 +159,7 @@ function completeDay(){
   const up=syncLevel();
   save();renderAll();
   showReward({gain,leveled:up>0,points:up*POINTS_PER_LEVEL,bonus,ups,penDown,mins,loot});
+  announceUps(shUps.filter(u=>u.promo)); // promotions queue behind the reward
   checkFeats();
 }
 
@@ -183,33 +189,9 @@ function useRestPass(){
   toast('Rest Pass used. Streak protected. Recover well.');
 }
 
-/* ---------- rank tests ---------- */
+/* ---------- rank trials (see trials.js) ---------- */
 const RANK_COOLDOWN=7;
 function rankRetryDate(r){const f=S.rankFails[r];if(!f)return null;const d=addDays(f,RANK_COOLDOWN);return d>todayStr()?d:null}
-function takeRankTest(rankKey){
-  const rt=RANK_TESTS[rankKey];
-  if(rankRetryDate(rankKey))return;
-  let html=`<div class="m-stamp">Rank test: ${rankKey}</div><p class="m-text">Enter your best single-attempt numbers. You must hit every target.</p><form class="m-form" data-rank="${rankKey}" id="rtForm">`;
-  rt.tests.forEach((t,i)=>{html+=`<label class="m-field"><span>${t[0]}</span><em>need ${t[1]}</em><input type="number" inputmode="numeric" id="rt${i}" min="0" max="999"></label>`});
-  html+=`<div class="m-btns"><button class="btn" type="submit">Submit</button><button class="btn ghost" type="button" data-act="closeModal">Cancel</button></div></form>`;
-  openModal(html,'sys','shield');
-  $('rtForm').addEventListener('submit',e=>{e.preventDefault();submitRankTest(rankKey)});
-}
-function submitRankTest(rankKey){
-  const rt=RANK_TESTS[rankKey];
-  const ok=rt.tests.every((t,i)=>parseInt($('rt'+i).value||'0',10)>=t[1]);
-  if(ok){
-    S.rankTestsPassed.push(rankKey);S.exp+=150;delete S.rankFails[rankKey];
-    syncLevel();save();renderAll();
-    openModal(`<div class="m-stamp">Rank up</div><div class="m-rank">${rankKey}</div><p class="m-text">You are now Rank ${rankKey}: ${esc(currentRank().name)}. +150 EXP</p><button class="btn" data-act="closeModal">Continue</button>`,'sys','shield');
-    buzz('level');
-  }else{
-    S.rankFails[rankKey]=todayStr();save();renderAll();
-    openModal(`<div class="m-stamp">Test failed</div><p class="m-text">Not yet. You can retry on <b>${fmtDate(addDays(todayStr(),RANK_COOLDOWN))}</b>. Failing a test costs no penalty.</p><button class="btn ghost" data-act="closeModal">Close</button>`,'red','x');
-    buzz('bad');
-  }
-}
-
 /* ---------- start-date gate ---------- */
 function startToday(){
   S.startDate=todayStr();S.lastChecked=todayStr();save();renderAll();
@@ -219,7 +201,6 @@ function startToday(){
 ACT.toggle=toggleDone;
 ACT.completeDay=completeDay;
 ACT.penalty=n=>logPenalty(+n);
-ACT.rankTest=takeRankTest;
 ACT.startToday=startToday;
 ACT.restPass=()=>openModal(`<div class="m-stamp">Rest Pass</div>
   <p class="m-text">Use this only if you are sick or injured. Today counts as cleared: no EXP, but your streak and penalty level are safe.</p>

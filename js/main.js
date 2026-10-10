@@ -24,6 +24,8 @@ ACT.closeModal=closeModal;
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
   if($('modal').classList.contains('open'))closeModal();
+  else if(!$('shadowLayer').hidden)closeShadow();
+  else if(!$('trial').hidden&&!S.trialRun)closeTrial();
   else if(!$('recipeLayer').hidden)closeRecipe();
   else if(!$('groceryLayer').hidden)closeGrocery();
   else if(!$('cardLayer').hidden)closeCard();
@@ -101,7 +103,7 @@ function renderAll(){renderedDay=todayStr();renderTop();renderStatus();renderQue
 /* If the app stays open past midnight, roll the day over when it comes back into view. */
 function checkDay(){
   if(needsAwakening())return;
-  if(todayStr()!==renderedDay){processMissedDays();ensureWeekSnap();renderAll();maybeReport()}
+  if(todayStr()!==renderedDay){processMissedDays();ensureWeekSnap();renderAll();maybeReport();setTimeout(maybeChest,1000)}
   else{ // keep countdowns fresh without rebuilding the screen
     const tl=$('timeLeft');if(tl)tl.textContent=timeLeft();
     const q=S.sudden;
@@ -114,4 +116,4 @@ setInterval(checkDay,60000);
 
 applyTheme();
 if(needsAwakening()){renderAll();startAwakening()}
-else{processMissedDays();ensureWeekSnap();renderAll();animateIn($('status'));huntCatchUp();maybeReport();setTimeout(maybeSudden,1200)}
+else{processMissedDays();ensureWeekSnap();renderAll();animateIn($('status'));huntCatchUp();maybeReport();setTimeout(maybeChest,1000);setTimeout(maybeSudden,1200)}
