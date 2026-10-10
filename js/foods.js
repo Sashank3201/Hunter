@@ -188,7 +188,7 @@ const FOODS=[
   FD('Strawberries','strawberry|strawberries','cup',150,48,1,11.5,.5,3,7),
   FD('Pear','pear|nashpati','piece',178,100,.6,27,.2,5.5,17),
   FD('Chikoo','chikoo|sapota|chiku','piece',100,83,.4,20,1.1,5.3,14),
-  FD('Dates','dates|khajoor|date','piece',24,66,.4,18,0,1.6,16,'sweet'),
+  FD('Dates','dates|khajoor|khajur','piece',24,66,.4,18,0,1.6,16,'sweet'),
   FD('Raisins','raisins|kishmish','tbsp',10,30,.3,8,0,.4,6),
   FD('Avocado','avocado','piece',150,240,3,13,22,10,1),
   FD('Potato','potato|boiled potato|aloo boiled','piece',150,130,3,30,.2,2.5,1.2),

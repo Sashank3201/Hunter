@@ -27,8 +27,8 @@ document.addEventListener('keydown',e=>{
   else if(!$('shadowLayer').hidden)closeShadow();
   else if(!$('weaponLayer').hidden)closeWeapon();
   else if(!$('trial').hidden&&!S.trialRun)closeTrial();
-  else if(!$('botLayer').hidden)closeBot();
   else if(!$('recipeLayer').hidden)closeRecipe();
+  else if(!$('botLayer').hidden)closeBot();
   else if(!$('groceryLayer').hidden)closeGrocery();
   else if(!$('cardLayer').hidden)closeCard();
   else if(!$('menu').hidden)closeMenu();

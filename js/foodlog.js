@@ -21,12 +21,24 @@ const FL_FILL=new Set('i im i\'m ive i\'ve i\'ll i\'d gonna going will had have 
 const FL_MEAL={breakfast:'breakfast',brunch:'breakfast',morning:'breakfast',lunch:'lunch',afternoon:'lunch',dinner:'dinner',supper:'dinner',night:'dinner',
   snack:'snack',snacks:'snack',evening:'snack',preworkout:'snack',postworkout:'snack'};
 const MEAL_NAME={breakfast:'Breakfast',lunch:'Lunch',snack:'Snack',dinner:'Dinner'};
+/* Everyday words that are never food. They are skipped when matching (so "don't" can't be read
+   as a typo of "donut") and never asked about as unknown foods. Any word with an apostrophe too. */
+const FL_COMMON=new Set(('about above after again all almost already alright always am an another any anybody anyone anything anyway are around as ask asked at away back bad be '+
+  'became because become been before being best better bit both bring but by call came can cannot cant care come coming could date day days did didnt different do does doesnt '+
+  'doing done dont down during each early either else end enough even ever every everyone everything exactly feel feeling felt find fine first forgot forget forgotten from '+
+  'gave get gets getting give go goes going gone good got great gym guess hardly has hasnt have havent having he hello help her here hey hi him his how however hungry idea if '+
+  'into is isnt it its just keep know last late later least left less let life like little long look lot lots made make many may maybe mean meh might mine more most much must my '+
+  'myself need never next nice no nobody none nope not nothing now of off often oh ok okay on once only or other our out over own past perhaps please pretty probably quite '+
+  'rather really remember right said same saw say see seem seems she should since skip skipped so some somebody someone something sometimes somewhat soon sorry still such '+
+  'suggest sure take taken tell than thank thanks that the their them then there these they thing things think this those though through time tired to today told tomorrow '+
+  'tonight too took tried try trying under until up upon us use used usual usually very want wanted was wasnt way we week well went were what whatever when where which while '+
+  'who why will wish without won wont would wow yeah yep yes yesterday yet you your yours workout target goal clue idk dunno nah hmm umm uh cold sick fever ill pain food meal meals').split(' '));
 
 function flLev(a,b){if(Math.abs(a.length-b.length)>2)return 9;const d=Array.from({length:a.length+1},(_,i)=>[i]);for(let j=1;j<=b.length;j++)d[0][j]=j;
   for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[a.length][b.length]}
 const flSing=w=>w.length>4&&w.endsWith('es')&&!w.endsWith('ses')?w.slice(0,-2):w.length>3&&w.endsWith('s')&&!w.endsWith('ss')?w.slice(0,-1):w;
 /* Same word, allowing plurals and small typos on longer words. */
-function flTokEq(a,b){if(a===b||flSing(a)===b||flSing(a)===flSing(b))return true;if(b.length>=5&&flLev(a,b)<=1)return true;return b.length>=8&&flLev(a,b)<=2}
+function flTokEq(a,b){if(a===b||flSing(a)===b||flSing(a)===flSing(b))return true;if(a[0]!==b[0]||!/^[a-z]+$/.test(a))return false;if(b.length>=5&&flLev(a,b)<=1)return true;return b.length>=8&&flLev(a,b)<=2}
 
 function flTokens(text){
   const s=' '+text.toLowerCase().replace(/½/g,' 0.5 ').replace(/¼/g,' 0.25 ').replace(/(\d+)\s*\/\s*(\d+)/g,(_,a,b)=>' '+(+a/+b)+' ')
@@ -39,7 +51,7 @@ function flTokens(text){
     if(t in FL_UNIT_OF)return {t,k:'unit',u:FL_UNIT_OF[t]};
     if(t in FL_SIZE)return {t,k:'size',v:FL_SIZE[t]};
     if(t in FL_MEAL)return {t,k:'meal',m:FL_MEAL[t]};
-    if(FL_FILL.has(t)||t==='.'||t==='with')return {t,k:'fill'};
+    if(FL_FILL.has(t)||FL_COMMON.has(t)||t.includes("'")||t==='.'||t==='with')return {t,k:'fill'};
     return {t,k:'w'};
   });
 }
@@ -74,6 +86,8 @@ function flParseSeg(seg){
     hits.push({f:best.e.f,first:words[best.s],last:words[best.s+best.L-1]});
   }
   hits.sort((a,b)=>a.first-b.first);
+  /* "coffee without sugar", "no extra butter": those foods are not eaten. */
+  for(let k=hits.length-1;k>=0;k--){let i=hits[k].first-1;while(i>=0&&/^(extra|added|any|the|much|more|a)$/.test(toks[i].t))i--;if(i>=0&&/^(no|without|zero|minus|skip)$/.test(toks[i].t))hits.splice(k,1)}
   hits.forEach((h,k)=>{
     let q=flPick(toks,k?hits[k-1].last+1:0,h.first);
     if(!q.found)q=flPick(toks,h.last+1,k+1<hits.length?hits[k+1].first:toks.length);
@@ -106,13 +120,16 @@ function flLabel(f,n,unit,qty){
   if(f.u==='piece'||f.u==='serving')return `${q} ${q>1&&f.u==='piece'?name.replace(/^([^(,]*?)(\s*[(,].*)?$/,(_,a,b)=>(/s$/.test(a)?a:flPlural(a))+(b||'')):name}`;
   return `${q} ${q>1?flPlural(f.u):f.u} of ${name}`;
 }
+/* Nouns people use about food that are not foods themselves: never asked about as unknown foods. */
+const FL_NOTFOOD=new Set('protein proteins recipe recipes bulk bulking cut cutting diet calories calorie kcal cal cals weight muscle muscles full stuffed macros carbs fiber breakfast lunch dinner snack'.split(' '));
+const FL_NEG=/\b(didn'?t|did not|haven'?t|have not|hasn'?t|has not|never|won'?t|will not|skip(?:ped)?|not (?:eat|eaten|have|had|drink|drunk))\b/i;
 /* Turn a whole message into foods, water and unknown phrases. */
 function flParse(text,custom){
   flBuildIndex(custom);
   /* Keep names like "oats with milk" in one piece before splitting on "with"/"and". */
   flGlue.forEach(al=>{text=text.replace(new RegExp('\\b'+al.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi'),m=>m.replace(/\s+/g,'_'))});
-  const segs=text.split(/,|;|\n|&|\+|\band\b|\bwith\b|\bplus\b|\balong\b|\bthen\b|\balso\b|\bafter that\b/i).map(s=>s.trim()).filter(Boolean);
-  const items=[],unknown=[];let water=0;
+  const segs=text.split(/,|;|\n|&|\+|\band\b|\bwith\b|\bplus\b|\balong\b|\bthen\b|\balso\b|\bafter that\b|\bbut\b|\.\s/i).map(s=>s.trim()).filter(Boolean);
+  const items=[],unknown=[],skipped=[];let water=0;
   /* Each piece gets its own meal. A meal word after the food ("rice and dal for lunch") covers
      the pieces before it; one before the food ("for dinner 4 idlis") covers the pieces after it. */
   const own=segs.map(sg=>{const tk=flTokens(sg),mi=tk.findIndex(t=>t.k==='meal');if(mi<0)return null;
@@ -123,15 +140,17 @@ function flParse(text,custom){
   meals.forEach((m,i)=>{meals[i]=(prev=m||prev)||first});
   segs.forEach((seg,si)=>{
     const r=flParseSeg(seg);
+    /* "I didn't have rice", "skipped breakfast": nothing in this piece was eaten. */
+    if(FL_NEG.test(seg)){r.hits.forEach(h=>skipped.push(h.f.n.toLowerCase()));return}
     r.hits.forEach(h=>{
       const n=flUnits(h.f,h.qty,h.unit,h.size);
       if(h.f.tags==='water'){water+=h.unit==='ml'?h.qty/250:h.unit==='l'?h.qty*4:h.unit==='bottle'?(h.qty||1)*2:n;return}
       items.push({n:h.f.n,q:flLabel(h.f,n,h.unit,h.qty),k:Math.round(h.f.k*n),p:flR1(h.f.p*n),c:flR1(h.f.c*n),f:flR1(h.f.f*n),fb:flR1(h.f.fb*n),s:flR1(h.f.s*n),tags:h.f.tags,units:n,custom:!!h.f.custom,est:!!h.f.est,meal:meals[si]});
     });
-    const left=r.unknown.filter(w=>w.length>1&&!/^(it|that|this|and|or|but|so|very|too|really|yeah|ok|okay|pls|please)$/.test(w));
+    const left=r.unknown.filter(w=>w.length>1&&!FL_NOTFOOD.has(w)&&!/^(it|that|this|and|or|but|so|very|too|really|yeah|ok|okay|pls|please)$/.test(w));
     if(!r.hits.length&&left.length)unknown.push({phrase:left.join(' '),qty:r.qty,unit:r.unit,meal:meals[si]});
   });
-  return {items,water:Math.round(water*10)/10,unknown,meal:first};
+  return {items,water:Math.round(water*10)/10,unknown,meal:first,skipped};
 }
 
 /* ---------- targets (lean bulk by default) ---------- */
@@ -189,6 +208,20 @@ function flCorrect(ds,name,k,p){
   return {f:nf,fixed};
 }
 
+/* "What should I eat?" -> protein-dense recipes from the recipe book that fit what's left today. */
+function flSuggest(ds){
+  const day=flDay(ds),T=foodTargets(ds),t=flTotals(day),pl=Math.max(0,Math.round(T.p-t.p)),kl=Math.max(0,T.kcal-t.k),m=mealNow(),ok=DIET_TYPES[ds.type].allow;
+  const pool=RECIPES.filter(r=>ok.includes(r.tag)&&r.meal===m&&r.kcal<=Math.max(350,kl)).sort((a,b)=>b.p/b.kcal-a.p/a.kcal);
+  const pick=pool.slice(0,6).sort(()=>Math.random()-.5).slice(0,3);
+  return {say:`${kl?`You have ${fmtK(kl)} kcal and ${pl} g protein left today.`:'Calories are done for today, so keep it light.'} For ${m}, try one of these from your recipe book:`,recipes:pick.map(r=>r.id)};
+}
+/* "Same as yesterday", "same breakfast as yesterday": copy yesterday's foods. */
+function flYesterday(ds,low){
+  const y=(ds.food||{})[addDays(todayStr(),-1)],m=(flTokens(low).find(t=>t.k==='meal')||{}).m||null;
+  const items=(y?y.items:[]).filter(i=>!m||i.meal===m).map(i=>{const c=Object.assign({},i);delete c.id;delete c.batch;delete c.t;return c});
+  return {items,water:0,unknown:[],meal:m,skipped:[]};
+}
+
 /* ---------- the bot's brain ---------- */
 const FL_LINES={
   hello:['Ready when you are. What did you eat?','Hunter. Report your meals.','Online. Tell me what you ate.'],
@@ -213,8 +246,8 @@ function flHandle(ds,text){
   if(/^(hi|hello|hey|yo|sup|hola|namaste)\b/.test(low)&&low.split(/\s+/).length<=3)return {say:pickL('hello'),mood:'happy'};
   if(/\b(thanks|thank you|thx|ty|good bot|love you|nice bot|awesome|great job|well done)\b/.test(low))return {say:pickL('thanks'),mood:'shy'};
   if(/\b(lol|haha+|hehe+|lmao|rofl)\b|😂|🤣/.test(low))return {say:pickL('lol'),mood:'laughing'};
-  if(/\b(help|what can you do|how do i|how to use)\b/.test(low))return {say:'Tell me what you ate in plain words: "2 rotis, dal and a glass of milk", "200g chicken for lunch", "3 glasses of water". Say "undo" to remove the last entry, "summary" for your day, "goal cut/bulk/maintain", or fix a food with "drumstick curry is 150 kcal".',mood:'curious'};
-  const gm=low.match(/\b(goal|target)\b.*\b(cut|lose|loss|bulk|gain|maintain|recomp)\b/);
+  if(/\b(help|what can you do|how do i|how to use)\b/.test(low))return {say:'Tell me what you ate in plain words: "2 rotis, dal and a glass of milk", "200g chicken for lunch", "3 glasses of water". Say "undo" to remove the last entry, "same as yesterday" to repeat a day, "what should I eat?" for ideas, "summary" for your day, "goal cut/bulk/maintain", or fix a food with "drumstick curry is 150 kcal".',mood:'curious'};
+  const gm=low.match(/\b(goal|target|want to|wanna|trying to|switch to|start)\b.*\b(cut|lose|loss|bulk|gain|maintain|recomp)\b/);
   if(gm){ds.goal=/cut|lose|loss/.test(gm[2])?'cut':/bulk|gain/.test(gm[2])?'bulk':'maintain';const t=foodTargets(ds);
     return {say:`Goal set to ${GOALS[ds.goal].n}: ${fmtK(t.kcal)} kcal and ${t.p} g protein a day.`,mood:'proud'}}
   const rm=low.match(/^(remove|delete)\s+(.+)/);
@@ -226,8 +259,24 @@ function flHandle(ds,text){
     if(!res)return {say:`Which food is that? Try "drumstick curry is 150 kcal".`,mood:'confused'};
     return {say:`Updated ${res.f.n.toLowerCase()}: ${fmtK(res.f.k)} kcal and ${Math.round(res.f.p)} g protein per ${flUnitWord(res.f)}.${res.fixed?` Fixed ${res.fixed} entr${res.fixed>1?'ies':'y'} from today. ${sumLine()}`:''}`,mood:'proud'}}
   if(/\b(summary|total|totals|status|report|how am i doing|how much|left|remaining|so far)\b/.test(low)&&!/\d/.test(low))return {summary:true,mood:'working'};
-  const r=flParse(text,ds.custom);
-  if(!r.items.length&&!r.water&&!r.unknown.length)return {say:'I didn\'t catch a food there. Try "2 eggs and toast" or say "help".',mood:'confused'};
+  if(/\b(what (?:should|can|do|shall) i (?:eat|have)|what to eat|suggest|recommend|any ideas|give me (?:a |some )?(?:recipe|idea|meal))/.test(low))return {suggest:true,mood:'thinking'};
+  let r;
+  if(/\b(?:same|repeat|copy)\b.*\b(?:yesterday|last night)\b/.test(low)){r=flYesterday(ds,low);if(!r.items.length)return {say:`Nothing was logged ${r.meal?`for ${r.meal} `:''}yesterday, so there's nothing to copy.`,mood:'confused'}}
+  else r=flParse(text,ds.custom);
+  /* Nothing to log: work out what was meant instead. */
+  if(!r.items.length&&!r.water){
+    if(r.skipped.length||/\b(didn'?t eat|did not eat|haven'?t eaten|have not eaten|not eaten|ate nothing|eaten nothing|drank nothing|skipped|fasting|empty stomach)\b|^nothing\b/.test(low))
+      return {say:`${r.skipped.length?`Okay, not logging ${r.skipped.join(', ')}.`:'Nothing logged.'} On a lean bulk, missed meals cost you. Get some protein in soon.`,mood:'sad'};
+    if(/\b(don'?t know|dont know|no idea|not sure|can'?t remember|cannot remember|don'?t remember|forgot|no clue|idk|dunno)\b/.test(low))
+      return {say:'No problem. Tell me roughly what was on the plate, like "rice and some curry" or "a few rotis", and I\'ll estimate the rest. A rough log beats no log.',mood:'curious'};
+    if(/\b(hungry|starving|need (?:more )?protein|recipes?|meal ideas?)\b/.test(low))return {suggest:true,mood:'thinking'};
+    if(/^(good (?:morning|afternoon|evening)|gm)\b/.test(low))return {say:'Good day, Hunter. Log each meal when you eat it and I\'ll keep the count.',mood:'happy'};
+    if(/^(good night|gn|night)\b/.test(low)){const t=flTotals(day);return {say:`Good night, Hunter. Today: ${fmtK(t.k)} of ${fmtK(T.kcal)} kcal and ${Math.round(t.p)} of ${T.p} g protein. Sleep builds muscle too.`,mood:'drowsy'}}
+    if(/\b(how are you|are you there|you there|who are you)\b/.test(low))return {say:'Fully operational and hungry for data. What did you eat?',mood:'playful'};
+    if(/\b(target|targets|goal|limit|how much should i)\b/.test(low))return {say:`Your ${GOALS[ds.goal||'bulk'].n.toLowerCase()} targets: ${fmtK(T.kcal)} kcal, ${T.p} g protein, ${T.c} g carbs, ${T.f} g fat, ${T.fb} g fiber, sugar under ${T.s} g and ${T.water} glasses of water a day.`,mood:'proud'};
+    if(!r.unknown.length){const m=(flTokens(low).find(t=>t.k==='meal')||{}).m;
+      return {say:m?`What did you have for ${m}? Tell me the foods, like "2 rotis and dal".`:'I didn\'t catch a food there. Try "2 eggs and toast", or say "help".',mood:m?'curious':'confused'}}
+  }
   const meal=r.meal||mealNow(),batch=Date.now();
   r.items.forEach(it=>{it.meal=it.meal||meal});
   r.items.forEach((it,k)=>day.items.push(Object.assign({id:batch+'-'+k,batch,t:batch},it)));
@@ -238,6 +287,7 @@ function flHandle(ds,text){
   const groups=[];r.items.forEach(it=>{let g=groups.find(x=>x.m===it.meal);if(!g)groups.push(g={m:it.meal,a:[]});g.a.push(it)});
   let say=r.items.length?`${pickL('logged')} ${groups.map(g=>`${MEAL_NAME[g.m]}: ${g.a.map(i=>`${i.q} (${i.est?'about ':''}${fmtK(i.k)} kcal, ${Math.round(i.p)} g protein)`).join(', ')}.`).join(' ')}`:'';
   if(r.water)say+=`${say?' ':''}+${r.water} glass${r.water===1?'':'es'} of water.`;
+  if(r.skipped&&r.skipped.length)say+=` Not logging ${r.skipped.join(', ')}.`;
   if(silly){out.mood='suspicious';say+=' That\'s… a lot. Logged anyway. I\'m watching you.'}
   else if(big>=900){out.mood='surprised';say+=` ${fmtK(big)} kcal in one go!`}
   else if(sweet){out.mood='angry';say+=' Sugar and junk detected. Your shadows are disappointed.'}
@@ -358,6 +408,7 @@ function renderBot(){
     const form=m.kind&&mi===day.msgs.length-1&&(m.kind==='setup'||ds.pending);
     const multi=new Set(its.map(i=>i.meal)).size>1;
     return `<div class="msg bot${form?' wide':''}"><p>${esc(m.x)}</p>${its.length?`<ul class="msg-items">${its.map((i,ii)=>`${multi&&(!ii||its[ii-1].meal!==i.meal)?`<li class="mh">${MEAL_NAME[i.meal]||''}</li>`:''}<li><span>${esc(i.q)}</span><em>${i.est?'~':''}${fmtK(i.k)} kcal · ${Math.round(i.p)} g P</em><button data-act="flDel" data-arg="${i.id}" aria-label="Remove ${esc(i.q)}">${ic('x')}</button></li>`).join('')}</ul>`:''}
+      ${m.recipes&&m.recipes.length?`<div class="msg-recs">${m.recipes.map(id=>RECIPE_BY_ID[id]).filter(Boolean).map(r=>`<button data-act="recipe" data-arg="${r.id}"><span>${esc(r.n)}</span><em>${r.p} g protein · ${r.kcal} kcal</em>${ic('right')}</button>`).join('')}</div>`:''}
       ${m.kind==='setup'&&mi===day.msgs.length-1?setupForm(ds):''}${m.kind==='teach'&&mi===day.msgs.length-1&&ds.pending?teachForm(ds):''}</div>`}).join('');
   chat.scrollTop=chat.scrollHeight;
   const sf=$('flSetup');if(sf)sf.addEventListener('submit',e=>{e.preventDefault();flSaveSetup()});
@@ -409,6 +460,7 @@ function flSend(text,quiet){
     if(unknownish){Bot.play('searching');flStatus('searching records…')}
     setTimeout(()=>{
       if(!r)return;
+      if(r.suggest){setTimeout(()=>{const sg=flSuggest(ds);day.msgs.push({w:'bot',x:sg.say,at:Date.now(),recipes:sg.recipes});saveDietState(ds);renderBot();Bot.react('happy',2400);flStatus('online')},700);return}
       if(r.summary){Bot.play('working');flStatus('calculating…');setTimeout(()=>{flSay(ds,flSummary(ds));saveDietState(ds);renderBot();Bot.react('happy',2400);flStatus('online')},900);return}
       flSay(ds,r.say,r.items,r.ask||null);saveDietState(ds);renderBot();
       Bot.react(r.mood,r.mood==='celebrate'?4600:2800);flStatus('online');buzz(r.items&&r.items.length?'done':'tap');
