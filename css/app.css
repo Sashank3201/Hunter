@@ -1057,3 +1057,5 @@ details.acc .acc-body p{color:var(--ink-2);font-size:15px;padding:5px 0}
 .w3d .m-flag{box-shadow:inset 0 0 0 1.5px rgba(236,231,221,.5)}.w3d .m-flag.lvl-flag{box-shadow:none}
 .w3d .d-burst{display:none}
 @keyframes d3flash{0%{opacity:0}12%{opacity:1}100%{opacity:0}}
+.gate .gate-focus{font-family:var(--body);font-size:14px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink);margin-top:1px}
+.d3-focus{margin:-2px 0 2px;font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#ffb3ab}

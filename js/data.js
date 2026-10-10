@@ -176,22 +176,50 @@ const ITEMS={
 };
 
 /* ---------- gates (dungeons) ----------
-   Waves are done in order inside the time limit. hold = seconds held instead of reps.
-   demo = the exercise demo to show. Clearing gives EXP and drops; failing only costs the key. */
-const WV=(n,amt,demo,hold,boss)=>({n,amt,demo,hold:!!hold,boss:!!boss});
+   Each Gate is its own workout, themed on its world and harder by grade. Waves are done in
+   order inside the time limit. A wave given as a list has alternatives: each run picks one,
+   so a Gate never plays exactly the same twice. Every clear raises that Gate's level
+   (+10% reps and EXP per level, up to Lv 6).
+   WV(name, amount, demo, kind, boss, side): kind 'hold' = seconds held, 'time' = seconds of
+   work, otherwise reps. side = the amount is per side (reps count double). */
+const WV=(n,amt,demo,kind,boss,side)=>({n,amt,demo,hold:!!kind,work:kind==='time',boss:!!boss,side:!!side});
+const GATE_MAX_LV=6;
 const DUNGEONS=[
-  {g:'E',name:'Goblin Cave',boss:'Hobgoblin',limit:12,exp:60,title:'Goblin Hunter',drops:{box:1},waves:[
-    WV('Bodyweight squats',30,'Bodyweight squat'),WV('Push-ups, any style',20,'Knee push-up'),WV('Jumping jacks',40,'Jumping jacks'),WV('Plank',40,'Plank (secs)',1,1)]},
-  {g:'D',name:'Kasaka\'s Den',boss:'Kasaka, the giant serpent',limit:15,exp:90,title:'Serpent Slayer',drops:{box:1,potion:.4},waves:[
-    WV('Bodyweight squats',40,'Bodyweight squat'),WV('Push-ups, any style',25,'Knee push-up'),WV('Split squats, alternating',20,'Split squat'),WV('Burpees',15,'Burpee (no push-up)',0,1)]},
-  {g:'C',name:'Frozen Forest',boss:'Ice Elf Captain',limit:18,exp:130,title:'Frost Breaker',drops:{box:1,potion:1},waves:[
-    WV('Bodyweight squats',50,'Bodyweight squat'),WV('Push-ups',30,'Full push-up'),WV('Split squats, alternating',30,'Split squat'),WV('Burpees',20,'Burpee (no push-up)'),WV('Plank',60,'Plank (secs)',1,1)]},
-  {g:'B',name:'Red Gate',boss:'Baruka, the Ice Elf Lord',limit:20,exp:180,title:'Red Gate Survivor',drops:{box:2,potion:1,elixir:.4},waves:[
-    WV('Bodyweight squats',60,'Bodyweight squat'),WV('Push-ups',40,'Full push-up'),WV('Burpees',20,'Full burpee'),WV('Split squats, alternating',40,'Split squat'),WV('Hollow hold',45,'Hollow hold (secs)',1,1)]},
-  {g:'A',name:'Demon Castle',boss:'Vulcan, the Demon Monarch\'s gatekeeper',limit:25,exp:240,title:'Demon Castle Raider',drops:{box:2,potion:1,elixir:1,holy:.25},waves:[
-    WV('Bodyweight squats',80,'Bodyweight squat'),WV('Push-ups',50,'Full push-up'),WV('Burpees',30,'Full burpee'),WV('Split squats, alternating',50,'Split squat'),WV('Plank',90,'Plank (secs)',1,1)]},
-  {g:'S',name:'Jeju Island',boss:'Beru, the Ant King',limit:30,exp:350,title:'Ant King Slayer',drops:{box:3,elixir:1,holy:1},waves:[
-    WV('Bodyweight squats',100,'Bodyweight squat'),WV('Push-ups',60,'Full push-up'),WV('Burpees',40,'Full burpee'),WV('Split squats, alternating',60,'Split squat'),WV('Tuck jumps',30,'Tuck jump'),WV('Plank',120,'Plank (secs)',1,1)]}
+  {g:'E',name:'Goblin Cave',boss:'Hobgoblin',focus:'Full-body basics',limit:12,exp:60,title:'Goblin Hunter',drops:{box:1},waves:[
+    [WV('Bodyweight squats',25,'Bodyweight squat'),WV('Sit-to-stands',25,'Chair sit-to-stand')],
+    [WV('Incline push-ups',15,'Incline push-up (hands on chair/table)'),WV('Knee push-ups',15,'Knee push-up')],
+    [WV('Dead bugs',16,'Dead bug'),WV('Fast feet',30,'Fast feet in place (secs)','time')],
+    WV('Plank',40,'Plank (secs)','hold',1)]},
+  {g:'D',name:'Kasaka\'s Den',boss:'Kasaka, the giant serpent',focus:'Core and agility: low, fast, twisting',limit:15,exp:90,title:'Serpent Slayer',drops:{box:1,potion:.4},waves:[
+    [WV('Bear crawl',30,'Bear crawl (secs)','time'),WV('Crab walk',30,'Crab walk (secs)','time')],
+    [WV('Leg raises',15,'Leg raise'),WV('Dead bugs',24,'Dead bug')],
+    [WV('Lateral shuffles, each side',12,'Lateral shuffle (each side)',0,0,1),WV('Line hops',30,'Line hops fwd/back')],
+    WV('Burpees',15,'Burpee (no push-up)',0,1)]},
+  {g:'C',name:'Frozen Forest',boss:'Ice Elf Captain',focus:'Legs and endurance: march through the snow',limit:18,exp:130,title:'Frost Breaker',drops:{box:1,potion:1},waves:[
+    WV('Split squats, each leg',12,'Split squat',0,0,1),
+    [WV('Skater hops',20,'Skater hops'),WV('High knees',40,'High knees (secs)','time')],
+    [WV('Push-ups',15,'Full push-up'),WV('Table rows',12,'Table row, feet flat')],
+    WV('Deep squat hold',45,'Deep squat hold (secs)','hold'),
+    WV('Broad jumps, stick the landing',12,'Broad jump + stick',0,1)]},
+  {g:'B',name:'Red Gate',boss:'Baruka, the Ice Elf Lord',focus:'Survival conditioning: keep moving',limit:20,exp:180,title:'Red Gate Survivor',drops:{box:2,potion:1,elixir:.4},waves:[
+    WV('Burpees',15,'Full burpee'),
+    [WV('Jump lunges',16,'Lunge-to-jump'),WV('Tuck jumps',12,'Tuck jump')],
+    [WV('Diamond push-ups',12,'Diamond push-up'),WV('Decline push-ups',12,'Decline push-up (feet on chair)')],
+    [WV('Sprint intervals',60,'Sprint intervals (secs on/off)','time'),WV('High knees',60,'High knees (secs)','time')],
+    WV('Hollow hold',45,'Hollow hold (secs)','hold',1)]},
+  {g:'A',name:'Demon Castle',boss:'Vulcan, the Demon Monarch\'s gatekeeper',focus:'Strength: climb the tower',limit:25,exp:240,title:'Demon Castle Raider',drops:{box:2,potion:1,elixir:1,holy:.25},waves:[
+    WV('Bulgarian split squats, each leg',12,'Bulgarian split squat',0,0,1),
+    [WV('Archer push-ups, each side',8,'Archer push-up',0,0,1),WV('Decline push-ups',20,'Decline push-up (feet on chair)')],
+    [WV('Table rows, feet elevated',15,'Table row, feet elevated'),WV('Archer table rows, each side',8,'Archer table row',0,0,1)],
+    WV('V-ups',20,'V-up (floor)'),
+    WV('Burpee gauntlet',30,'Full burpee',0,1)]},
+  {g:'S',name:'Jeju Island',boss:'Beru, the Ant King',focus:'Everything at once: the swarm',limit:30,exp:350,title:'Ant King Slayer',drops:{box:3,elixir:1,holy:1},waves:[
+    [WV('Pistol squats, each leg',5,'Pistol squat',0,0,1),WV('Shrimp squats, each leg',6,'Shrimp squat',0,0,1)],
+    [WV('Pseudo-planche push-ups',10,'Pseudo-planche push-up'),WV('Archer push-ups, each side',10,'Archer push-up',0,0,1)],
+    WV('Tuck jumps',25,'Tuck jump'),
+    [WV('Archer table rows, each side',10,'Archer table row',0,0,1),WV('Tempo table rows',10,'Tempo table row (3s up, 3s down)')],
+    WV('Burpees',30,'Full burpee'),
+    WV('L-sit',20,'L-sit on floor (secs)','hold',1)]}
 ];
 
 /* ---------- shadow army ----------
