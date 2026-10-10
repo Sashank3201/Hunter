@@ -31,19 +31,22 @@ function skillValue(sh,role=roleOf(sh)){
 }
 const skillText=(sh,role)=>skillOf(sh).text(skillValue(sh,role));
 /* Combined army bonus for one effect, in percent, capped. kind e.g. 'expAll' or 'stat:Strength'. */
-function armyBonus(kind){
+function shadowBonus(kind){
   const st=kind.startsWith('stat:')?kind.slice(5):null;let t=0;
   S.shadows.forEach(sh=>{const k=skillOf(sh).kind;
     if(k===kind||(st&&k.startsWith('stat:')&&k.slice(5).split(',').includes(st)))t+=skillValue(sh)});
-  return Math.min(SKILL_CAP[st?'stat':kind]||30,Math.round(t*10)/10);
+  return t;
 }
+const bonusCap=kind=>SKILL_CAP[kind.startsWith('stat:')?'stat':kind]||30;
+/* Army skills plus the equipped weapon, capped. */
+function armyBonus(kind){return Math.min(bonusCap(kind),Math.round((shadowBonus(kind)+weaponBonus(kind))*10)/10)}
 const armyMult=kind=>1+armyBonus(kind)/100;
 /* Every active effect, for the army page. */
 function armyEffects(){
   const out=[],seen=new Set();
   S.shadows.forEach(sh=>{const k=skillOf(sh).kind;
     (k.startsWith('stat:')?k.slice(5).split(',').map(x=>'stat:'+x):[k]).forEach(kind=>{if(seen.has(kind))return;seen.add(kind);
-      const v=armyBonus(kind),st=kind.slice(5);
+      const v=Math.min(bonusCap(kind),Math.round(shadowBonus(kind)*10)/10),st=kind.slice(5);
       out.push({kind,v,text:{expPush:`+${v}% EXP on push days`,expBoss:`+${v}% EXP on boss days`,expAll:`+${v}% EXP on every quest`,gateExp:`+${v}% Gate EXP`,
         gateTime:`+${v}% Gate time limit`,penalty:`−${v}% penalty reps`,luck:`+${v}% luck on boxes and chests`}[kind]||`+${v}% ${st} gains`})})});
   return out;
@@ -134,8 +137,8 @@ function silhouette(sh,cls=''){
 /* Full art for legends that have it, otherwise the silhouette. */
 function shadowArt(sh,cls='',big){
   const a=bodyOf(sh).art;if(!a)return silhouette(sh,cls);
-  const z=big?a.zoom:a.mzoom,o=big?a.origin:a.morigin;
-  return `<img class="sh-art ${cls}" src="${a.src}" alt="" style="object-position:${big?a.pos:a.mini};--z:${z||1};transform-origin:${o||'50% 30%'}" draggable="false">`;
+  const z=big?a.zoom:a.mzoom,o=big?a.origin:a.morigin,ty=big&&a.ty||'0%';
+  return `<img class="sh-art ${cls}" src="${a.src}" alt="" style="object-position:${big?a.pos:a.mini};--z:${z||1};--ty:${ty};transform-origin:${o||'50% 30%'}" draggable="false">`;
 }
 
 /* ---------- ARISE ---------- */
@@ -184,7 +187,7 @@ function bigCard(sh){
     <div class="sc-in">
       <header class="sc-head"><span>${esc(shadowRank(sh))}${full?' <em class="sc-leg">Legend</em>':''}</span><span>Lv <b>${sh.lvl}</b></span></header>
       <div class="sc-art">${full?'':`<svg class="sc-rune" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="92"/><circle cx="100" cy="100" r="78" class="d"/><circle cx="100" cy="100" r="62"/></svg>`}
-        <span class="sc-fog"><i></i><i></i><i></i></span>${full?'':silhouette(sh,'xl')}<span class="sc-no">No. ${String(sh.no||S.shadows.indexOf(sh)+1).padStart(3,'0')}</span>
+        <span class="sc-fog"><i></i><i></i><i></i></span>${full?'':silhouette(sh,'xl')}${full&&b.art.credit?`<span class="sc-credit">Art · ${esc(b.art.credit)}</span>`:''}<span class="sc-no">No. ${String(sh.no||S.shadows.indexOf(sh)+1).padStart(3,'0')}</span>
         ${role?`<div class="sc-ribbon">${ROLE_NAME[role]}</div>`:''}</div>
       <div class="sc-id"><div class="sc-name"><h2>${esc(sh.n)}</h2><p>${esc(b.epithet||`${(LADDERS[ladderOf(sh.ex)]||LADDERS.push).title} soldier`)}</p></div>
         <div class="sc-cp"><span>Combat power</span><b>${fmtN(st.cp)}</b></div></div>

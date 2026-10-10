@@ -39,6 +39,8 @@ function fresh(){return {
   army:{captain:null,vice:null}, // shadow ids (the move each shadow came from)
   trialRun:null,     // rank-up trial in progress
   login:{last:null,streak:0,shown:null}, // daily supply chest
+  weapons:{},        // id -> {refine, date}
+  weaponEquipped:null,
   profile:null       // {name, haptics, theme, remindAt} once awakened
 }}
 

@@ -74,6 +74,7 @@ const ICONS={
   drop:'<path d="M12 2.7s-6 6.6-6 11a6 6 0 0 0 12 0c0-4.4-6-11-6-11zM9.5 14a2.5 2.5 0 0 0 2.5 2.5"/>',
   box:'<path d="M21 8 12 3 3 8l9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8M7.5 5.5l9 5"/>',
   elixir:'<path d="M10 2h4M10 2v4L7 9v11a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9l-3-3V2M7 14h10M12 16.5l1-2.5h-2l1-2.5"/>',
+  sword:'<path d="M14.5 3.5 20.5 3.5 20.5 9.5 9 21 3 15z"/><path d="M5 13l6 6M3 21l3-3"/>',
   gate:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="2"/>',
   helm:'<path d="M5 21v-8a7 7 0 0 1 14 0v8l-3-2-2 2-2-2-2 2-2-2z"/><path d="M9 12h1.5M13.5 12H15"/>',
   medal:'<circle cx="12" cy="15" r="6"/><path d="M8.5 10 6 2h4l2 5 2-5h4l-2.5 8M12 12.5v5M10 15h4"/>'

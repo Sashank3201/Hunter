@@ -235,13 +235,13 @@ const SHADOW_MAX_LV=40;
 /* Base ATK/DEF/SPD and look. Legends use their own; soldiers use the ladder their move belongs to. */
 const SHADOW_BODY={
   Igris:{atk:16,def:10,spd:14,look:'knight',epithet:'The Blood-Red Commander',art:{src:'img/igris.jpg',pos:'50% 24%',mini:'50% 12%',zoom:1.3,mzoom:1.5,origin:'50% 32%',morigin:'50% 48%'}},
-  Iron:{atk:12,def:18,spd:6,look:'heavy',epithet:'The Iron Wall'},
-  Tank:{atk:14,def:16,spd:6,look:'bear',epithet:'Ice Bear of the North'},
-  Tusk:{atk:17,def:7,spd:9,look:'orc',epithet:'Great Shaman of the High Orcs'},
-  Beru:{atk:18,def:12,spd:18,look:'ant',epithet:'The Ant King',art:{src:'img/beru.jpg',pos:'50% 0%',mini:'50% 4%'}},
-  Bellion:{atk:20,def:16,spd:16,look:'marshal',epithet:'Grand Marshal of the Army'},
-  Kaisel:{atk:10,def:8,spd:20,look:'wyvern',epithet:'Sky Wyvern'},
-  Greed:{atk:15,def:11,spd:12,look:'horned',epithet:'The Fallen Knight'},
+  Iron:{atk:12,def:18,spd:6,look:'heavy',epithet:'The Iron Wall',art:{src:'img/iron.jpg',pos:'50% 50%',mini:'50% 0%',mzoom:1.25,morigin:'42% 22%'}},
+  Tank:{atk:14,def:16,spd:6,look:'bear',epithet:'Ice Bear of the North',art:{src:'img/tank.jpg',pos:'50% 50%',mini:'50% 6%'}},
+  Tusk:{atk:17,def:7,spd:9,look:'orc',epithet:'Great Shaman of the High Orcs',art:{src:'img/tusk.jpg',pos:'50% 50%',mini:'50% 0%',credit:'Kirt Victor'}},
+  Beru:{atk:18,def:12,spd:18,look:'ant',epithet:'The Ant King',art:{src:'img/beru.jpg',pos:'50% 50%',mini:'50% 0%',mzoom:1.2,morigin:'50% 25%'}},
+  Bellion:{atk:20,def:16,spd:16,look:'marshal',epithet:'Grand Marshal of the Army',art:{src:'img/bellion.jpg',pos:'50% 50%',mini:'50% 0%',mzoom:1.15,morigin:'50% 30%'}},
+  Kaisel:{atk:10,def:8,spd:20,look:'wyvern',epithet:'Sky Wyvern',art:{src:'img/kaisel.jpg',pos:'50% 50%',ty:'-22%',mini:'50% 82%',mzoom:1.25,morigin:'52% 62%'}},
+  Greed:{atk:15,def:11,spd:12,look:'horned',epithet:'The Fallen Knight',art:{src:'img/greed.jpg',pos:'50% 50%',mini:'50% 4%',mzoom:1.15,morigin:'50% 40%'}},
   Jima:{atk:12,def:14,spd:10,look:'naga',epithet:'Naga of the Deep'},
   Fangs:{atk:13,def:9,spd:12,look:'orc',epithet:'High Orc Pack Leader'},
   push:{atk:14,def:8,spd:8,look:'soldier'},pull:{atk:12,def:9,spd:9,look:'soldier'},legs:{atk:11,def:12,spd:7,look:'spiked'},
@@ -266,6 +266,33 @@ const SHADOW_SKILLS={
 const SOLDIER_SKILL=st=>({name:`${st} Drill`,kind:'stat:'+st,v:3,text:v=>`+${v}% ${st} gains`});
 /* Caps on the combined army bonus, in percent. */
 const SKILL_CAP={expPush:30,expBoss:30,expAll:20,gateExp:40,gateTime:40,penalty:50,luck:25,stat:40};
+
+/* ---------- weapons ----------
+   Gate bosses drop weapons: the first clear of a Gate always drops its weapon, later clears
+   have a 30% chance, and a duplicate refines the weapon (+1, up to +5: +20% effect, +10% ATK
+   each). The equipped weapon's effect stacks with the shadow army's skills, its ATK adds to
+   the Hunter License's assessed power, and it is the blade you swing inside 3D Gates.
+   look: how the blade is drawn (2D cards and the 3D first-person model). */
+const RARITY={common:{n:'Common',c:'#a49e93'},rare:{n:'Rare',c:'#4f95ea'},epic:{n:'Epic',c:'#a35cff'},legendary:{n:'Legendary',c:'#e8b44c'},mythic:{n:'Mythic',c:'#ff3b2f'}};
+const WEAPON_MAX_REFINE=5, WEAPON_DROP=.3;
+const WEAPONS={
+  rusty:{name:'Rusted Dagger',type:'dagger',rarity:'common',atk:12,fx:[{kind:'expAll',v:2}],src:'Your first daily quest',
+    lore:'A cheap blade from the Association store. Every hunter starts somewhere.',look:{blade:'#9a7a58',dark:'#4a3626',edge:'#c9a27a',glow:'#c98a4a',grip:'#3a2a1e',shape:'rusty'}},
+  'knight-killer':{name:'Knight Killer',type:'dagger',rarity:'rare',atk:30,fx:[{kind:'gateExp',v:8}],src:'Goblin Cave · E',
+    lore:'Made to slip between plates of armour. Gates pay more.',look:{blade:'#e8eef5',dark:'#7c8794',edge:'#ffffff',glow:'#7fb6ff',grip:'#1d2430',shape:'straight'}},
+  'venom-fang':{name:'Kasaka\'s Venom Fang',type:'dagger',rarity:'rare',atk:48,fx:[{kind:'expBoss',v:10}],src:'Kasaka\'s Den · D',
+    lore:'Cut from the giant serpent. Its venom still drips from the tip.',look:{blade:'#f1ecd8',dark:'#8fae6a',edge:'#c8ff9a',glow:'#5dff8a',grip:'#16301f',shape:'fang'}},
+  'frost-spear':{name:'Frost Elf Spear',type:'spear',rarity:'epic',atk:70,fx:[{kind:'stat:Strength',v:8}],src:'Frozen Forest · C',
+    lore:'Carried by the Ice Elf Captain. The cold in it never fades.',look:{blade:'#effcff',dark:'#5ab8ff',edge:'#ffffff',glow:'#8fe3ff',grip:'#2a3a4a',shape:'crystal'}},
+  baruka:{name:'Baruka\'s Dagger',type:'dagger',rarity:'epic',atk:95,fx:[{kind:'stat:Speed,Agility',v:8}],src:'Red Gate · B',
+    lore:'The Ice Elf Lord\'s blade. Light, fast and merciless.',look:{blade:'#2b3346',dark:'#0e1220',edge:'#9fd8ff',glow:'#6fc3ff',grip:'#0b0e16',shape:'serrated'}},
+  'demon-sword':{name:'Demon King\'s Longsword',type:'sword',rarity:'legendary',atk:130,fx:[{kind:'expAll',v:6}],src:'Demon Castle · A',
+    lore:'Taken from the throne room of the Demon Castle. It hungers.',look:{blade:'#2a1216',dark:'#0e0507',edge:'#ff5a3d',glow:'#ff3b2f',grip:'#1a0a0c',shape:'demon'}},
+  kamish:{name:'Kamish\'s Wrath',type:'twin',rarity:'mythic',atk:200,fx:[{kind:'expAll',v:10},{kind:'gateTime',v:10}],src:'Jeju Island · S',
+    lore:'Twin daggers forged from the bones of the dragon Kamish. The strongest blades on earth.',look:{blade:'#ffe6a8',dark:'#d7261e',edge:'#fff4d6',glow:'#ff7a2a',grip:'#2a0e08',shape:'dragon'}}
+};
+const WEAPON_ORDER=['rusty','knight-killer','venom-fang','frost-spear','baruka','demon-sword','kamish'];
+const GATE_WEAPON={E:'knight-killer',D:'venom-fang',C:'frost-spear',B:'baruka',A:'demon-sword',S:'kamish'};
 
 /* ---------- daily supply chest ----------
    One per day for opening the app. Day 7 of an unbroken run pays a Dungeon Key; missing a day restarts at day 1. */

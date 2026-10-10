@@ -139,8 +139,10 @@ function completeDay(){
   if(!sp.rest&&trainedInWeek(mondayOf(todayStr()))===5){STATS.forEach(st=>{S.stats[st]+=0.6});gain+=40;bonus.push('Weekly goal hit: all stats boosted, +40 EXP');loot.push(grantItem('key'))}
   if(sp.boss)loot.push(grantItem('box'));
   if(rec.cooled){gain+=COOLDOWN_EXP;S.stats.Flexibility+=.2;S.stats.Mobility+=.2;bonus.push(`Cool-down: +${COOLDOWN_EXP} EXP, +0.2 FLX and MOB`)}
-  const armyPct=armyBonus('expAll')+(sp.quests.includes('push')?armyBonus('expPush'):0)+(sp.boss?armyBonus('expBoss'):0);
-  if(armyPct){const extra=Math.round(gain*armyPct/100);if(extra){gain+=extra;bonus.push(`Shadow army skills: +${extra} EXP`)}}
+  const kinds=['expAll',...(sp.quests.includes('push')?['expPush']:[]),...(sp.boss?['expBoss']:[])];
+  const pct=kinds.reduce((a,k)=>a+armyBonus(k),0),wPct=kinds.reduce((a,k)=>a+weaponBonus(k),0);
+  if(pct){const extra=Math.round(gain*pct/100),wx=Math.min(extra,Math.round(gain*wPct/100)),sx=extra-wx;gain+=extra;
+    if(sx>0)bonus.push(`Shadow army skills: +${sx} EXP`);if(wx>0)bonus.push(`${weaponOf(equippedWeapon()).name}: +${wx} EXP`)}
   const shUps=[];armyTrain(sp.rest?5:10,shUps);
   const shLv=shUps.filter(u=>!u.promo).map(u=>`${u.sh.n} Lv ${u.sh.lvl}`);if(shLv.length)bonus.push(`Shadows leveled: ${shLv.join(', ')}`);
   if(S.elixirActive){const extra=Math.round(gain*.5);gain+=extra;S.elixirActive=false;bonus.push(`Elixir of Growth: +${extra} EXP`)}

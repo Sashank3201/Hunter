@@ -16,7 +16,7 @@ function hunterPower(){
     quests:S.totalQuests*15, streak:S.bestStreak*25, records:prs*30,
     volume:Math.round(S.totalReps*.4), job:S.job?2500:0,
     shadows:S.shadows.reduce((a,s)=>a+30+s.lvl*10,0), gates:S.dungeons.filter(d=>d.ok).reduce((a,d)=>a+150*(gi(d.g)+1),0),
-    feats:Object.keys(S.feats).length*80, deaths:-S.deaths*100
+    feats:Object.keys(S.feats).length*80, weapon:equippedWeapon()?weaponAtk(equippedWeapon())*8:0, deaths:-S.deaths*100
   };
   const total=Math.max(0,Object.values(parts).reduce((a,b)=>a+b,0));
   const cls=POWER_CLASSES.find(([t])=>total<t)[1];
@@ -146,7 +146,7 @@ async function drawCard(canvas){
   let h=hashStr(name+S.created),bx2=M+18;
   for(let i=0;i<46;i++){h=Math.imul(h^(h>>>13),2654435761)>>>0;const w=1+(h%4);if(h&1){ctx.fillRect(bx2,y+20,w*2,70)}bx2+=w*2+2}
   ctx.font=F.m(19);ctx.fillStyle=C.ink2;
-  const titles=S.titles.length?S.titles.slice(-3).join(' · ').toUpperCase():'NO TITLES YET';
+  const wq=equippedWeapon(),titles=wq?`ARMED · ${WEAPONS[wq].name.toUpperCase()}${refineOf(wq)?' +'+refineOf(wq):''}`:S.titles.length?S.titles.slice(-3).join(' · ').toUpperCase():'NO TITLES YET';
   ctx.textAlign='right';
   ctx.fillText(titles.length>44?titles.slice(0,43)+'…':titles,CW-M-18,y+42);
   ctx.fillText('ISSUED '+fmtDate(todayStr()).toUpperCase()+' · '+todayStr().slice(0,4),CW-M-18,y+72);
@@ -174,7 +174,7 @@ async function openCard(){
   const P=await drawCard($('cardCanvas'));
   const rows=[['Level',P.parts.level],['Stats',P.parts.stats],['Official rank',P.parts.rank],['Quests cleared',P.parts.quests],
     ['Best streak',P.parts.streak],['Personal records',P.parts.records],['Total reps',P.parts.volume],['Job',P.parts.job],
-    ['Shadow army',P.parts.shadows],['Gates cleared',P.parts.gates],['Achievements',P.parts.feats],['Deaths',P.parts.deaths]];
+    ['Shadow army',P.parts.shadows],['Gates cleared',P.parts.gates],['Achievements',P.parts.feats],['Weapon',P.parts.weapon],['Deaths',P.parts.deaths]];
   $('cardBreak').innerHTML=`<div class="sec-label"><span class="overline">How your power is assessed</span><span class="small">${P.total.toLocaleString('en-US')} total</span></div>
     <div class="card tight"><ul class="list plain">${rows.filter(r=>r[1]).map(([k,v])=>`<li class="lrow" style="min-height:44px"><span class="grow t">${k}</span><span class="target">${v>0?'+':''}${v.toLocaleString('en-US')}</span></li>`).join('')}</ul></div>
     <p class="faint small" style="padding:14px 0 40px">Official rank only rises by passing rank tests. Assessed class is what your training numbers say, and it can run ahead of your rank.</p>`;
