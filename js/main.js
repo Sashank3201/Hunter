@@ -27,6 +27,7 @@ document.addEventListener('keydown',e=>{
   else if(!$('shadowLayer').hidden)closeShadow();
   else if(!$('weaponLayer').hidden)closeWeapon();
   else if(!$('trial').hidden&&!S.trialRun)closeTrial();
+  else if(!$('botLayer').hidden)closeBot();
   else if(!$('recipeLayer').hidden)closeRecipe();
   else if(!$('groceryLayer').hidden)closeGrocery();
   else if(!$('cardLayer').hidden)closeCard();
@@ -66,6 +67,7 @@ function showTab(id){
   TABS.forEach(t=>$(t).hidden=(t!==id));
   window.scrollTo(0,0);
   animateIn($(id));
+  if(id==='diet')mountDietBot();else if(!FL.open)Bot.pause(); // the bot only moves where it can be seen
 }
 document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>{
   if(b.getAttribute('aria-current')==='page'){window.scrollTo({top:0,behavior:'smooth'});return}
@@ -94,6 +96,7 @@ function applyTheme(){
   if(t==='auto')delete root.dataset.theme;else root.dataset.theme=t;
   const dark=t==='dark'||(t==='auto'&&darkMQ.matches);
   document.querySelector('meta[name=theme-color]').setAttribute('content',dark?'#141312':'#ECE7DD');
+  Bot.retheme();
 }
 darkMQ.addEventListener('change',applyTheme);
 

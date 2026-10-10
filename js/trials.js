@@ -56,7 +56,7 @@ function trialOpen(r){
   setTimeout(()=>{L.className='layer';tRender()},1900);
 }
 function trialResume(){const L=$('trial');L.hidden=false;L.className='layer';document.body.classList.add('locked');tRender()}
-function closeTrial(){$('trial').hidden=true;document.body.classList.remove('locked');renderAll();if(REVEALQ.length)setTimeout(()=>{if(revealIdle())nextReveal()},250)}
+function closeTrial(){BotGame.stop();$('trial').hidden=true;document.body.classList.remove('locked');renderAll();if(REVEALQ.length)setTimeout(()=>{if(revealIdle())nextReveal()},250)}
 
 /* ---------- the trial ---------- */
 const tRun=()=>S.trialRun,tMove=()=>{const r=tRun();return RANK_TESTS[r.r].tests[r.i]};
@@ -119,8 +119,8 @@ function trialFail(forfeit){
 }
 
 /* ---------- render ---------- */
-function tRing(frac,big,label,sub){
-  return `<div class="ring-wrap t-ring"><svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true"><circle class="bg" cx="60" cy="60" r="54" stroke-width="7"/>
+function tRing(frac,big,label,sub,cls){
+  return `<div class="ring-wrap t-ring${cls?' '+cls:''}"><svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true"><circle class="bg" cx="60" cy="60" r="54" stroke-width="7"/>
     <circle id="tRingFg" class="fg" cx="60" cy="60" r="54" stroke-width="7" style="stroke-dasharray:339.3;stroke-dashoffset:${339.3*(1-Math.max(0,Math.min(1,frac)))}"/></svg>
     <div class="ring-in"><span class="overline">${label}</span><b id="tBig" role="timer">${big}</b><span class="muted small">${sub}</span></div></div>`;
 }
@@ -141,7 +141,7 @@ function tRender(){
     const left=Math.max(0,Math.ceil((r.t-now)/1000)),total=r.tries?TRIAL_RECOVER:TRIAL_REST;
     h+=`<div class="w-body"><p class="overline">${r.tries?'Recover · one attempt left':'Rest'}</p><h2 class="w-name">${r.tries?'Again':'Next up'}</h2>
       <p class="muted" style="margin:-6px 0 14px">${m[0]} · ${moveTarget(m)}</p>
-      ${tRing(left/total,fmtClock(left),r.tries?'Recover':'Rest','Breathe. Shake it out.')}</div>
+      ${tRing(left/total,fmtClock(left),r.tries?'Recover':'Rest','Breathe','sm')}${botGameHTML()}</div>
       <div class="w-foot"><button class="btn" data-act="tSkipRest">I'm ready</button></div>`;
   }else{
     const pips=`<span class="t-pips">${[0,1].map(i=>`<i class="${i<r.tries?'x':i===r.tries?'on':''}"></i>`).join('')}<em>Attempt ${r.tries+1} of 2</em></span>`;
@@ -160,6 +160,7 @@ function tRender(){
     }
   }
   L.innerHTML=h;startDemos();
+  BotGame.sync(()=>{const x=tRun();return x&&x.phase==='rest'?x.t-Date.now():0});
 }
 
 /* Ticker: holds, timed windows and rest, even if the trial screen is closed. */
