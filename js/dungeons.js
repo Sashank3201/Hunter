@@ -42,6 +42,7 @@ ACT.goGate=g=>{gateFocus=g;showTab('gates')};
 /* ---------- entering ---------- */
 ACT.gateEnter=g=>{
   const d=gateOf(g),k=keyFor(g);if(!k||S.dungeonRun||S.trialRun)return;
+  if(want3D())load3D(); // start fetching the 3D world while the player decides
   openModal(`<div class="m-stamp">${d.name}</div>
     <p class="m-text">A <b>${g}-grade Gate</b> has opened. ${d.waves.length} waves, boss: <b>${d.boss}</b>. Time limit <b>${d.limit} minutes</b>.</p>
     <p class="m-text">Uses 1 ${k}-grade key. If time runs out or you retreat, the Gate closes and the key is lost. There is no penalty.</p>
@@ -54,8 +55,30 @@ ACT.gateOpen=g=>{
 };
 ACT.gateResume=()=>openDungeon(false);
 
-function openDungeon(withPortal){
+/* ---------- 3D worlds (world3d.js, loaded on first use) ---------- */
+let W3=null,w3Load=null,w3Gl;
+function webglOK(){if(w3Gl===undefined){try{const c=document.createElement('canvas');w3Gl=!!(c.getContext('webgl2')||c.getContext('webgl'))}catch(e){w3Gl=false}}return w3Gl}
+const want3D=()=>!!S.profile&&S.profile.world3d!==false&&webglOK();
+function load3D(){return w3Load||(w3Load=import(new URL('js/world3d.js',document.baseURI).href).then(m=>m.createWorld).catch(()=>null))}
+function flash3D(){const f=document.querySelector('#dungeon .d3-flash');if(f){f.classList.remove('go');void f.offsetWidth;f.classList.add('go')}}
+async function open3D(L,withPortal){
+  L.className='layer w3d';
+  L.innerHTML=`<canvas id="d3c" aria-hidden="true"></canvas><div class="d3-flash"></div><div id="dHud"><p class="d3-load">${withPortal?'The Gate is opening':'Entering the Gate'}</p></div>`;
+  const create=await load3D(),r=S.dungeonRun;
+  if(!create||!r||L.hidden)return false;
+  const d=gateOf(r.g);
+  try{W3=create($('d3c'),{grade:r.g,waves:d.waves.length,bossWave:d.waves.findIndex(w=>w.boss),reduced:reduceMotion.matches})}catch(e){W3=null;return false}
+  L.onpointermove=e=>{if(W3)W3.look(e.clientX/innerWidth*2-1,e.clientY/innerHeight*2-1)};
+  if(withPortal){buzz('alarm');await W3.enter(()=>{flash3D();buzz('set')})}
+  if(!W3||!S.dungeonRun)return true;
+  W3.goto(S.dungeonRun.wave,true);
+  const w=d.waves[S.dungeonRun.wave];if(w)W3.progress(S.dungeonRun.done/w.amt);
+  dRender();return true;
+}
+async function openDungeon(withPortal){
   const L=$('dungeon');L.hidden=false;document.body.classList.add('locked');
+  if(want3D()&&await open3D(L,withPortal))return;
+  L.className='layer';
   if(withPortal){
     const d=gateOf(S.dungeonRun.g);
     L.innerHTML=`<div class="portal"><div class="pr r1"></div><div class="pr r2"></div><div class="pr r3"></div><div class="pr core"></div>
@@ -64,12 +87,12 @@ function openDungeon(withPortal){
     setTimeout(()=>{L.classList.remove('opening');dRender()},1700);
   }else dRender();
 }
-function closeDungeon(){$('dungeon').hidden=true;document.body.classList.remove('locked');renderAll();if(REVEALQ.length)setTimeout(()=>{if(revealIdle())nextReveal()},250)}
+function closeDungeon(){const L=$('dungeon');if(W3){W3.dispose();W3=null;L.innerHTML=''}L.hidden=true;L.className='layer';L.onpointermove=null;document.body.classList.remove('locked');renderAll();if(REVEALQ.length)setTimeout(()=>{if(revealIdle())nextReveal()},250)}
 ACT.dClose=closeDungeon;
 
 /* ---------- the raid ---------- */
 ACT.dBegin=()=>{const r=S.dungeonRun;if(!r||r.deadline)return;const d=gateOf(r.g);r.started=Date.now();r.deadline=r.started+Math.round(d.limit*60000*armyMult('gateTime'));save();buzz('set');dRender()};
-ACT.dAdd=n=>{const r=S.dungeonRun,w=gateOf(r.g).waves[r.wave];r.done=Math.min(w.amt,r.done+(+n));buzz('tap');save();if(r.done>=w.amt)waveCleared();else dRender()};
+ACT.dAdd=n=>{const r=S.dungeonRun,w=gateOf(r.g).waves[r.wave];r.done=Math.min(w.amt,r.done+(+n));buzz('tap');save();if(W3){W3.hit();W3.progress(r.done/w.amt)}if(r.done>=w.amt)waveCleared();else dRender()};
 ACT.dHold=()=>{const r=S.dungeonRun,w=gateOf(r.g).waves[r.wave];r.hold=Date.now()+(w.amt-r.done)*1000;save();buzz('set');dRender()};
 ACT.dHoldStop=()=>{const r=S.dungeonRun,w=gateOf(r.g).waves[r.wave];r.done=Math.min(w.amt,w.amt-Math.ceil((r.hold-Date.now())/1000));r.hold=0;save();dRender()};
 ACT.dRetreat=()=>openModal(`<div class="m-stamp">Retreat?</div><p class="m-text">The Gate will close and the key is lost. No penalty.</p>
@@ -79,7 +102,9 @@ ACT.dRetreatOk=()=>{closeModal();gateFail(true)};
 function waveCleared(){
   const r=S.dungeonRun,d=gateOf(r.g);
   r.wave++;r.done=0;r.hold=0;save();buzz('done');
+  if(W3)W3.clearWave();
   if(r.wave>=d.waves.length){gateClear();return}
+  if(W3)W3.goto(r.wave);
   dRender();
   const f=document.querySelector('.d-flash');if(f){f.classList.remove('go');void f.offsetWidth;f.classList.add('go')}
 }
@@ -95,8 +120,8 @@ function gateClear(){
   if(firstTitle)S.titles=[...S.titles,d.title];
   S.dungeons.push({g:r.g,date:todayStr(),ok:true,secs});S.dungeonRun=null;
   const up=syncLevel();save();
-  const L=$('dungeon');
-  L.innerHTML=`<div class="d-result win"><div class="d-burst">${Array.from({length:12},(_,i)=>`<i style="--a:${i*30}deg"></i>`).join('')}</div>
+  const L=W3?$('dHud'):$('dungeon');if(W3)W3.victory();
+  L.innerHTML=`${W3?'<div class="d3-spacer"></div>':''}<div class="d-result win${W3?' glass d3-result':''}"><div class="d-burst">${Array.from({length:12},(_,i)=>`<i style="--a:${i*30}deg"></i>`).join('')}</div>
     <p class="overline">${d.g}-grade Gate · ${d.name}</p><h2 class="d-big">Cleared</h2>
     <p class="m-text">${d.boss} has fallen in ${secs<60?secs+' seconds':Math.floor(secs/60)+' min '+String(secs%60).padStart(2,'0')+' s'}. ${reps} reps added to your total.${up?` <b>Level ${S.level}!</b>`:''}</p>
     ${firstTitle?`<div class="m-flag lvl-flag">New title · ${d.title}</div>`:''}${shLv.length?`<div class="m-flag">Shadows leveled · ${esc(shLv.join(', '))}</div>`:''}
@@ -108,8 +133,8 @@ function gateClear(){
 function gateFail(retreat){
   const r=S.dungeonRun;if(!r)return;const d=gateOf(r.g);
   S.dungeons.push({g:r.g,date:todayStr(),ok:false,secs:0});S.dungeonRun=null;save();
-  const L=$('dungeon');
-  L.innerHTML=`<div class="d-result lose"><p class="overline">${d.g}-grade Gate · ${d.name}</p><h2 class="d-big">${retreat?'Retreated':'Gate closed'}</h2>
+  const L=W3?$('dHud'):$('dungeon');if(W3)W3.defeat();
+  L.innerHTML=`${W3?'<div class="d3-spacer"></div>':''}<div class="d-result lose${W3?' glass d3-result':''}"><p class="overline">${d.g}-grade Gate · ${d.name}</p><h2 class="d-big">${retreat?'Retreated':'Gate closed'}</h2>
     <p class="m-text">${retreat?'You escaped before the boss could finish you.':'Time ran out before the dungeon was cleared.'} The key is gone. Train, then come back stronger.</p>
     <button class="btn block" data-act="dClose" style="margin-top:18px">Leave</button></div>`;
   buzz('bad');
@@ -118,6 +143,7 @@ function gateFail(retreat){
 /* ---------- render ---------- */
 function dRender(){
   const r=S.dungeonRun;if(!r){closeDungeon();return}
+  if(W3){$('dHud').innerHTML=dHud3();startDemos();return}
   const d=gateOf(r.g),w=d.waves[r.wave],L=$('dungeon');
   const left=r.deadline?Math.max(0,Math.ceil((r.deadline-Date.now())/1000)):Math.round(d.limit*60*armyMult('gateTime'));
   let h=`<div class="w-top"><button class="icon-btn" data-act="dClose" aria-label="Leave the screen (the Gate stays open)">${ic('left')}</button>
@@ -142,6 +168,33 @@ function dRender(){
   L.innerHTML=h;startDemos();
 }
 
+/* The raid HUD over the 3D world: glass panels, the world shows through the middle. */
+function dHud3(){
+  const r=S.dungeonRun,d=gateOf(r.g),w=d.waves[r.wave];
+  const left=r.deadline?Math.max(0,Math.ceil((r.deadline-Date.now())/1000)):Math.round(d.limit*60*armyMult('gateTime'));
+  let h=`<div class="w-top"><button class="icon-btn" data-act="dClose" aria-label="Leave the screen (the Gate stays open)">${ic('left')}</button>
+    <span class="w-pos"><span>${d.g}-grade · ${d.name}</span><b id="dgTime">${fmtClock(left)}</b></span>
+    ${r.deadline?`<button class="icon-btn" data-act="dRetreat" aria-label="Retreat">${ic('x')}</button>`:'<span style="width:44px"></span>'}</div>
+    <div class="w-prog">${d.waves.map((x,i)=>`<i class="${i<r.wave?'d':''}${i===r.wave?' c':''}${x.boss?' boss':''}"></i>`).join('')}</div>`;
+  if(!r.deadline){
+    h+=`<div class="d3-spacer"></div><div class="glass d3-intro"><p class="overline">Gate of ${d.g} grade · ${d.waves.length} waves</p><h2 class="d3-name">${d.name}</h2>
+      <p class="d3-sub">Boss: ${d.boss}. Clear every wave in ${armyBonus('gateTime')?fmtClock(left):d.limit+' minutes'}.</p>
+      <ol class="d3-waves">${d.waves.map((x,i)=>`<li${x.boss?' class="boss"':''}><b>${String(i+1).padStart(2,'0')}</b><span>${x.n}</span><em>${x.amt}${x.hold?' s':''}</em></li>`).join('')}</ol>
+      <button class="btn block" data-act="dBegin">Begin the raid</button></div>`;
+    return h;
+  }
+  const remain=w.amt-r.done,holding=r.hold&&r.hold>Date.now();
+  h+=`<div class="d-flash">Wave cleared</div>
+    <div class="d3-wave"><p class="overline">${w.boss?`Boss wave · ${d.boss}`:`Wave ${r.wave+1} of ${d.waves.length}`}</p><h2 class="d3-name${w.boss?' boss':''}">${w.n}</h2></div>
+    ${w.boss?`<div class="d3-hp"><span>${d.boss}</span><i><em id="dgHp" style="width:${(1-r.done/w.amt)*100}%"></em></i></div>`:''}
+    <div class="d3-spacer"></div>
+    <div class="glass d3-panel"><div class="d3-row">${demoHTML(w.demo)}<div class="d3-count"><p class="overline">${w.hold?'Seconds to hold':'Reps left'}</p><b id="dgLeft">${holding?Math.ceil((r.hold-Date.now())/1000):remain}</b></div></div>
+      <div class="prog${w.boss?' bad':''}"><i style="width:${r.done/w.amt*100}%"></i></div>
+      ${w.hold?(holding?`<button class="btn ghost block" data-act="dHoldStop">Stop</button>`:`<button class="btn block" data-act="dHold">Start ${remain}s hold</button>`)
+        :`<div class="row-btns"><button class="btn ghost" data-act="dAdd" data-arg="5">+5</button><button class="btn ghost" data-act="dAdd" data-arg="10">+10</button><button class="btn" data-act="dAdd" data-arg="${remain}">All ${remain}</button></div>`}</div>`;
+  return h;
+}
+
 /* Ticker: countdown, holds, and time-outs (even if the raid screen is closed). */
 setInterval(()=>{
   const r=S.dungeonRun;if(!r||!r.deadline)return;
@@ -150,7 +203,8 @@ setInterval(()=>{
   if(t)t.textContent=fmtClock(Math.ceil((r.deadline-now)/1000));
   if(r.hold){
     const l=Math.ceil((r.hold-now)/1000),el=$('dgLeft');
-    if(l<=0){r.done=gateOf(r.g).waves[r.wave].amt;r.hold=0;save();waveCleared()}
-    else if(el)el.textContent=l;
+    const amt=gateOf(r.g).waves[r.wave].amt;
+    if(l<=0){r.done=amt;r.hold=0;save();if(W3)W3.progress(1);waveCleared()}
+    else{if(el&&el.textContent!==String(l)){el.textContent=l;if(W3){W3.hit();const hp=$('dgHp');if(hp)hp.style.width=`${l/amt*100}%`}}}
   }
 },250);

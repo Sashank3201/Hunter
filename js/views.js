@@ -10,7 +10,7 @@ const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
 
 function renderTop(){
   $('when').textContent=notStarted()?'Starts '+fmtDate(S.startDate):fmtDate(todayStr())+' · Week '+weekNumber();
-  $('avatarBtn').textContent=currentRank().r;
+  $('avatarBtn').innerHTML=`<img src="${hunterPhoto()}" alt=""><b>${currentRank().r}</b>`;
 }
 
 function greeting(){const h=new Date().getHours();return h<5?'Up late':h<12?'Good morning':h<17?'Good afternoon':'Good evening'}
@@ -62,7 +62,7 @@ function renderStatus(){
     <button data-act="goTab" data-arg="gates"><b>${itemCount()-keyCount()}</b><span>Items</span></button>
     <button data-act="goProg" data-arg="army"><b>${S.shadows.length}</b><span>Shadows</span></button>
     <button data-act="goProg" data-arg="feats"><b>${Object.keys(S.feats).length}<small>/${FEATS.length}</small></b><span>Feats</span></button></div>
-  <button class="license-link" data-act="card"><span class="overline">Hunter License</span><span class="overline">View card →</span></button>
+  <button class="license-link" data-act="card"><span class="ll-ph"><img src="${hunterPhoto()}" alt=""></span><span class="overline grow">Hunter License</span><span class="overline">View card →</span></button>
   ${chestReady()?`<button class="chest-strip" data-act="chest"><span class="cs-ic">${ic('box')}</span><span class="grow"><b>Daily supply ready</b><span>Day ${chestDay().day} of 7 · ${rewardLabel(LOGIN_REWARDS[chestDay().day-1])}</span></span><span class="overline">Open →</span></button>`:''}
   ${S.elixirActive?`<div class="card" style="border-top:1px solid var(--hair);padding:12px var(--gut)"><p class="overline" style="color:var(--red)">${ic('elixir')} Elixir active · next quest gives 1.5× EXP</p></div>`:''}`;
   const sq=suddenActive();

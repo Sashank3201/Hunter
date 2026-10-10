@@ -206,11 +206,11 @@ const SHADOW_RANKS=['Normal','Elite','Knight','Elite Knight','Knight Commander',
 const SHADOW_MAX_LV=40;
 /* Base ATK/DEF/SPD and look. Legends use their own; soldiers use the ladder their move belongs to. */
 const SHADOW_BODY={
-  Igris:{atk:16,def:10,spd:14,look:'knight',epithet:'The Blood-Red Commander'},
+  Igris:{atk:16,def:10,spd:14,look:'knight',epithet:'The Blood-Red Commander',art:{src:'img/igris.jpg',pos:'50% 24%',mini:'50% 12%',zoom:1.3,mzoom:1.5,origin:'50% 32%',morigin:'50% 48%'}},
   Iron:{atk:12,def:18,spd:6,look:'heavy',epithet:'The Iron Wall'},
   Tank:{atk:14,def:16,spd:6,look:'bear',epithet:'Ice Bear of the North'},
   Tusk:{atk:17,def:7,spd:9,look:'orc',epithet:'Great Shaman of the High Orcs'},
-  Beru:{atk:18,def:12,spd:18,look:'ant',epithet:'The Ant King'},
+  Beru:{atk:18,def:12,spd:18,look:'ant',epithet:'The Ant King',art:{src:'img/beru.jpg',pos:'50% 0%',mini:'50% 4%'}},
   Bellion:{atk:20,def:16,spd:16,look:'marshal',epithet:'Grand Marshal of the Army'},
   Kaisel:{atk:10,def:8,spd:20,look:'wyvern',epithet:'Sky Wyvern'},
   Greed:{atk:15,def:11,spd:12,look:'horned',epithet:'The Fallen Knight'},
