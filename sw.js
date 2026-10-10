@@ -2,7 +2,7 @@
 // Only handles caching of app files for offline use.
 // Never touches localStorage — game progress and diet data live there,
 // completely outside anything this file can see or affect.
-const CACHE='hunter-system-v15';
+const CACHE='hunter-system-v16';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/icon-maskable-512.png','./icons/apple-touch-icon.png','./icons/favicon-32.png','./img/hunter.jpg','./img/igris.jpg','./img/beru.jpg','./img/iron.jpg','./img/tank.jpg','./img/tusk.jpg','./img/bellion.jpg','./img/kaisel.jpg','./img/greed.jpg','./img/jima.jpg',
   './css/app.css','./fonts/archivo.woff2','./fonts/plex-mono-400.woff2','./fonts/plex-mono-500.woff2','./fonts/plex-mono-600.woff2',
   './js/data.js','./js/recipes.js','./js/util.js','./js/vendor/avatar-runtime.js','./js/bot.js','./js/state.js','./js/engine.js','./js/demos.js','./js/views.js','./js/nutrition.js','./js/foods.js','./js/foodlog.js','./js/botgame.js',

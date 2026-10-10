@@ -148,7 +148,7 @@ function openRecipe(id){
   if(L.hidden){L.hidden=false;L.classList.remove('show');void L.offsetWidth;L.classList.add('show');L.scrollTop=0}
   document.body.classList.add('locked');
 }
-function closeRecipe(){$('recipeLayer').hidden=true;recId=null;if($('menu').hidden&&$('cardLayer').hidden&&$('groceryLayer').hidden)document.body.classList.remove('locked')}
+function closeRecipe(){$('recipeLayer').hidden=true;recId=null;if($('menu').hidden&&$('cardLayer').hidden&&$('groceryLayer').hidden&&$('botLayer').hidden)document.body.classList.remove('locked')}
 ACT.recipe=id=>{buzz('tap');openRecipe(id)};
 ACT.recipeClose=closeRecipe;
 ACT.recServ=d=>{recServ=Math.max(1,Math.min(6,recServ+(+d)));openRecipe(recId)};
