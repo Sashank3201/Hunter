@@ -11,6 +11,9 @@ function stepIndexOf(ex){for(const k in LADDERS){const i=LADDERS[k].steps.findIn
 const bodyOf=sh=>SHADOW_BODY[sh.n]||SHADOW_BODY[ladderOf(sh.ex)]||SHADOW_BODY.push;
 const skillOf=sh=>SHADOW_SKILLS[sh.n]||SOLDIER_SKILL((LADDERS[ladderOf(sh.ex)]||LADDERS.push).stat);
 const roleOf=sh=>S.army.captain===sh.ex?'captain':S.army.vice===sh.ex?'vice':null;
+/* Story event shadows come from a raid, not a record. Legends rise in order among the record shadows only. */
+const shadowEvent=sh=>sh.ev?STORY_EVENTS.find(e=>e.id===sh.ev):null;
+const recordShadows=()=>S.shadows.filter(s=>!s.ev).length;
 const ROLE_NAME={captain:'Captain',vice:'Vice-captain'};
 function shadowLevel(xp){let L=1;while(L<SHADOW_MAX_LV&&xp>=shadowXpAt(L+1))L++;return L}
 /* Current grade: the base grade, promoted one step at Lv 11, 21 and 31. */
@@ -85,7 +88,7 @@ function extractShadow(ex,best,timed,silent,date){
     if(!silent){toast(`${sh.n} grows stronger · Lv ${sh.lvl}`);buzz('done');announceUps(ups.filter(u=>u.promo))}
     return sh;
   }
-  const i=S.shadows.length,leg=SHADOW_LEGENDS[i];
+  const i=S.shadows.length,leg=SHADOW_LEGENDS[recordShadows()];
   sh={ex,n:leg?leg[0]:`Soldier ${String(i+1).padStart(2,'0')}`,rank:leg?leg[1]:SHADOW_GRADES[Math.min(7,stepIndexOf(ex))],
     best,timed:!!timed,date:date||todayStr(),lvl:1,xp:0,no:i+1};
   S.shadows.push(sh);
@@ -126,7 +129,20 @@ const SIL={
   soldier:{d:['M50 12c-12 0-20 9-20 24v13c0 9 8 15 20 16 12-1 20-7 20-16V36c0-15-8-24-20-24z','M48 4h4v10h-4z',SIL_BASE],eyes:[42,40,58],visor:[35,40,65]},
   spiked:{d:['M50 12c-12 0-20 9-20 24v13c0 9 8 15 20 16 12-1 20-7 20-16V36c0-15-8-24-20-24z','M36 18L26 2l14 10zM64 18L74 2 60 12zM48 12l2-10 2 10z',SIL_BASE,'M14 104l-8-10 12 4zM86 104l8-10-12 4z'],eyes:[42,40,58],visor:[35,40,65]},
   hooded:{d:['M50 8c-16 0-26 14-26 32 0 14 4 26 12 36h28c8-10 12-22 12-36 0-18-10-32-26-32z','M12 120c0-22 12-36 30-40h16c18 4 30 18 30 40z'],
-    dk:['M50 26c-10 0-16 8-16 20 0 11 6 19 16 22 10-3 16-11 16-22 0-12-6-20-16-20z'],eyes:[43,46,57]}
+    dk:['M50 26c-10 0-16 8-16 20 0 11 6 19 16 22 10-3 16-11 16-22 0-12-6-20-16-20z'],eyes:[43,46,57]},
+  // event shadows
+  statue:{d:['M76 30h5v52h-5zM69 38h19v5H69z','M34 23c0-9 7-14 16-14s16 5 16 14v33c0 8-7 14-16 15-9-1-16-7-16-15z','M47 1h6v11h-6z',SIL_ARMOR,'M3 84l27-6 5 19-29 5zM97 84l-27-6-5 19 29 5z'],
+    dk:['M59 15l-4 9 5 4-3 9 2 1 4-10-5-4 4-8z','M42 90l6 8-3 10 2 1 4-11-6-8z','M76 100l-5 7 3 6-1 1-4-7 5-7z'],eyes:[43,40,57],visor:[37,40,63]},
+  warlord:{d:['M2 120c0-26 13-40 30-44l8-4h20l8 4c17 4 30 18 30 44z','M12 84 1 66l19 11zM23 79l-5-17 13 13zM88 84l11-18-19 11zM77 79l5-17-13 13z',
+    'M50 18c-12 0-20 8-20 21l-1 13c0 11 9 19 21 19s21-8 21-19l-1-13c0-13-8-21-20-21z','M41 23l3-19 4 11 2-13 3 13 4-11 2 19z','M31 40l-13-7 13 15zM69 40l13-7-13 15z','M40 66l-7-16 10 10zM60 66l7-16-10 10z'],
+    dk:['M42 59c5 4 11 4 16 0','M28 94c10 7 34 7 44 0','M36 95l2 6M50 97v6M64 95l-2 6'],eyes:[42,44,58]},
+  giant:{d:['M0 120c0-30 12-44 32-48h36c20 4 32 18 32 48z','M50 10c-14 0-23 10-23 25 0 8 1 15 4 21 3 8 10 14 19 14s16-6 19-14c3-6 4-13 4-21 0-15-9-25-23-25z',
+    'M33 57c2 11 8 19 17 23 9-4 15-12 17-23-4 4-10 6-17 6s-13-2-17-6z'],
+    dk:['M32 35h36l-3 6H35z','M18 97c20 9 44 9 64 0','M62 17l-7 14 2 1 7-14z'],eyes:[43,45,57]},
+  dragon:{d:['M44 82C30 58 10 48 0 52c8 6 10 16 8 26 6-5 13-4 17 2 4-4 11-3 14 3zM56 82c14-24 34-34 44-30-8 6-10 16-8 26-6-5-13-4-17 2-4-4-11-3-14 3z',
+    'M30 120c2-24 9-36 16-44h8c7 8 14 20 16 44z','M50 16c-10 0-17 7-17 17 0 8 3 14 6 19l4 15c2 5 4 8 7 8s5-3 7-8l4-15c3-5 6-11 6-19 0-10-7-17-17-17z',
+    'M38 26C30 18 27 8 29 0c3 8 8 13 14 17zM62 26c8-8 11-18 9-26-3 8-8 13-14 17z'],
+    dk:['M46 66h3v3h-3zM51 66h3v3h-3z','M50 21l-3 8h6z','M42 92l8 6 8-6'],eyes:[43,39,57]}
 };
 function silhouette(sh,cls=''){
   const L=SIL[bodyOf(sh).look]||SIL.soldier,[x1,y,x2]=L.eyes;
@@ -151,7 +167,7 @@ function arise(sh){
     <p class="ar-sub">Shadow extraction</p>
     <h2 class="ar-word">${'ARISE'.split('').map((c,i)=>`<span style="animation-delay:${.35+i*.09}s">${c}</span>`).join('')}</h2>
     <div class="ar-card">${bodyOf(sh).art?`<span class="ar-art">${shadowArt(sh)}</span>`:silhouette(sh)}<div><p class="overline">${esc(shadowRank(sh))}</p><p class="ar-name">${esc(sh.n)}</p>
-      <p class="ar-ex">${esc(dn(sh.ex))} · record ${sh.best}${sh.timed?'s':''}</p><p class="ar-skill">${esc(skillOf(sh).name)} · ${esc(skillText(sh))}</p></div></div>
+      <p class="ar-ex">${shadowEvent(sh)?`${esc(shadowEvent(sh).short)} · event raid`:`${esc(dn(sh.ex))} · record ${sh.best}${sh.timed?'s':''}`}</p><p class="ar-skill">${esc(skillOf(sh).name)} · ${esc(skillText(sh))}</p></div></div>
     <button class="btn quiet ar-skip" data-act="ariseClose">Tap to continue</button>`;
   a.hidden=false;a.classList.remove('go');void a.offsetWidth;a.classList.add('go');
   buzz('level');
@@ -194,7 +210,8 @@ function bigCard(sh){
       <div class="sc-stats">${[['ATK','atk'],['DEF','def'],['SPD','spd']].map(([l,k])=>`<div><span>${l}</span><b>${st[k]}</b><i><em style="width:${st[k]/max*100}%"></em></i></div>`).join('')}</div>
       <div class="sc-skill"><p class="ovl">Skill · ${esc(sk.name)}</p><p class="eff">${esc(skillText(sh))}</p>${role?`<p class="boost">${role==='captain'?'×2 as captain':'×1.5 as vice-captain'}</p>`:''}</div>
       <div class="sc-xp"><span>${maxed?'Max level':`XP to Lv ${sh.lvl+1}`}</span><i><em style="width:${maxed?100:into/need*100}%"></em></i><span>${maxed?'':`${fmtN(into)}/${fmtN(need)}`}</span></div>
-      <footer class="sc-foot"><span>${esc(dn(sh.ex))}</span><span>Record ${sh.best}${sh.timed?'s':''} · ${fmtDate(sh.date)}</span></footer>
+      <footer class="sc-foot">${shadowEvent(sh)?`<span>Story event · ${esc(shadowEvent(sh).short)}</span><span>Extracted ${fmtDate(sh.date)}</span>`
+        :`<span>${esc(dn(sh.ex))}</span><span>Record ${sh.best}${sh.timed?'s':''} · ${fmtDate(sh.date)}</span>`}</footer>
     </div>
     <div class="sc-holo"></div><div class="sc-glare"></div>
   </article>`;
@@ -218,7 +235,8 @@ function renderShadow(anim,stamp){
     <div class="sc-acts">${role==='captain'?`<button class="btn ghost" data-act="appoint" data-arg="none">Relieve captain</button>`
       :`<button class="btn" data-act="appoint" data-arg="captain">Make captain</button>`}
       ${role==='vice'?`<button class="btn ghost" data-act="appoint" data-arg="none">Relieve vice</button>`:role==='captain'?'':`<button class="btn ghost" data-act="appoint" data-arg="vice">Make vice</button>`}</div>
-    <p class="sc-note">Grows when you train ${esc(dn(sh.ex).toLowerCase())}, clear quests and raid Gates. Beat its record for an instant level. The captain trains 3× as fast and doubles its skill; the vice-captain trains 2× and gets 1.5×.</p>`;
+    <p class="sc-note">${shadowEvent(sh)?`Grows when you clear quests, raid Gates and play story events. Clearing the ${esc(shadowEvent(sh).short)} raid again gives it an instant level.`
+      :`Grows when you train ${esc(dn(sh.ex).toLowerCase())}, clear quests and raid Gates. Beat its record for an instant level.`} The captain trains 3× as fast and doubles its skill; the vice-captain trains 2× and gets 1.5×.</p>`;
   bindTilt();
   if(stamp)buzz('level');
 }
@@ -252,7 +270,7 @@ function bindTilt(){
 
 /* ---------- army view (Progress tab) ---------- */
 function armyHTML(){
-  const list=armyOrder(),next=SHADOW_LEGENDS[S.shadows.length];
+  const list=armyOrder(),next=SHADOW_LEGENDS[recordShadows()];
   const total=S.shadows.reduce((a,sh)=>a+shadowStats(sh).cp,0);
   let h=`<div class="army-head"><div><p class="overline">Shadow army</p><p class="army-n">${S.shadows.length}</p></div>
     <div class="grow"><p class="overline">Army power</p><p class="army-cp">${fmtN(total)} <small>CP</small></p>

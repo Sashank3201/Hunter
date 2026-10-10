@@ -2,14 +2,17 @@
    A Dungeon Key opens a Gate of its grade or lower. Inside: waves of exercises
    and a boss wave, all against one time limit. Clear it for EXP and loot;
    run out of time or retreat and the Gate closes (the key is lost, no penalty).
-   The run lives in S.dungeonRun with absolute deadlines, so it survives reloads. */
-const gateOf=g=>DUNGEONS.find(d=>d.g===g);
+   The run lives in S.dungeonRun with absolute deadlines, so it survives reloads.
+   Story event boss raids run on the same engine: their run carries ev (the event) and
+   waves (sized to the Player when the raid opened), and events.js hands out the rewards. */
+const gateOf=g=>DUNGEONS.find(d=>d.g===g)||evGate(g);
 const gi=g=>GRADES.indexOf(g);
+const gateTag=d=>d.ev?'Event raid':`${d.g}-grade`;
 /* A Gate's level: +1 per clear, up to GATE_MAX_LV. Each level adds 10% reps and EXP. */
 function gateLevel(g){return Math.min(GATE_MAX_LV,1+S.dungeons.filter(d=>d.ok&&d.g===g).length)}
 const lvMult=lv=>1+.1*((lv||1)-1);
 /* The waves of a run: the alternative picked at entry, the amount scaled by the run's level. */
-function runWaves(r){const d=gateOf(r.g),m=lvMult(r.lv);
+function runWaves(r){if(r.waves)return r.waves;const d=gateOf(r.g),m=lvMult(r.lv);
   return d.waves.map((w,i)=>{const x=Array.isArray(w)?w[((r.picks||[])[i]||0)%w.length]:w;return Object.assign({},x,{amt:Math.round(x.amt*m)})})}
 const waveOf=r=>runWaves(r)[r.wave];
 const amtText=x=>`${x.amt}${x.hold?' s':''}`;
@@ -20,7 +23,7 @@ let gateFocus=null;
 /* ---------- Gates tab ---------- */
 function renderGates(){
   const run=S.dungeonRun,cleared=S.dungeons.filter(d=>d.ok).length;
-  let h=`<div class="page-head"><h1 class="h1">Gates</h1><p class="muted">Open a Gate with a Dungeon Key. Clear every wave before time runs out.</p></div>`;
+  let h=`<div class="page-head"><h1 class="h1">Gates</h1><p class="muted">Open a Gate with a Dungeon Key. Clear every wave before time runs out.</p></div>${eventBannerHTML()}`;
   if(run)h+=`<div class="card bad"><div class="card-head"><span class="h3">Gate in progress</span><span class="pill bad">${gateOf(run.g).name}</span></div>
     <p class="muted small">${run.deadline?`${fmtClock(Math.max(0,Math.ceil((run.deadline-Date.now())/1000)))} left.`:'Waiting at the entrance.'} Wave ${run.wave+1} of ${gateOf(run.g).waves.length}.</p>
     <button class="btn block" style="margin-top:14px" data-act="gateResume">Return to the Gate</button></div>`;
@@ -80,7 +83,7 @@ async function open3D(L,withPortal){
   if(!create||!r||L.hidden)return false;
   const d=gateOf(r.g);
   const wid=equippedWeapon(),weapon=wid?{type:WEAPONS[wid].type,look:WEAPONS[wid].look}:null;
-  try{W3=create($('d3c'),{grade:r.g,waves:d.waves.length,bossWave:d.waves.findIndex(w=>w.boss),reduced:reduceMotion.matches,weapon})}catch(e){W3=null;return false}
+  try{W3=create($('d3c'),{grade:d.world||r.g,waves:d.waves.length,bossWave:d.waves.findIndex(w=>w.boss),reduced:reduceMotion.matches,weapon})}catch(e){W3=null;return false}
   L.onpointermove=e=>{if(W3)W3.look(e.clientX/innerWidth*2-1,e.clientY/innerHeight*2-1)};
   if(withPortal){buzz('alarm');await W3.enter(()=>{flash3D();buzz('set')})}
   if(!W3||!S.dungeonRun)return true;
@@ -95,7 +98,7 @@ async function openDungeon(withPortal){
   if(withPortal){
     const d=gateOf(S.dungeonRun.g);
     L.innerHTML=`<div class="portal"><div class="pr r1"></div><div class="pr r2"></div><div class="pr r3"></div><div class="pr core"></div>
-      <p class="portal-g">${d.g}</p></div><p class="portal-t">Gate opened</p>`;
+      <p class="portal-g">${d.mark||d.g}</p></div><p class="portal-t">Gate opened</p>`;
     L.classList.remove('opening');void L.offsetWidth;L.classList.add('opening');buzz('alarm');
     setTimeout(()=>{L.classList.remove('opening');dRender()},1700);
   }else dRender();
@@ -123,23 +126,28 @@ function waveCleared(){
   const f=document.querySelector('.d-flash');if(f){f.classList.remove('go');void f.offsetWidth;f.classList.add('go')}
 }
 function gateClear(){
-  const r=S.dungeonRun,d=gateOf(r.g),secs=Math.round((Date.now()-r.started)/1000),firstClear=!S.dungeons.some(x=>x.ok&&x.g===r.g);
-  const reps=runWaves(r).filter(w=>!w.hold).reduce((a,w)=>a+w.amt*(w.side?2:1),0),lvBefore=gateLevel(r.g);
+  const r=S.dungeonRun,d=gateOf(r.g),secs=Math.round((Date.now()-r.started)/1000),firstClear=!r.ev&&!S.dungeons.some(x=>x.ok&&x.g===r.g);
+  const reps=runWaves(r).filter(w=>!w.hold).reduce((a,w)=>a+w.amt*(w.side?2:1),0),lvBefore=r.ev?0:gateLevel(r.g);
   const exp=Math.round(d.exp*lvMult(r.lv)*armyMult('gateExp'));
   S.totalReps+=reps;S.exp+=exp;
   const loot=[`+${exp} EXP`];
-  const shUps=[];armyTrain(15*(gi(d.g)+1),shUps);const shLv=announceUps(shUps);
-  Object.entries(d.drops).forEach(([k,p])=>{const n=p>=1?Math.floor(p):(Math.random()<p?1:0);if(n)loot.push(grantItem(k,n))});
-  const wid=GATE_WEAPON[r.g];if(wid&&(firstClear||Math.random()<WEAPON_DROP))loot.push(grantWeapon(wid)); // the boss's weapon
-  const firstTitle=!S.titles.includes(d.title);
-  if(firstTitle)S.titles=[...S.titles,d.title];
-  S.dungeons.push({g:r.g,date:todayStr(),ok:true,secs});S.dungeonRun=null;
+  const shUps=[];armyTrain(d.army||15*(gi(d.g)+1),shUps);const shLv=announceUps(shUps);
+  let firstTitle=false,evFlags='';
+  if(r.ev)evFlags=evRaidLoot(r,loot); // the event's weapon and shadow (events.js)
+  else{
+    Object.entries(d.drops).forEach(([k,p])=>{const n=p>=1?Math.floor(p):(Math.random()<p?1:0);if(n)loot.push(grantItem(k,n))});
+    const wid=GATE_WEAPON[r.g];if(wid&&(firstClear||Math.random()<WEAPON_DROP))loot.push(grantWeapon(wid)); // the boss's weapon
+    firstTitle=!S.titles.includes(d.title);
+    if(firstTitle)S.titles=[...S.titles,d.title];
+    S.dungeons.push({g:r.g,date:todayStr(),ok:true,secs});
+  }
+  S.dungeonRun=null;
   const up=syncLevel();save();
   const L=W3?$('dHud'):$('dungeon');if(W3)W3.victory();
   L.innerHTML=`${W3?'<div class="d3-spacer"></div>':''}<div class="d-result win${W3?' glass d3-result':''}"><div class="d-burst">${Array.from({length:12},(_,i)=>`<i style="--a:${i*30}deg"></i>`).join('')}</div>
-    <p class="overline">${d.g}-grade Gate · ${d.name}</p><h2 class="d-big">Cleared</h2>
+    <p class="overline">${d.ev?'Event raid':`${d.g}-grade Gate`} · ${d.name}</p><h2 class="d-big">Cleared</h2>
     <p class="m-text">${d.boss} has fallen in ${secs<60?secs+' seconds':Math.floor(secs/60)+' min '+String(secs%60).padStart(2,'0')+' s'}. ${reps} reps added to your total.${up?` <b>Level ${S.level}!</b>`:''}</p>
-    ${firstTitle?`<div class="m-flag lvl-flag">New title · ${d.title}</div>`:''}${shLv.length?`<div class="m-flag">Shadows leveled · ${esc(shLv.join(', '))}</div>`:''}${gateLevel(d.g)>lvBefore?`<div class="m-flag">${d.name} is now Lv ${gateLevel(d.g)} · +10% reps and EXP</div>`:''}
+    ${firstTitle?`<div class="m-flag lvl-flag">New title · ${d.title}</div>`:''}${evFlags}${shLv.length?`<div class="m-flag">Shadows leveled · ${esc(shLv.join(', '))}</div>`:''}${!d.ev&&gateLevel(d.g)>lvBefore?`<div class="m-flag">${d.name} is now Lv ${gateLevel(d.g)} · +10% reps and EXP</div>`:''}
     <p class="overline" style="margin-top:8px">Loot</p>${lootHTML(loot)}
     <button class="btn block" data-act="dClose" style="margin-top:18px">Leave the Gate</button></div>`;
   buzz('level');
@@ -147,10 +155,11 @@ function gateClear(){
 }
 function gateFail(retreat){
   const r=S.dungeonRun;if(!r)return;const d=gateOf(r.g);
-  S.dungeons.push({g:r.g,date:todayStr(),ok:false,secs:0});S.dungeonRun=null;save();
+  if(!r.ev)S.dungeons.push({g:r.g,date:todayStr(),ok:false,secs:0});
+  S.dungeonRun=null;save();
   const L=W3?$('dHud'):$('dungeon');if(W3)W3.defeat();
-  L.innerHTML=`${W3?'<div class="d3-spacer"></div>':''}<div class="d-result lose${W3?' glass d3-result':''}"><p class="overline">${d.g}-grade Gate · ${d.name}</p><h2 class="d-big">${retreat?'Retreated':'Gate closed'}</h2>
-    <p class="m-text">${retreat?'You escaped before the boss could finish you.':'Time ran out before the dungeon was cleared.'} The key is gone. Train, then come back stronger.</p>
+  L.innerHTML=`${W3?'<div class="d3-spacer"></div>':''}<div class="d-result lose${W3?' glass d3-result':''}"><p class="overline">${d.ev?'Event raid':`${d.g}-grade Gate`} · ${d.name}</p><h2 class="d-big">${retreat?'Retreated':d.ev?'Raid failed':'Gate closed'}</h2>
+    <p class="m-text">${retreat?'You escaped before the boss could finish you.':'Time ran out before the dungeon was cleared.'} ${d.ev?'Nothing is lost. Train, then try again before the event ends.':'The key is gone. Train, then come back stronger.'}</p>
     <button class="btn block" data-act="dClose" style="margin-top:18px">Leave</button></div>`;
   buzz('bad');
 }
@@ -162,11 +171,11 @@ function dRender(){
   const d=gateOf(r.g),ws=runWaves(r),w=ws[r.wave],L=$('dungeon');
   const left=r.deadline?Math.max(0,Math.ceil((r.deadline-Date.now())/1000)):Math.round(d.limit*60*armyMult('gateTime'));
   let h=`<div class="w-top"><button class="icon-btn" data-act="dClose" aria-label="Leave the screen (the Gate stays open)">${ic('left')}</button>
-    <span class="w-pos"><span>${d.g}-grade · ${d.name}</span><b id="dgTime">${fmtClock(left)}</b></span>
+    <span class="w-pos"><span>${gateTag(d)} · ${d.name}</span><b id="dgTime">${fmtClock(left)}</b></span>
     ${r.deadline?`<button class="icon-btn" data-act="dRetreat" aria-label="Retreat">${ic('x')}</button>`:'<span style="width:44px"></span>'}</div>
     <div class="w-prog">${ws.map((x,i)=>`<i class="${i<r.wave?'d':''}${i===r.wave?' c':''}${x.boss?' boss':''}"></i>`).join('')}</div>`;
   if(!r.deadline){
-    h+=`<div class="w-body d-intro"><p class="overline">Gate of ${d.g} grade</p><h2 class="w-name">${d.name}</h2>
+    h+=`<div class="w-body d-intro"><p class="overline">${d.ev?'Story event · boss raid':`Gate of ${d.g} grade`}</p><h2 class="w-name">${d.name}</h2>
       <p class="muted" style="margin-top:-6px">Boss: ${d.boss}. Clear every wave in ${armyBonus('gateTime')?`${fmtClock(Math.round(d.limit*60*armyMult('gateTime')))} (+${armyBonus('gateTime')}% from your army)`:`${d.limit} minutes`}.</p>
       <ol class="method d-waves">${ws.map(x=>`<li><span>${x.boss?'<b class="boss-tag">Boss</b> ':''}${x.n} · ${amtText(x)}</span></li>`).join('')}</ol></div>
       <div class="w-foot"><button class="btn" data-act="dBegin">Begin the raid</button></div>`;
@@ -188,13 +197,13 @@ function dHud3(){
   const r=S.dungeonRun,d=gateOf(r.g),ws=runWaves(r),w=ws[r.wave];
   const left=r.deadline?Math.max(0,Math.ceil((r.deadline-Date.now())/1000)):Math.round(d.limit*60*armyMult('gateTime'));
   let h=`<div class="w-top"><button class="icon-btn" data-act="dClose" aria-label="Leave the screen (the Gate stays open)">${ic('left')}</button>
-    <span class="w-pos"><span>${d.g}-grade · ${d.name}</span><b id="dgTime">${fmtClock(left)}</b></span>
+    <span class="w-pos"><span>${gateTag(d)} · ${d.name}</span><b id="dgTime">${fmtClock(left)}</b></span>
     ${r.deadline?`<button class="icon-btn" data-act="dRetreat" aria-label="Retreat">${ic('x')}</button>`:'<span style="width:44px"></span>'}</div>
     <div class="w-prog">${ws.map((x,i)=>`<i class="${i<r.wave?'d':''}${i===r.wave?' c':''}${x.boss?' boss':''}"></i>`).join('')}</div>`;
   if(!r.deadline){
-    h+=`<div class="d3-spacer"></div><div class="glass d3-intro"><p class="overline">Gate of ${d.g} grade · ${d.waves.length} waves</p><h2 class="d3-name">${d.name}</h2>
+    h+=`<div class="d3-spacer"></div><div class="glass d3-intro"><p class="overline">${d.ev?'Story event · boss raid':`Gate of ${d.g} grade`} · ${d.waves.length} waves</p><h2 class="d3-name">${d.name}</h2>
       <p class="d3-sub">Boss: ${d.boss}. Clear every wave in ${armyBonus('gateTime')?fmtClock(left):d.limit+' minutes'}.</p>
-      <p class="d3-sub d3-focus">${d.focus} · Gate Lv ${r.lv||1}</p>
+      <p class="d3-sub d3-focus">${d.focus}${d.ev?'':` · Gate Lv ${r.lv||1}`}</p>
       <ol class="d3-waves">${ws.map((x,i)=>`<li${x.boss?' class="boss"':''}><b>${String(i+1).padStart(2,'0')}</b><span>${x.n}</span><em>${amtText(x)}</em></li>`).join('')}</ol>
       <button class="btn block" data-act="dBegin">Begin the raid</button></div>`;
     return h;

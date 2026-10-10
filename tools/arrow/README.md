@@ -1,6 +1,6 @@
 # Arrow's language model
 
-Arrow decides what a message means (one of 50 intents) with a small neural network that runs inside the app, offline.
+Arrow decides what a message means (one of 51 intents) with a small neural network that runs inside the app, offline.
 
 The model has four stages:
 
@@ -45,8 +45,8 @@ On the phone, Arrow also learns from the Player. When the Player taps "Not what 
 | Character n-grams | 3 and 4 |
 | Skip-grams | on |
 | Epochs | 10 |
-| Training examples | 47,806 |
-| Intents | 50 |
+| Training examples | 48,656 |
+| Intents | 51 |
 | File size | 608 KB |
 
 The blind test is split into two halves of 200 messages:
@@ -56,11 +56,11 @@ The blind test is split into two halves of 200 messages:
 
 | Test | Accuracy |
 | --- | --- |
-| Blind test half (honest) | **94.5%** |
-| Blind dev half | 100% |
+| Blind test half (honest) | **97.0%** |
+| Blind dev half | 99.5% |
 | Hand-written set | 100% |
 
-On the blind test half, Arrow answers directly 91% of the time (confidence ≥ 0.42), and those answers are 98.9% right. For the rest it shows "did you mean" chips.
+On the blind test half, Arrow answers directly 90% of the time (confidence ≥ 0.42), and those answers are 98.9% right. For the rest it shows "did you mean" chips.
 
 To retrain with the same settings:
 

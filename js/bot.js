@@ -42,14 +42,16 @@ const botLift=f=>{const m=/translate\([^,]+,\s*(-?[\d.]+)%/.exec(f.transform);re
 const BOT_FX={z:['z','z','Z'],z1:['z'],dots:['','',''],q:['?'],ex:['!'],wave:['',''],ha:['ha','ha'],spark:['','','',''],spark1:['',''],sweat:['']};
 const Bot=(()=>{
   let api=null,host=null,face=null,loopEl=null,poseEl=null,tapEl=null,fxEl=null,ground=null;
-  let cur=null,mood='idle',timer=0,theme='',loopA=null,groundA=null,body='';
+  let cur=null,mood='idle',timer=0,theme='',skin='',loopA=null,groundA=null,body='';
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const dark=()=>{const t=document.documentElement.dataset.theme;return t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches)};
+  /* The Arrow skin the Player wears (story event reward), if they own it. */
+  const skinNow=()=>{const id=typeof S!=='undefined'&&S.profile&&S.profile.arrowSkin;return id&&ARROW_SKINS[id]&&(S.skins||[]).includes(id)?id:''};
   function el(tag,cls,parent){const e=document.createElement(tag);e.className=cls;if(parent)parent.appendChild(e);return e}
-  /* Ink orb with paper eyes; inverted on the night theme so it never disappears. */
+  /* Ink orb with paper eyes; inverted on the night theme so it never disappears. A skin replaces both colours. */
   function build(){
-    const d=dark(),colors=d?{body:'#ECE7DD',eyes:'#121110'}:{body:'#121110',eyes:'#FFFFFF'};
-    theme=d?'dark':'light';
+    const d=dark(),sk=skinNow(),colors=sk?{body:ARROW_SKINS[sk].body,eyes:ARROW_SKINS[sk].eyes}:d?{body:'#ECE7DD',eyes:'#121110'}:{body:'#121110',eyes:'#FFFFFF'};
+    theme=d?'dark':'light';skin=sk;
     if(api){api.destroy();api=null}
     const data=Object.assign({},BOT_DATA,{avatar:Object.assign({},BOT_DATA.avatar,{colors})});
     api=AvatarRuntime.create(data,face,{animation:cur||mood,autoplay:true,size:'100%'});
@@ -63,7 +65,7 @@ const Bot=(()=>{
       fxEl=el('span','bot-fx',fl);
       setBody(cur||mood);
     }
-    if(!api||theme!==(dark()?'dark':'light'))build();
+    if(!api||theme!==(dark()?'dark':'light')||skin!==skinNow())build();
   }
   /* Blend from the current body position into the new mood's loop. */
   function setBody(name){
@@ -106,7 +108,8 @@ const Bot=(()=>{
       tapEl.animate([{transform:'scale(1)'},{transform:'scale(1.16,.82)'},{transform:'scale(.92,1.1)'},{transform:'scale(1.03,.97)'},{transform:'scale(1)'}],{duration:520,easing:'ease-out'})},
     pause(){if(api&&api.playing)api.pause();if(loopA)loopA.pause();if(groundA)groundA.pause();if(host)host.classList.add('still')},
     resume(){ensure();if(api&&!api.playing)api.play(cur);if(loopA&&loopA.playState==='paused')loopA.play();if(groundA&&groundA.playState==='paused')groundA.play();host.classList.remove('still')},
-    retheme(){if(api&&theme!==(dark()?'dark':'light'))build()}
+    retheme(){if(api&&theme!==(dark()?'dark':'light'))build()},
+    reskin(){if(api&&skin!==skinNow())build()}
   };
   return api_;
 })();

@@ -34,7 +34,7 @@ function die(away){
   f.deaths=S.deaths;f.titles=Array.from(new Set([...S.titles,keptTitle]));f.bestStreak=S.bestStreak;
   f.profile=S.profile;f.log=S.log;f.prs=S.prs;f.passes=S.passes;f.totalReps=S.totalReps;
   // achievements, shadows and gate history are records too; items are lost
-  ['feats','shadows','dungeons','titleEquipped','suddenDone','weekSnaps','reportSeen'].forEach(k=>f[k]=S[k]);
+  ['feats','shadows','dungeons','titleEquipped','suddenDone','weekSnaps','reportSeen','events','skins'].forEach(k=>f[k]=S[k]);
   f.log[todayStr()]=Object.assign(f.log[todayStr()]||{done:[]},{died:true});
   S=f;save();
   openModal(`<div class="m-stamp">You have died</div>

@@ -30,6 +30,7 @@ const AX_EX=('push up|pushup|push ups|pushups|push-up|pull up|pullup|pull ups|pu
   'muscle up|muscle ups|handstand push up|l sit|front lever|back lever|planche|pistol squat|dragon flag|human flag|nordic curl|skin the cat|tuck planche|hanging leg raise|'+
   'australian row|bench dip|wall walk|frog stand|crow pose').split('|');
 const AX_TAB=('status|home|home page|main page|quest|quests|quest tab|gates|gate|dungeon|dungeons|progress|diet|nutrition|recipes|recipe book|history|feats|achievements|badges|'+
-  'plan|skills|army|armory|armoury|weapons|weapon|grocery|grocery list|shopping list|report|weekly report|settings|profile|license|licence|card|page|tab|screen').split('|');
+  'plan|skills|army|armory|armoury|weapons|weapon|grocery|grocery list|shopping list|report|weekly report|settings|profile|license|licence|card|page|tab|screen|'+
+  'event|events|story event|story').split('|');
 const AX_SHADOW=['igris','iron','tank','tusk','beru','bellion','kaisel','greed','jima','shadow','shadows','captain','vice captain','soldier'];
 const AX_KITCHEN=['kitchen','fridge','pantry','refrigerator','intlo','inti lo','ghar','ghar mein','ghar pe','store','stock'];
