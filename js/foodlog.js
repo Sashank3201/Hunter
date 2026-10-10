@@ -1,4 +1,4 @@
-/* Hunter System: the food log, run by the System bot.
+/* Hunter System: the food log and Arrow's chat screen. Arrow's brain is in arrow.js.
    Tell the bot what you ate ("2 rotis, dal and a glass of milk", typed or spoken)
    and it logs calories, protein, carbs, fat, fiber and sugar against lean-bulk
    targets, plus water. Unknown foods are asked about once and remembered.
@@ -14,12 +14,16 @@ const FL_UNITS={g:'g gm gms gram grams gr',kg:'kg kgs kilo kilos',ml:'ml mls mil
   handful:'handful handfuls fistful',serving:'serving servings portion portions',packet:'packet packets pack packs sachet',can:'can cans tin',
   bottle:'bottle bottles',bar:'bar bars'};
 const FL_UNIT_OF={};Object.entries(FL_UNITS).forEach(([u,w])=>w.split(' ').forEach(x=>FL_UNIT_OF[x]=u));
+/* Telugu and Hindi in English letters (arrow-lex.js): numbers, units, sizes, meals and filler words. */
+Object.entries(AX_UNIT).forEach(([u,w])=>w.split(' ').forEach(x=>{if(!FL_UNIT_OF[x])FL_UNIT_OF[x]=u}));
+Object.entries(AX_NUM).forEach(([w,v])=>{if(!(w in FL_NUM))FL_NUM[w]=v});
 const FL_UNIT_G={cup:200,bowl:200,plate:300,glass:250,slice:30,tbsp:15,tsp:5,scoop:30,handful:30,can:330,bottle:500};
 const FL_PIECES={plate:3,bowl:2,serving:2,packet:1}; // a plate of idli = 3 idlis
-const FL_SIZE={small:.7,mini:.6,little:.6,medium:1,regular:1,normal:1,large:1.4,big:1.4,huge:1.8,jumbo:1.8,extra:1.3};
+const FL_SIZE=Object.assign({small:.7,mini:.6,little:.6,medium:1,regular:1,normal:1,large:1.4,big:1.4,huge:1.8,jumbo:1.8,extra:1.3},AX_SIZE);
 const FL_FILL=new Set('i im i\'m ive i\'ve i\'ll i\'d gonna going will had have has ate eat eaten eating drank drink drinking just also then some of the my for at in on me today todays tonight around about approx approximately like kind homemade home made fresh got took consumed finished bit lot lots plus more glass\'s'.split(' '));
 const FL_MEAL={breakfast:'breakfast',brunch:'breakfast',morning:'breakfast',lunch:'lunch',afternoon:'lunch',dinner:'dinner',supper:'dinner',night:'dinner',
   snack:'snack',snacks:'snack',evening:'snack',preworkout:'snack',postworkout:'snack'};
+AX_FILL.forEach(w=>FL_FILL.add(w));Object.entries(AX_MEAL).forEach(([w,m])=>{if(!FL_MEAL[w])FL_MEAL[w]=m});
 const MEAL_NAME={breakfast:'Breakfast',lunch:'Lunch',snack:'Snack',dinner:'Dinner'};
 /* Everyday words that are never food. They are skipped when matching (so "don't" can't be read
    as a typo of "donut") and never asked about as unknown foods. Any word with an apostrophe too. */
@@ -122,13 +126,14 @@ function flLabel(f,n,unit,qty){
 }
 /* Nouns people use about food that are not foods themselves: never asked about as unknown foods. */
 const FL_NOTFOOD=new Set('protein proteins recipe recipes bulk bulking cut cutting diet calories calorie kcal cal cals weight muscle muscles full stuffed macros carbs fiber breakfast lunch dinner snack'.split(' '));
-const FL_NEG=/\b(didn'?t|did not|haven'?t|have not|hasn'?t|has not|never|won'?t|will not|skip(?:ped)?|not (?:eat|eaten|have|had|drink|drunk))\b/i;
+const FL_SPLIT=new RegExp(",|;|\\n|&|\\+|\\.\\s|\\b(?:and|with|plus|along|then|also|after that|but|"+AX_SEP.join('|')+")\\b",'i');
+const FL_NEG=new RegExp("\\b(didn'?t|did not|haven'?t|have not|hasn'?t|has not|never|won'?t|will not|skip(?:ped)?|not (?:eat|eaten|have|had|drink|drunk)|"+AX_NEG.join('|')+")\\b",'i');
 /* Turn a whole message into foods, water and unknown phrases. */
 function flParse(text,custom){
   flBuildIndex(custom);
   /* Keep names like "oats with milk" in one piece before splitting on "with"/"and". */
   flGlue.forEach(al=>{text=text.replace(new RegExp('\\b'+al.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi'),m=>m.replace(/\s+/g,'_'))});
-  const segs=text.split(/,|;|\n|&|\+|\band\b|\bwith\b|\bplus\b|\balong\b|\bthen\b|\balso\b|\bafter that\b|\bbut\b|\.\s/i).map(s=>s.trim()).filter(Boolean);
+  const segs=text.split(FL_SPLIT).map(s=>s.trim()).filter(Boolean);
   const items=[],unknown=[],skipped=[];let water=0;
   /* Each piece gets its own meal. A meal word after the food ("rice and dal for lunch") covers
      the pieces before it; one before the food ("for dinner 4 idlis") covers the pieces after it. */
@@ -170,7 +175,9 @@ function flDay(ds,date=todayStr()){
   return ds.food[date];
 }
 function flTotals(day){const t={k:0,p:0,c:0,f:0,fb:0,s:0};day.items.forEach(i=>Object.keys(t).forEach(x=>t[x]+=i[x]||0));Object.keys(t).forEach(x=>t[x]=x==='k'?Math.round(t[x]):flR1(t[x]));return t}
-const mealNow=()=>{const h=new Date().getHours();return h<11?'breakfast':h<16?'lunch':h<19?'snack':'dinner'};
+/* The hour of the day (window.__HOUR lets tests pick one). */
+function flHour(){return typeof window!=='undefined'&&window.__HOUR!==undefined?window.__HOUR:new Date().getHours()}
+const mealNow=()=>{const h=flHour();return h<11?'breakfast':h<16?'lunch':h<19?'snack':'dinner'};
 const fmtK=n=>Math.round(n).toLocaleString('en-US');
 
 /* ---------- estimates and corrections ----------
@@ -208,13 +215,6 @@ function flCorrect(ds,name,k,p){
   return {f:nf,fixed};
 }
 
-/* "What should I eat?" -> protein-dense recipes from the recipe book that fit what's left today. */
-function flSuggest(ds){
-  const day=flDay(ds),T=foodTargets(ds),t=flTotals(day),pl=Math.max(0,Math.round(T.p-t.p)),kl=Math.max(0,T.kcal-t.k),m=mealNow(),ok=DIET_TYPES[ds.type].allow;
-  const pool=RECIPES.filter(r=>ok.includes(r.tag)&&r.meal===m&&r.kcal<=Math.max(350,kl)).sort((a,b)=>b.p/b.kcal-a.p/a.kcal);
-  const pick=pool.slice(0,6).sort(()=>Math.random()-.5).slice(0,3);
-  return {say:`${kl?`You have ${fmtK(kl)} kcal and ${pl} g protein left today.`:'Calories are done for today, so keep it light.'} For ${m}, try one of these from your recipe book:`,recipes:pick.map(r=>r.id)};
-}
 /* "Same as yesterday", "same breakfast as yesterday": copy yesterday's foods. */
 function flYesterday(ds,low){
   const y=(ds.food||{})[addDays(todayStr(),-1)],m=(flTokens(low).find(t=>t.k==='meal')||{}).m||null;
@@ -222,86 +222,6 @@ function flYesterday(ds,low){
   return {items,water:0,unknown:[],meal:m,skipped:[]};
 }
 
-/* ---------- the bot's brain ---------- */
-const FL_LINES={
-  hello:['Ready when you are. What did you eat?','Hunter. Report your meals.','Online. Tell me what you ate.'],
-  logged:['Logged.','Recorded.','Noted, Hunter.','Added to today.'],
-  thanks:['…you\'re welcome.','Just doing my job. (Thanks.)','The System appreciates it.'],
-  lol:['Ha. Ha. Ha.','I laughed. Internally.','Heh. Now eat your protein.'],
-  unknown:['I don\'t know that one yet.','That food isn\'t in my records.','Unknown item detected.']
-};
-const pickL=k=>FL_LINES[k][Math.floor(Math.random()*FL_LINES[k].length)];
-/* Handle one message. Returns {say, items, mood, ask}. Mutates the diet state. */
-function flHandle(ds,text){
-  const day=flDay(ds),T=foodTargets(ds),low=text.toLowerCase().trim();
-  const sumLine=()=>{const t=flTotals(day);return `Today: ${fmtK(t.k)} / ${fmtK(T.kcal)} kcal · protein ${Math.round(t.p)}/${T.p} g · water ${day.water}/${T.water}.`};
-  if(!low)return null;
-  if(/^(undo|oops|remove last|delete last|undo last)\b/.test(low)){
-    const last=day.items.length?day.items[day.items.length-1].batch:null;
-    if(!last)return {say:'Nothing to undo today.',mood:'confused'};
-    const gone=day.items.filter(i=>i.batch===last);day.items=day.items.filter(i=>i.batch!==last);
-    return {say:`Removed ${gone.map(i=>i.q).join(', ')}. ${sumLine()}`,mood:'sad'};
-  }
-  if(/^(reset|clear)\b.*\b(today|day|log|all)\b/.test(low)){day.items=[];day.water=0;day.flags={};return {say:'Today\'s log is cleared. Fresh start.',mood:'sad'}}
-  if(/^(hi|hello|hey|yo|sup|hola|namaste)\b/.test(low)&&low.split(/\s+/).length<=3)return {say:pickL('hello'),mood:'happy'};
-  if(/\b(thanks|thank you|thx|ty|good bot|love you|nice bot|awesome|great job|well done)\b/.test(low))return {say:pickL('thanks'),mood:'shy'};
-  if(/\b(lol|haha+|hehe+|lmao|rofl)\b|😂|🤣/.test(low))return {say:pickL('lol'),mood:'laughing'};
-  if(/\b(help|what can you do|how do i|how to use)\b/.test(low))return {say:'Tell me what you ate in plain words: "2 rotis, dal and a glass of milk", "200g chicken for lunch", "3 glasses of water". Say "undo" to remove the last entry, "same as yesterday" to repeat a day, "what should I eat?" for ideas, "summary" for your day, "goal cut/bulk/maintain", or fix a food with "drumstick curry is 150 kcal".',mood:'curious'};
-  const gm=low.match(/\b(goal|target|want to|wanna|trying to|switch to|start)\b.*\b(cut|lose|loss|bulk|gain|maintain|recomp)\b/);
-  if(gm){ds.goal=/cut|lose|loss/.test(gm[2])?'cut':/bulk|gain/.test(gm[2])?'bulk':'maintain';const t=foodTargets(ds);
-    return {say:`Goal set to ${GOALS[ds.goal].n}: ${fmtK(t.kcal)} kcal and ${t.p} g protein a day.`,mood:'proud'}}
-  const rm=low.match(/^(remove|delete)\s+(.+)/);
-  if(rm){const i=[...day.items].reverse().find(x=>x.n.toLowerCase().includes(rm[2].trim())||rm[2].includes(x.n.toLowerCase()));
-    if(!i)return {say:`I can't find "${rm[2]}" in today's log.`,mood:'confused'};
-    day.items=day.items.filter(x=>x!==i);return {say:`Removed ${i.q}. ${sumLine()}`,mood:'sad'}}
-  const cm=low.match(/^(.+?)\s+(?:is|=|has|was|are|equals)\s+(?:about\s+|around\s+|roughly\s+|~\s*)?(\d+(?:\.\d+)?)\s*(?:kcal|cal|cals|calories)\b(?:.*?(\d+(?:\.\d+)?)\s*g?\s*(?:of\s+)?protein)?/);
-  if(cm&&!/\b(had|ate|eaten|eat|drank|having|eating)\b/.test(cm[1])){const res=flCorrect(ds,cm[1],+cm[2],cm[3]!==undefined?+cm[3]:null);
-    if(!res)return {say:`Which food is that? Try "drumstick curry is 150 kcal".`,mood:'confused'};
-    return {say:`Updated ${res.f.n.toLowerCase()}: ${fmtK(res.f.k)} kcal and ${Math.round(res.f.p)} g protein per ${flUnitWord(res.f)}.${res.fixed?` Fixed ${res.fixed} entr${res.fixed>1?'ies':'y'} from today. ${sumLine()}`:''}`,mood:'proud'}}
-  if(/\b(summary|total|totals|status|report|how am i doing|how much|left|remaining|so far)\b/.test(low)&&!/\d/.test(low))return {summary:true,mood:'working'};
-  if(/\b(what (?:should|can|do|shall) i (?:eat|have)|what to eat|suggest|recommend|any ideas|give me (?:a |some )?(?:recipe|idea|meal))/.test(low))return {suggest:true,mood:'thinking'};
-  let r;
-  if(/\b(?:same|repeat|copy)\b.*\b(?:yesterday|last night)\b/.test(low)){r=flYesterday(ds,low);if(!r.items.length)return {say:`Nothing was logged ${r.meal?`for ${r.meal} `:''}yesterday, so there's nothing to copy.`,mood:'confused'}}
-  else r=flParse(text,ds.custom);
-  /* Nothing to log: work out what was meant instead. */
-  if(!r.items.length&&!r.water){
-    if(r.skipped.length||/\b(didn'?t eat|did not eat|haven'?t eaten|have not eaten|not eaten|ate nothing|eaten nothing|drank nothing|skipped|fasting|empty stomach)\b|^nothing\b/.test(low))
-      return {say:`${r.skipped.length?`Okay, not logging ${r.skipped.join(', ')}.`:'Nothing logged.'} On a lean bulk, missed meals cost you. Get some protein in soon.`,mood:'sad'};
-    if(/\b(don'?t know|dont know|no idea|not sure|can'?t remember|cannot remember|don'?t remember|forgot|no clue|idk|dunno)\b/.test(low))
-      return {say:'No problem. Tell me roughly what was on the plate, like "rice and some curry" or "a few rotis", and I\'ll estimate the rest. A rough log beats no log.',mood:'curious'};
-    if(/\b(hungry|starving|need (?:more )?protein|recipes?|meal ideas?)\b/.test(low))return {suggest:true,mood:'thinking'};
-    if(/^(good (?:morning|afternoon|evening)|gm)\b/.test(low))return {say:'Good day, Hunter. Log each meal when you eat it and I\'ll keep the count.',mood:'happy'};
-    if(/^(good night|gn|night)\b/.test(low)){const t=flTotals(day);return {say:`Good night, Hunter. Today: ${fmtK(t.k)} of ${fmtK(T.kcal)} kcal and ${Math.round(t.p)} of ${T.p} g protein. Sleep builds muscle too.`,mood:'drowsy'}}
-    if(/\b(how are you|are you there|you there|who are you)\b/.test(low))return {say:'Fully operational and hungry for data. What did you eat?',mood:'playful'};
-    if(/\b(target|targets|goal|limit|how much should i)\b/.test(low))return {say:`Your ${GOALS[ds.goal||'bulk'].n.toLowerCase()} targets: ${fmtK(T.kcal)} kcal, ${T.p} g protein, ${T.c} g carbs, ${T.f} g fat, ${T.fb} g fiber, sugar under ${T.s} g and ${T.water} glasses of water a day.`,mood:'proud'};
-    if(!r.unknown.length){const m=(flTokens(low).find(t=>t.k==='meal')||{}).m;
-      return {say:m?`What did you have for ${m}? Tell me the foods, like "2 rotis and dal".`:'I didn\'t catch a food there. Try "2 eggs and toast", or say "help".',mood:m?'curious':'confused'}}
-  }
-  const meal=r.meal||mealNow(),batch=Date.now();
-  r.items.forEach(it=>{it.meal=it.meal||meal});
-  r.items.forEach((it,k)=>day.items.push(Object.assign({id:batch+'-'+k,batch,t:batch},it)));
-  if(r.water)day.water=Math.max(0,flR1(day.water+r.water));
-  const out={items:r.items.map((it,k)=>batch+'-'+k),mood:'happy'};
-  const big=r.items.reduce((a,i)=>a+i.k,0),prot=r.items.reduce((a,i)=>a+i.p,0),sweet=r.items.some(i=>/junk|sweet/.test(i.tags||'')||(i.s>=40&&!/drink/.test(i.tags||'')));
-  const silly=r.items.some(i=>i.units>=10&&!/ g /.test(' '+i.q+' '))||big>3000;
-  const groups=[];r.items.forEach(it=>{let g=groups.find(x=>x.m===it.meal);if(!g)groups.push(g={m:it.meal,a:[]});g.a.push(it)});
-  let say=r.items.length?`${pickL('logged')} ${groups.map(g=>`${MEAL_NAME[g.m]}: ${g.a.map(i=>`${i.q} (${i.est?'about ':''}${fmtK(i.k)} kcal, ${Math.round(i.p)} g protein)`).join(', ')}.`).join(' ')}`:'';
-  if(r.water)say+=`${say?' ':''}+${r.water} glass${r.water===1?'':'es'} of water.`;
-  if(r.skipped&&r.skipped.length)say+=` Not logging ${r.skipped.join(', ')}.`;
-  if(silly){out.mood='suspicious';say+=' That\'s… a lot. Logged anyway. I\'m watching you.'}
-  else if(big>=900){out.mood='surprised';say+=` ${fmtK(big)} kcal in one go!`}
-  else if(sweet){out.mood='angry';say+=' Sugar and junk detected. Your shadows are disappointed.'}
-  else if(prot>=25){out.mood='excited';say+=` ${Math.round(prot)} g protein. That\'s how hunters eat.`}
-  else if(!r.items.length&&r.water)out.mood=day.water>=T.water?'proud':'happy';
-  const t=flTotals(day);day.flags=day.flags||{};
-  if(t.p>=T.p&&!day.flags.protein){day.flags.protein=true;out.after={mood:'proud',say:`Protein target reached: ${Math.round(t.p)} g. Muscle has what it needs.`}}
-  if(t.k>=T.kcal*.9&&t.k<=T.kcal*1.1&&t.p>=T.p&&day.water>=T.water&&!day.flags.done){day.flags.done=true;out.after={mood:'celebrate',say:'Every target hit today. Calories, protein, water. Flawless, Hunter.'}}
-  else if(t.k>T.kcal*1.3&&!day.flags.over){day.flags.over=true;out.after={mood:'scared',say:`You're at ${Math.round(t.k/T.kcal*100)}% of today's calories. Even a bulk has limits.`}}
-  if(r.unknown.length){const u=r.unknown[0];ds.pending={phrase:u.phrase,qty:u.qty,unit:u.unit,meal:u.meal||meal};out.ask='teach';out.mood=r.items.length||r.water?out.mood:'confused';
-    say+=`${say?' ':''}${pickL('unknown')} How many calories in ${FL_BYG.includes(u.unit)?'100 g':'one '+(u.unit||'serving')} of "${u.phrase}"?`}
-  out.say=say+(r.items.length||r.water?' '+sumLine():'');
-  return out;
-}
 /* A short report and what to eat next. */
 function flSummary(ds){
   const day=flDay(ds),T=foodTargets(ds),t=flTotals(day),pl=Math.max(0,Math.round(T.p-t.p)),kl=Math.max(0,T.kcal-t.k);
@@ -309,14 +229,14 @@ function flSummary(ds){
   if(pl>15){const ok=DIET_TYPES[ds.type].allow,rs=RECIPES.filter(r=>ok.includes(r.tag)&&r.kcal<=Math.max(250,kl)).sort((a,b)=>b.p-a.p).slice(0,2);
     say+=` You still need ${pl} g protein${rs.length?`. Try ${rs.map(r=>`${r.n} (${r.p} g)`).join(' or ')} from your recipe book`:''}.`}
   else if(kl>300)say+=` ${fmtK(kl)} kcal to go: add rice, rotis, fruit or nuts.`;
-  else say+=' Right on track.';
+  else say+=' Right on track. Who even are you?';
   if(day.water<T.water)say+=` Drink ${flR1(T.water-day.water)} more glass${T.water-day.water>1?'es':''} of water.`;
   return say;
 }
 
 /* ---------- moods over time ---------- */
 const FL={open:false,idle:0,idleT:null,mic:null,typing:0};
-function baseMood(){const h=new Date().getHours();return h>=23||h<5?'drowsy':'idle'}
+function baseMood(){const h=flHour();return h>=23||h<5?'drowsy':'idle'}
 /* Bored after 25 s of nothing in the chat, asleep after 60 s. Any input wakes it. */
 function flIdleWatch(){
   clearTimeout(FL.idleT);
@@ -337,28 +257,28 @@ function fuelCardHTML(){
   const pct=Math.min(1,t.k/T.kcal),bar=(l,v,max,cls='')=>`<div class="fc-bar ${cls}"><span>${l}</span><i><em style="width:${Math.min(100,v/max*100)}%"></em></i><b>${Math.round(v)}<small>/${max} g</small></b></div>`;
   const week=Array.from({length:7},(_,i)=>{const d=addDays(todayStr(),i-6),x=(ds.food||{})[d],k=x?flTotals(x).k:0;return {d,k}});
   return `<div class="fuel-card">
-    <div class="fc-top"><div class="fc-bot" id="botStageDiet" data-act="botOpen" aria-label="Open the System bot"></div>
-      <div class="fc-say"><p class="overline">System bot · Food log</p><p class="fc-line">${esc(st.line)}</p></div></div>
+    <div class="fc-top"><div class="fc-bot" id="botStageDiet" data-act="botOpen" aria-label="Talk to Arrow"></div>
+      <div class="fc-say"><p class="overline">Arrow · Food log</p><p class="fc-line">${esc(st.line)}</p></div></div>
     <div class="fc-main"><div class="fc-ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="bg" cx="60" cy="60" r="52"/><circle class="fg${t.k>T.kcal*1.1?' over':''}" cx="60" cy="60" r="52" style="stroke-dasharray:326.7;stroke-dashoffset:${326.7*(1-pct)}"/></svg>
       <div><b>${fmtK(t.k)}</b><span>of ${fmtK(T.kcal)} kcal</span></div></div>
       <div class="fc-bars">${bar('Protein',t.p,T.p,'p')}${bar('Carbs',t.c,T.c)}${bar('Fat',t.f,T.f)}${bar('Fiber',t.fb,T.fb)}${bar('Sugar',t.s,T.s,t.s>T.s?'over':'')}</div></div>
     <div class="fc-water"><span class="overline">Water · tap a glass</span><b>${day.water}/${T.water}</b><div class="glasses">${Array.from({length:T.water},(_,i)=>`<button class="gl${i<Math.floor(day.water)?' on':''}" data-act="flWater" data-arg="${i+1}" aria-label="${i+1} glasses"></button>`).join('')}</div></div>
     <p class="overline fc-wk-l">Calories · last 7 days</p>
     <div class="fc-week" aria-label="Calories, last 7 days">${week.map(w=>`<i class="${w.d===todayStr()?'now':''}${w.k>T.kcal*1.1?' over':''}" style="--h:${Math.min(100,w.k/T.kcal*100)}%" data-tip="${fmtDate(w.d)}: ${fmtK(w.k)} kcal"><span>${'SMTWTFS'[new Date(w.d+'T00:00:00Z').getUTCDay()]}</span></i>`).join('')}</div>
-    <div class="fc-acts"><button class="btn" data-act="botOpen">${ic('zap')}Tell me what you ate</button>${FL_SR?`<button class="icon-btn fc-mic" data-act="botMic" aria-label="Speak to the bot">${micIcon()}</button>`:''}</div>
+    <div class="fc-acts"><button class="btn" data-act="botOpen">${ic('zap')}Tell me what you ate</button>${FL_SR?`<button class="icon-btn fc-mic" data-act="botMic" aria-label="Speak to Arrow">${micIcon()}</button>`:''}</div>
   </div>`;
 }
 /* The card's line and the bot's resting mood come from how the day is going. */
 function fcState(ds,T,t,day){
-  const h=new Date().getHours();
-  if(!ds.body)return {line:'Hi Hunter. Tap me and tell me what you ate. I count the rest.',mood:'curious'};
-  if(t.k>T.kcal*1.3)return {line:`${Math.round(t.k/T.kcal*100)}% of today's calories. Even a bulk has limits.`,mood:'scared'};
-  if(t.k>=T.kcal*.9&&t.p>=T.p&&day.water>=T.water)return {line:'Every target hit today. Flawless, Hunter.',mood:'proud'};
+  const h=flHour();
+  if(!ds.body)return {line:'Hi, I\'m Arrow. Tap me and tell me what you ate. I count the rest. And judge a little.',mood:'curious'};
+  if(t.k>T.kcal*1.3)return {line:`${Math.round(t.k/T.kcal*100)}% of today's calories. Even a bulk has limits, champ.`,mood:'scared'};
+  if(t.k>=T.kcal*.9&&t.p>=T.p&&day.water>=T.water)return {line:'Every target hit today. I\'m emotional.',mood:'proud'};
   if(t.s>T.s)return {line:`Sugar is over the limit (${Math.round(t.s)} of ${T.s} g). I saw that.`,mood:'suspicious'};
-  if(!day.items.length)return {line:h<5||h>=23?'Late night. Log today\'s food before the System resets.':`Nothing logged yet. What was ${mealNow()==='snack'?'your last meal':mealNow()}?`,mood:h>=23||h<5?'drowsy':h>=13?'bored':'idle'};
+  if(!day.items.length)return {line:h<5||h>=23?'Late night. Log today\'s food before the day resets.':`Nothing logged yet. What was ${mealNow()==='snack'?'your last meal':mealNow()}? Don't make me guess.`,mood:h>=23||h<5?'drowsy':h>=13?'bored':'idle'};
   const pl=Math.max(0,Math.round(T.p-t.p)),kl=Math.max(0,T.kcal-t.k);
-  if(pl)return {line:`${pl} g protein and ${fmtK(kl)} kcal to go today.`,mood:baseMood()};
-  return {line:kl?`Protein done. ${fmtK(kl)} kcal to go.`:'Calories and protein done. Drink your water.',mood:'happy'};
+  if(pl)return {line:`${pl} g protein and ${fmtK(kl)} kcal to go today. Chop chop.`,mood:baseMood()};
+  return {line:kl?`Protein done. ${fmtK(kl)} kcal to go.`:'Calories and protein done. Now drink your water.',mood:'happy'};
 }
 function mountDietBot(){
   const el=$('botStageDiet');if(!el||FL.open||BotGame.on||$('diet').hidden)return;
@@ -368,22 +288,31 @@ function mountDietBot(){
 
 /* ---------- chat layer ---------- */
 const FL_SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const FL_HINTS=['e.g. 2 rotis, dal and a glass of milk','e.g. rendu idlis tinna','e.g. do roti aur dal khayi','e.g. what should I eat?','e.g. what\'s my streak?','e.g. protein in paneer?','e.g. start my workout'];
+/* Quick replies under the chat: the usual meal when it's due, then the everyday ones. */
+function flChips(){
+  const ds=dietState(),day=flDay(ds),m=mealNow(),u=arHabits(ds)[m],c=[];
+  if(u&&!day.items.some(i=>i.meal===m))c.push(['arrowUsual',`Usual ${m}`,m]);
+  c.push(['flQuick','Water +1','water'],['arrowAsk','What should I eat?','what should i eat'],['flQuick','Summary','summary'],['flQuick','Undo','undo']);
+  const el=$('botChips');if(el)el.innerHTML=c.slice(0,5).map(([a,l,v])=>`<button class="fchip" data-act="${a}" data-arg="${esc(v)}">${esc(l)}</button>`).join('');
+}
 const micIcon=()=>'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
 function openBot(withMic){
   const L=$('botLayer'),ds=dietState();FL.open=true;
   L.hidden=false;L.classList.remove('show');void L.offsetWidth;L.classList.add('show');document.body.classList.add('locked');
   L.innerHTML=`<div class="bot-top"><button class="icon-btn" data-act="botClose" aria-label="Close">${ic('left')}</button>
-      <div class="bt-id"><b>System</b><span id="botMood">online</span></div><button class="icon-btn" data-act="botSetup" aria-label="Body and goal">${ic('user')}</button></div>
-    <div class="bot-hero"><div class="bot-stage" id="botStageChat" data-act="botPoke" aria-label="The System bot"></div><i class="bot-shadow"></i></div>
+      <div class="bt-id"><b>Arrow</b><span id="botMood">online</span></div><button class="icon-btn" data-act="botSetup" aria-label="Body and goal">${ic('user')}</button></div>
+    <div class="bot-hero"><div class="bot-stage" id="botStageChat" data-act="botPoke" aria-label="Arrow"></div><i class="bot-shadow"></i></div>
     <div class="bot-totals" id="botTotals"></div>
     <div class="bot-chat" id="botChat" aria-live="polite"></div>
-    <div class="bot-input"><div class="bot-chips">${[['flQuick','Water +1','water'],['flQuick','Summary','summary'],['flQuick','Undo','undo'],['flQuick','Help','help']].map(([a,l,v])=>`<button class="fchip" data-act="${a}" data-arg="${v}">${l}</button>`).join('')}</div>
-      <form id="botForm" class="bot-form"><input id="botIn" autocomplete="off" enterkeyhint="send" placeholder="e.g. 2 rotis, dal and a glass of milk" aria-label="What did you eat?">
+    <div class="bot-input"><div class="bot-chips" id="botChips"></div>
+      <form id="botForm" class="bot-form"><input id="botIn" autocomplete="off" enterkeyhint="send" placeholder="${FL_HINTS[Math.floor(Math.random()*FL_HINTS.length)]}" aria-label="Message Arrow">
         ${FL_SR?`<button type="button" class="bot-mic" data-act="botMic" aria-label="Speak">${micIcon()}</button>`:''}<button class="bot-send" type="submit" aria-label="Send">${ic('right')}</button></form></div>`;
   Bot.mount($('botStageChat'));Bot.setMood(baseMood());Bot.resume();
   const day=flDay(ds);
+  if(!ds.arrowMet){ds.arrowMet=true;flSay(ds,arSay('intro'));Bot.react('excited',2400)}
   if(!ds.body){flSay(ds,'Before I count anything, I need your height, age and sex. Your goal is set to lean bulk.',null,'setup');Bot.react('curious',3000)}
-  else if(!day.msgs.length){flSay(ds,`${pickL('hello')} Today's target: ${fmtK(foodTargets(ds).kcal)} kcal and ${foodTargets(ds).p} g protein.`);Bot.react('waking',1800)}
+  else if(!day.msgs.length){flSay(ds,`${arSay('greet')} Today's target: ${fmtK(foodTargets(ds).kcal)} kcal and ${foodTargets(ds).p} g protein.`);Bot.react('waking',1800)}
   else Bot.react('happy',1600);
   saveDietState(ds);renderBot();flIdleWatch();
   const inp=$('botIn');
@@ -394,7 +323,7 @@ function openBot(withMic){
 }
 function closeBot(){
   FL.open=false;clearTimeout(FL.idleT);if(FL.mic)try{FL.mic.abort()}catch(e){}
-  $('botLayer').hidden=true;document.body.classList.remove('locked');renderDiet();
+  $('botLayer').hidden=true;document.body.classList.remove('locked');renderDiet();arrowHome();
 }
 function flSay(ds,text,items,kind){const day=flDay(ds);day.msgs.push({w:'bot',x:text,at:Date.now(),items:items||null,kind:kind||null});}
 function renderBot(){
@@ -402,15 +331,20 @@ function renderBot(){
   $('botTotals').innerHTML=[['kcal',t.k,T.kcal],['protein',t.p,T.p,'g'],['carbs',t.c,T.c,'g'],['fat',t.f,T.f,'g'],['fiber',t.fb,T.fb,'g'],['sugar',t.s,T.s,'g'],['water',day.water,T.water,'']]
     .map(([l,v,m,u])=>`<div class="bt-m${l==='sugar'&&v>m?' over':''}"><b>${fmtK(v)}</b><span>${l}</span><i><em style="width:${Math.min(100,v/m*100)}%"></em></i></div>`).join('');
   const item=id=>day.items.find(i=>i.id===id);
+  const lastBot=day.msgs.map(m=>m.w).lastIndexOf('bot');
   chat.innerHTML=day.msgs.map((m,mi)=>{
     if(m.w==='me')return `<div class="msg me"><p>${esc(m.x)}</p></div>`;
+    const live=mi===lastBot;
     const its=(m.items||[]).map(item).filter(Boolean);
     const form=m.kind&&mi===day.msgs.length-1&&(m.kind==='setup'||ds.pending);
     const multi=new Set(its.map(i=>i.meal)).size>1;
     return `<div class="msg bot${form?' wide':''}"><p>${esc(m.x)}</p>${its.length?`<ul class="msg-items">${its.map((i,ii)=>`${multi&&(!ii||its[ii-1].meal!==i.meal)?`<li class="mh">${MEAL_NAME[i.meal]||''}</li>`:''}<li><span>${esc(i.q)}</span><em>${i.est?'~':''}${fmtK(i.k)} kcal · ${Math.round(i.p)} g P</em><button data-act="flDel" data-arg="${i.id}" aria-label="Remove ${esc(i.q)}">${ic('x')}</button></li>`).join('')}</ul>`:''}
       ${m.recipes&&m.recipes.length?`<div class="msg-recs">${m.recipes.map(id=>RECIPE_BY_ID[id]).filter(Boolean).map(r=>`<button data-act="recipe" data-arg="${r.id}"><span>${esc(r.n)}</span><em>${r.p} g protein · ${r.kcal} kcal</em>${ic('right')}</button>`).join('')}</div>`:''}
+      ${m.demo&&DEMOS[m.demo]?`<div class="msg-demo">${demoHTML(m.demo)}</div>`:''}
+      ${m.chips&&m.chips.length&&live?`<div class="msg-chips">${m.chips.map(c=>`<button class="fchip" data-act="${c.a}" data-arg="${esc(c.arg||'')}">${esc(c.l)}</button>`).join('')}</div>`:''}
+      ${live&&m.intent&&m.src&&!m.chips?`<button class="msg-wrong" data-act="arrowWrong">Not what I meant</button>`:''}
       ${m.kind==='setup'&&mi===day.msgs.length-1?setupForm(ds):''}${m.kind==='teach'&&mi===day.msgs.length-1&&ds.pending?teachForm(ds):''}</div>`}).join('');
-  chat.scrollTop=chat.scrollHeight;
+  chat.scrollTop=chat.scrollHeight;flChips();startDemos();
   const sf=$('flSetup');if(sf)sf.addEventListener('submit',e=>{e.preventDefault();flSaveSetup()});
   const tf=$('flTeach');if(tf){tf.addEventListener('submit',e=>{e.preventDefault();flSaveTeach()});
     $('ftK').addEventListener('input',()=>{$('ftGo').textContent=$('ftK').value?'Save':'Estimate it'})}
@@ -447,25 +381,25 @@ function flSaveTeach(){
   saveDietState(ds);
   flSend(`${p.qty||1} ${p.unit?p.unit+' ':''}${p.phrase} for ${p.meal}`,true);
 }
-/* Send a message: show it, think, answer. */
-function flSend(text,quiet){
+/* Send a message: show it, let Arrow think, answer. force = the intent the Player picked. */
+function flSend(text,quiet,force,note){
   text=(text||'').trim();if(!text)return;
   const ds=dietState(),day=flDay(ds);clearTimeout(FL.typing);
   if(!quiet)day.msgs.push({w:'me',x:text,at:Date.now()});
   saveDietState(ds);renderBot();flWake();
   Bot.play('thinking');flStatus('thinking…');
-  const r=flHandle(ds,text);
-  const unknownish=r&&(r.ask==='teach'||r.mood==='confused');
+  const r=arrowReply(ds,text,force);if(!r)return;
+  if(note==='learned')r.say=arSay('learned')+' '+r.say;
   setTimeout(()=>{
-    if(unknownish){Bot.play('searching');flStatus('searching records…')}
+    if(r.work&&r.work!=='thinking'){Bot.play(r.work);flStatus(FL_STATUS[r.work]||'working…')}
     setTimeout(()=>{
-      if(!r)return;
-      if(r.suggest){setTimeout(()=>{const sg=flSuggest(ds);day.msgs.push({w:'bot',x:sg.say,at:Date.now(),recipes:sg.recipes});saveDietState(ds);renderBot();Bot.react('happy',2400);flStatus('online')},700);return}
-      if(r.summary){Bot.play('working');flStatus('calculating…');setTimeout(()=>{flSay(ds,flSummary(ds));saveDietState(ds);renderBot();Bot.react('happy',2400);flStatus('online')},900);return}
-      flSay(ds,r.say,r.items,r.ask||null);saveDietState(ds);renderBot();
-      Bot.react(r.mood,r.mood==='celebrate'?4600:2800);flStatus('online');buzz(r.items&&r.items.length?'done':'tap');
+      if(r.clear)Object.values(ds.food||{}).forEach(d=>{d.msgs=[]});
+      day.msgs.push({w:'bot',x:r.say,at:Date.now(),items:r.items||null,kind:r.ask||null,recipes:r.recipes||null,chips:r.chips||null,demo:r.demo||null,intent:r.intent||null,src:quiet||force?null:text});
+      saveDietState(ds);renderBot();
+      Bot.react(r.mood||'happy',r.mood==='celebrate'?4600:2800);flStatus('online');buzz(r.items&&r.items.length?'done':'tap');
       if(r.after)setTimeout(()=>{const d2=dietState();flSay(d2,r.after.say);saveDietState(d2);renderBot();Bot.react(r.after.mood,r.after.mood==='celebrate'?5000:3200);buzz('level')},1500);
-    },unknownish?800:0);
+      if(r.act)setTimeout(r.act,1100);
+    },r.work&&r.work!=='thinking'?800:0);
   },550);
 }
 /* Voice: Web Speech API (Chrome, Edge, Safari). Words appear as you speak; it sends when you stop. */
@@ -476,7 +410,7 @@ function flMic(){
   const rec=new FL_SR(),inp=$('botIn');rec.lang='en-IN';rec.interimResults=true;rec.maxAlternatives=1;
   let final='';FL.mic=rec;$('botLayer').classList.add('rec');Bot.play('listening');flStatus('listening…');buzz('set');
   rec.onresult=e=>{let s='';for(const res of e.results)s+=res[0].transcript;inp.value=s;final=s};
-  rec.onerror=e=>{if(e.error==='not-allowed')toast('Allow microphone access to talk to the bot')};
+  rec.onerror=e=>{if(e.error==='not-allowed')toast('Allow microphone access to talk to Arrow')};
   rec.onend=()=>{FL.mic=null;const L=$('botLayer');if(L)L.classList.remove('rec');Bot.settle();flStatus('online');if(final.trim()){flSend(final);inp.value=''}};
   try{rec.start()}catch(e){FL.mic=null}
 }

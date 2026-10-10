@@ -1,0 +1,400 @@
+log_food	had 2 boiled eggs n a banana for brekfast
+log_food	bro i just demolished a whole medium pizza by myself 💀 log it
+log_food	dinner - 2 chapati, chicken curry, bit of salad
+log_food	ok so after gym i had a whey shake with milk and then mom made aloo paratha so obviously i ate 2 of those with pickle and curd lol
+log_food	bro ivvala podduna 3 dosalu tinna, tarvata oka coffee kooda
+log_food	orey madhyanam full plate annam pappu bendakaya fry tinnanu 😋
+log_food	dopahar me rajma chawal khaya ek plate, aur shaam ko 2 samose bhi kha liye 😅
+log_food	abhi 2 glass paani piya 💧
+food_info	how many calroies in 1 samosa
+food_info	is peanut butter actually healthy or is that just gym bro propaganda
+food_info	thinking of getting a chicken shawarma roll from the place near college, whats the macros on that roughly
+food_info	protein in 100g paneer
+food_info	oka masala dosa lo entha calories untayi ra
+food_info	pesarattu healthy aa? protein ekkuva untada
+food_info	ek kela me kitni calories hoti hai yaar
+food_info	bhai sach bata maggi kitna unhealthy hai, hostel me sab roz khate hai
+undo	undo
+undo	oops wrong one, undo that
+undo	can u remove the last thing i loged
+undo	nvm scratch that last entry
+undo	nooo i tapped it twice by mistake, delete the one i just added pls
+undo	ippudu add chesindi teeseyyi, tappu ayyindi
+undo	last entry undo cheyyi bro
+undo	abhi jo daala woh hata do
+remove_item	remove the samosa from todays log
+remove_item	take the coke off my log, i didnt even drink it
+remove_item	wait i didnt actually have the 2 parathas at lunch, my brother ate them, delete those
+remove_item	banana entry delete
+remove_item	aa biryani entry teeseyyi ra, actually tinaledu
+remove_item	log lo nunchi chai delete cheyyi
+remove_item	aaj ke log se gulab jamun hata do
+remove_item	bhai woh lassi wali entry remove karo yaar
+correction	the protein bar is actualy 190 kcal not 250
+correction	bro that dosa is like 120 cal, fix it
+correction	1 boiled egg = 70 kcal not 155 lol
+correction	correction: chicken curry was 350 kcal and 30g protein
+correction	nah ur number is way off, my moms rotis are tiny, its like 80 cals each max
+correction	aa pesarattu 180 calories ey ra, nuvvu ekkuva vesav
+correction	naa protein shake 120 kcal, 24g protein, update cheyyi
+correction	yeh poha 250 calorie ka hai, 400 nahi bhai
+summary	hw much have i eaten today
+summary	cals left?
+summary	where am i at for the day calorie wise
+summary	been eating random stuff all day, how much protein do i still need to hit today
+summary	ivvala inka entha calories tinochu ra
+summary	eeroju ippati varaku entha tinnanu
+summary	aaj kitna kha liya maine total?
+summary	bhai protein kitna bacha hai aaj ka
+targets	what's my calorie target per day
+targets	how much protien am i supposed to eat a day
+targets	whats my water target, like how many litres a day
+targets	targets?
+targets	my friend says eat 2g protein per kg, what did u set for me tho, whats my target
+targets	naa daily protein target entha ra
+targets	roju entha calories tinali naaku, target cheppu
+targets	mera daily calorie target kitna hai yaar
+set_goal	put me on a cut
+set_goal	im done bulking, change my goal to maintain
+set_goal	bulk mode on 💪 i wanna gain weight
+set_goal	ok new plan, i want to lose fat before my cousins wedding in december so update my goal
+set_goal	naaku weight penchali ra, bulk ki maarchu
+set_goal	lavu taggali bro, goal fat loss ki set cheyyi
+set_goal	bhai mujhe weight gain karna hai, goal change kar do
+set_goal	ab cut pe jaana hai yaar, set kar de
+suggest_meal	what should i eat for dinner
+suggest_meal	im starving 😩
+suggest_meal	suggest something post workout thats not eggs again pls im sick of eggs
+suggest_meal	its 6pm and i train at 7, what should i eat before. something light pls, last time i ate heavy i almost threw up
+suggest_meal	aakalesthundi ra, emi tinali
+suggest_meal	raatri ki emaina light ga suggest cheyyi
+suggest_meal	bhook lagi hai bhai kya khaun
+suggest_meal	nashte me kya khau high protein, kuch idea do
+repeat_meal	same as yesterday
+repeat_meal	log my usual brekkie
+repeat_meal	had the exact same lunch as yesterday, just copy it
+repeat_meal	the usual for dinner
+repeat_meal	ninna tinnade ivvala kooda, same
+repeat_meal	eppati laage breakfast ra, same one
+repeat_meal	kal wala dinner hi tha aaj bhi
+repeat_meal	roz wala nashta daal do
+skipped_meal	skiped breakfast
+skipped_meal	didnt eat lunch today, was stuck in back to back classes till 4
+skipped_meal	ate nothing for dinner
+skipped_meal	missed my morning meal again lol
+skipped_meal	no lunch today, wasnt hungry
+skipped_meal	podduna emi tinaledu ra
+skipped_meal	ivvala lunch skip chesa
+skipped_meal	aaj raat ka khana skip kar diya
+dont_know	i dont remeber what i ate
+dont_know	no idea how much rice that was tbh
+dont_know	idk what was in it, some kinda curry
+dont_know	cant recall what i had for lunch honestly, it was a crazy day
+dont_know	emi tinnano gurthu ledu ra
+dont_know	entha tinnano teliyadu bro, ammamma vaddinchindi anthe
+dont_know	pata nahi kitna khaya yaar
+dont_know	yaad hi nahi kya khaya tha dopahar me
+kitchen_add	i have eggs oats and milk at home
+kitchen_add	bought 1kg chicken breast and some spinach today
+kitchen_add	add paneer and curd to my kitchn
+kitchen_add	mom just restocked everything, we got rice, toor dal, potatoes, onions, tomatoes and a dozen eggs
+kitchen_add	intlo tomatoes, ullipayalu, gudlu unnayi
+kitchen_add	ivvala market lo bendakaya, chicken konnanu
+kitchen_add	ghar pe soya chunks aur besan hai
+kitchen_add	aaj dmart se peanuts ka bada packet le aaya
+kitchen_remove	eggs r finished
+kitchen_remove	out of milk
+kitchen_remove	remove oats from my kitchen
+kitchen_remove	we ran out of paneer, take it off
+kitchen_remove	gudlu ayipoyayi ra
+kitchen_remove	intlo paalu levu inka, kitchen list nunchi teeseyyi
+kitchen_remove	chawal khatam ho gaya
+kitchen_remove	bhai peanut butter khatam, list se hata do
+kitchen_show	whats in my kitchen
+kitchen_show	show pantry
+kitchen_show	wat ingredients do i have rn
+kitchen_show	do i still have eggs? check my kitchen list
+kitchen_show	going grocery shopping in a bit, can u show me whats already in my kitchen so i dont buy double
+kitchen_show	naa kitchen lo emi unnayi
+kitchen_show	intlo emi items unnayo chupinchu
+kitchen_show	mere kitchen me kya kya hai
+kitchen_cook	what can i cook with what i have
+kitchen_cook	i got eggs bread and onions, what can i make
+kitchen_cook	any receipe with paneer n capsicum?
+kitchen_cook	parents are out of town and im on my own, what can i whip up from the stuff in my kitchen
+kitchen_cook	intlo unna vaatitho emi vandukovachu
+kitchen_cook	chicken, tomato unnayi, emi vandali ra
+kitchen_cook	ande aur aloo hai, kya bana sakta hu
+kitchen_cook	ghar ke saaman se kuch banane ka idea do
+reset_log	reset today's log
+reset_log	delete evrything i logged today
+reset_log	wipe all my food entries for today, i messed it all up, starting fresh
+reset_log	clear today's food log completely
+reset_log	remove all of today's entries
+reset_log	ivvala log motham delete cheyyi
+reset_log	eeroju food entries anni teeseyyi ra, malli modatnunchi chesta
+reset_log	aaj ka pura food log saaf kar do
+clear_chat	clear chat
+clear_chat	delete all these messages
+clear_chat	wipe our convo
+clear_chat	can u clean up this chat its so cluttered i cant find anything
+clear_chat	chat motham clear cheyyi
+clear_chat	ee messages anni delete cheyyi ra
+clear_chat	chat saaf karo
+clear_chat	bhai saare messages mita do
+greet	hey
+greet	yo arrow
+greet	Good morning!!
+greet	hiii
+greet	heyyy arrow, good evening 😄
+greet	hello ra arrow
+greet	namaskaram 🙏
+greet	namaste bhai
+bye	bye
+bye	gotta go, talk later
+bye	ok im gonna crash now, early class tmrw. gn arrow
+bye	cya
+bye	sare ra, vellosta
+bye	malli kaluddam bye
+bye	chalo bye, kal milte hai
+bye	acha main chalta hu
+thanks	thanks
+thanks	thx bro
+thanks	Thanks bro seriously, i was so confused about the protein thing and now it finally makes sense
+thanks	appreciate it man
+thanks	ty ty
+thanks	thanks ra
+thanks	thank u ra, chala help ayyindi
+thanks	shukriya yaar
+praise	you're actually so smart
+praise	best bot ever fr
+praise	arrow ur goated 🔥
+praise	ngl ur way better than the other fitness apps i tried, you actually get me
+praise	nuvvu keka ra arrow
+praise	super ga chepthunnav ra, mass
+praise	tum toh kamaal ho yaar
+praise	bhai tu toh zabardast hai
+insult	you're useless
+insult	dumbest bot ive ever used
+insult	shut up you stupid ai
+insult	honestly ur the most annoying thing on my phone, idk why i even downloaded u
+insult	you suck
+insult	nuvvu waste ra
+insult	pichi bot, neeku emi teliyadu
+insult	tu bekaar hai bhai
+how_are_you	how are you
+how_are_you	hows it goin arrow
+how_are_you	you doing ok?
+how_are_you	how's your day been arrow? mine was rough lol
+how_are_you	ela unnav ra
+how_are_you	bagunnava arrow?
+how_are_you	kaise ho
+how_are_you	aur bhai kya haal hai
+who_are_you	who are you
+who_are_you	whats ur name
+who_are_you	are u a bot or a real person typing
+who_are_you	what are you exactly
+who_are_you	why are you called arrow, is that from the anime or what
+who_are_you	nuvvu evaru ra
+who_are_you	nee peru enti
+who_are_you	tum kaun ho yaar
+help	what can you do
+help	help
+help	how do i use this thing
+help	im new here, what kinda stuff can i ask u? like can u track food and workouts both?
+help	nuvvu emi emi cheyagalav
+help	idhi ela use cheyali, help
+help	tum kya kya kar sakte ho
+help	bhai ye kaise kaam karta hai, help karo
+joke	tell me a joke
+joke	say something funny
+joke	got any gym jokes
+joke	make me laugh
+joke	bored af waiting for my bus, tell me a joke or something
+joke	oka joke cheppu ra
+joke	navvinchu ra emaina joke tho
+joke	koi chutkula sunao
+laugh	lol
+laugh	lmaooo 😂😂
+laugh	hahahaha
+laugh	LMAO i literally spat out my water reading that 😂
+laugh	hahaha chala funny ra
+laugh	navvu aagatledu ra 🤣
+laugh	hahaha mast tha
+laugh	hasi nahi ruk rahi 😂
+affirm	yes
+affirm	yep do it
+affirm	okk
+affirm	sure go ahead
+affirm	yeah thats right, go for it
+affirm	avunu
+affirm	sare ra, cheyyi
+affirm	haan theek hai
+deny	no
+deny	nope cancel
+deny	nah dont
+deny	no no thats not what i meant, dont do that
+deny	vaddu ra
+deny	kaadu, cancel cheyyi
+deny	nahi yaar
+deny	rehne do bhai, mat karo
+out_of_scope	whats the wether like today
+out_of_scope	who won the ipl final
+out_of_scope	can you solve this for me, integrate x sin x dx, assignment due tonight
+out_of_scope	bro my crush left me on read again 😭 what do i text her
+out_of_scope	asdfghjkl
+out_of_scope	ivvala varsham padutunda
+out_of_scope	pushpa 2 cinema chusava ra
+out_of_scope	bhai mera exam kal hai, history padha do
+ask_streak	streak check 🔥
+ask_streak	how many days in a row have i worked out
+ask_streak	is my streak still alive
+ask_streak	i was at my aunts place all weekend and couldnt train, did my streak break or not
+ask_streak	naa streak entha ippudu mama
+ask_streak	streak poyinda? ninna miss chesa
+ask_streak	mera streak kitne din ka hai
+ask_streak	bhai streak toota toh nahi?
+ask_level	what level am i
+ask_level	what rank am i rn
+ask_level	been training every day for like a month now, what level did i reach
+ask_level	am i still e rank?
+ask_level	lvl?
+ask_level	naa level enti ippudu
+ask_level	naaku entha exp undi ra
+ask_level	mera rank kya hai abhi
+ask_quest	whats today's quest
+ask_quest	which excercises do i have today
+ask_quest	Is today a rest day?
+ask_quest	did i finish today's quest or not, i did pushups and squats in the morning but i forgot if there was more
+ask_quest	ivvala workout enti ra
+ask_quest	eeroju rest day aa leka workout undha
+ask_quest	aaj ka quest kya hai bhai
+ask_quest	aaj kitne pushups karne hai daily quest me
+ask_records	pushup record?
+ask_records	show my personal bests
+ask_records	max pullups i've ever done?
+ask_records	longest plank i've held?
+ask_records	feel like i did more squats today than ever, whats my best squat count in one set
+ask_records	naa pullups PR entha bro
+ask_records	ippati varaku naa best records enti
+ask_records	mera sabse zyada pushups ek baar me kitna tha
+ask_shadows	whos my strongest shadow
+ask_shadows	shadows count?
+ask_shadows	is igris still my captain?
+ask_shadows	bro ive been grinding for weeks and still only got igris and tank, when do i get beru
+ask_shadows	naa shadow army lo evaru unnaru
+ask_shadows	bellion eppudu vastadu ra naaku
+ask_shadows	mere shadows kitne strong hai
+ask_shadows	kaisel ko kaise unlock karu bhai
+ask_next_rank	when do i rank up
+ask_next_rank	how close am i to d rank
+ask_next_rank	been stuck at e rank forever 😭 what do i actually have to do to reach the next one
+ask_next_rank	when's my next rank trial
+ask_next_rank	how much more xp till c rank
+ask_next_rank	next rank ki inka entha dooram undi
+ask_next_rank	rank trial eppudu vastundi
+ask_next_rank	agla rank kab milega yaar
+ask_stats	show my stats
+ask_stats	whats my strenght stat at
+ask_stats	how many stat points do i have to spend
+ask_stats	is my agility higher than speed now? i been doing a lot of sprints lately
+ask_stats	naa stats enti ra
+ask_stats	flexibility stat entha undi
+ask_stats	mere stats kaise hai abhi
+ask_stats	bhai mobility kitni hai meri
+ask_items	check my inventry
+ask_items	how many keys do i have
+ask_items	any potions left?
+ask_items	what weapon do i have equipped rn
+ask_items	do i have any titles yet or nah
+ask_items	naa daggara elixir unda ra
+ask_items	inventory lo enni boxes unnayi
+ask_items	mere paas kitne random box bache hai
+ask_week	how was my week
+ask_week	feel like i slacked this week ngl, how many workouts did i actually do
+ask_week	total reps this weak?
+ask_week	how many gates did i clear this week
+ask_week	ee vaaram naa progress ela undi
+ask_week	ee week enni workouts chesanu
+ask_week	is hafte kitne gates clear kiye
+ask_week	bhai is week ka progress batao
+exercise_howto	teach me how to do a handstand
+exercise_howto	proper form for pistol sqauts?
+exercise_howto	how to muscle up
+exercise_howto	explain burpees step by step
+exercise_howto	my hips keep sagging in plank, what am i doing wrong with my form
+exercise_howto	pull up ela cheyali ra correct ga
+exercise_howto	diamond pushups ela chestharu
+exercise_howto	dips kaise karte hai sahi tarike se
+motivate	i dont feel like working out today
+motivate	motivate me
+motivate	im so lazy rn ugh
+motivate	honestly thinking of quitting this whole thing, been 3 weeks and i look exactly the same
+motivate	baddhakam ga undi ra, workout cheyabuddi kavatledu
+motivate	asalu em cheyalanipinchatledu ra, roju same workout bore kodutundi, quit cheddam anukuntunna
+motivate	yaar aaj workout ka bilkul mann nahi kar raha
+motivate	bhai ye workout wala sab chhod dene ka mann kar raha hai
+recovery	my legs are soo sore from yesterday
+recovery	only slept 4 hours, should i still workout
+recovery	how many rest days do i need in a week
+recovery	doms is killing me, how do i recover faster
+recovery	ollu motham sore ga undi mama, ninna leg day
+recovery	ninna raatri nidra raaledu, ivvala rest teeskova?
+recovery	bahut thak gaya hu, aaj rest le lu?
+recovery	kitne ghante sona chahiye muscle recovery ke liye
+pain	my lower back hurts when i do squats
+pain	sharp pain in my rigth shoulder during pushups
+pain	i think i twisted my wrist
+pain	was doing pullups and felt something pop in my elbow, now it hurts every time i straighten my arm
+pain	ninna nunchi nadumu baaga noppi ga undi ra, vangalante kashtam ga undi
+pain	squats chesthe mokalu noppi vastundi
+pain	kandhe me dard ho raha hai
+pain	bhai running karte waqt ankle mud gaya, bahut dard hai
+coach_tip	how do i get abs
+coach_tip	how long shud i rest between sets
+coach_tip	stuck at 20 pushups for a month, how do i get past that plateau
+coach_tip	best way to build muscle with just bodyweight?
+coach_tip	chest pedda avvali ante emi cheyali ra
+coach_tip	pullups count ela penchali anna
+coach_tip	bhai forearms bade kaise kare
+coach_tip	cardio pehle karu ya strength training?
+open_tab	open the gates page
+open_tab	go to status screen
+open_tab	diet tab
+open_tab	can u take me to the armory page real quick
+open_tab	history page open cheyyi
+open_tab	army tab ki teesukellu ra
+open_tab	grocery list kholo
+open_tab	weekly report wala page dikhao bhai
+start_workout	start workout
+start_workout	lets go, begin today's session
+start_workout	im ready, start the quest now
+start_workout	warmed up already, lets start the workout before i change my mind lol
+start_workout	ok enough talk, start my workout
+start_workout	workout start cheyyi ra
+start_workout	ippude workout modaledadam
+start_workout	chalo workout shuru karo
+open_license	show my hunter license
+open_license	pull up my hunter card
+open_license	lemme see my lisence
+open_license	where's my hunter id, wanna screenshot it and send to my friends lol
+open_license	naa license chupinchu
+open_license	hunter id card open cheyyi ra
+open_license	mera hunter card dikhao
+open_license	license kholo yaar
+open_settings	open setings
+open_settings	profile pls
+open_settings	where do i find settings in this app
+open_settings	need to update my height n weight, open my profile
+open_settings	take me to settings rq
+open_settings	settings ki teesukellu
+open_settings	naa profile edit cheyyali, open cheyyi
+open_settings	settings kholo
+theme	dark mode
+theme	swtich to light theme
+theme	its 2am and this screen is blinding me bro make it dark pls
+theme	night mode pls, too bright
+theme	dark mode pettu ra
+theme	theme maarchu ra, light mode ki
+theme	dark mode on karo
+theme	bhai theme light kar do

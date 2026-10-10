@@ -67,7 +67,7 @@ function showTab(id){
   TABS.forEach(t=>$(t).hidden=(t!==id));
   window.scrollTo(0,0);
   animateIn($(id));
-  if(id==='diet')mountDietBot();else if(!FL.open)Bot.pause(); // the bot only moves where it can be seen
+  arrowHome();$('arrowNudge').hidden=true;setTimeout(arrowNudge,1500); // Arrow follows you: in the Diet card or as the floating orb
 }
 document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>{
   if(b.getAttribute('aria-current')==='page'){window.scrollTo({top:0,behavior:'smooth'});return}
@@ -102,7 +102,7 @@ darkMQ.addEventListener('change',applyTheme);
 
 /* ---------- render + startup ---------- */
 let renderedDay=todayStr();
-function renderAll(){renderedDay=todayStr();renderTop();renderStatus();renderQuest();renderGates();renderProgress();renderDiet()}
+function renderAll(){renderedDay=todayStr();renderTop();renderStatus();renderQuest();renderGates();renderProgress();renderDiet();arrowHome()}
 
 /* If the app stays open past midnight, roll the day over when it comes back into view. */
 function checkDay(){
@@ -120,4 +120,4 @@ setInterval(checkDay,60000);
 
 applyTheme();
 if(needsAwakening()){renderAll();startAwakening()}
-else{processMissedDays();ensureWeekSnap();renderAll();animateIn($('status'));huntCatchUp();armoryCatchUp();maybeReport();setTimeout(maybeChest,1000);setTimeout(maybeSudden,1200)}
+else{processMissedDays();ensureWeekSnap();renderAll();animateIn($('status'));huntCatchUp();armoryCatchUp();maybeReport();setTimeout(maybeChest,1000);setTimeout(maybeSudden,1200);setTimeout(arrowNudge,4500)}

@@ -111,6 +111,6 @@ const BotGame=(()=>{
   };
 })();
 function botGameHTML(){
-  return `<div class="bg-arena" aria-label="Mini game: tap the bot to catch it"><div class="bg-hud"></div><p class="bg-say" aria-live="polite"></p>
+  return `<div class="bg-arena" aria-label="Mini game: tap Arrow to catch it"><div class="bg-hud"></div><p class="bg-say" aria-live="polite"></p>
     <div class="bg-bot"><div class="bg-sq"></div></div></div>`;
 }
