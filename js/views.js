@@ -52,12 +52,18 @@ function renderStatus(){
   const wd=trainedInWeek(mondayOf(todayStr()));
   const rawName=S.profile?S.profile.name:'Hunter';
   let h=`<div class="hero">
-    <div class="h-l"><p class="overline faint">${greeting()} · Player</p><h1 class="name${rawName.length>8?' long':''}">${name}</h1>
+    <div class="h-l"><p class="overline faint">${greeting()} · Player</p><h1 class="name${rawName.length>8?' long':''}">${name}</h1>${S.titleEquipped?`<p class="hero-title">« ${esc(S.titleEquipped)} »</p>`:''}
       <div class="kv2"><div><p class="overline faint">Rank</p><b>${rk.r} — ${rk.name}</b></div><div><p class="overline faint">Streak</p><b>${plural(S.streak,'day')}</b></div>${S.job?`<div><p class="overline faint">Job</p><b>${JOBS[S.job.path].title}</b></div>`:''}</div>
       <div class="prog" role="progressbar" aria-label="EXP to next level" aria-valuemin="0" aria-valuemax="${lv.need}" aria-valuenow="${lv.into}"><i style="width:${lv.into/lv.need*100}%"></i></div>
       <p class="overline">${lv.into} / ${lv.need} EXP${S.deaths?` · ${S.deaths} death${S.deaths>1?'s':''}`:''}</p></div>
     <div class="h-r"><p class="overline">Level</p><div class="lv-big">${String(S.level).padStart(2,'0')}</div></div></div>
-  <button class="license-link" data-act="card"><span class="overline">Hunter License</span><span class="overline">View card →</span></button>`;
+  <div class="hstrip">
+    <button data-act="goTab" data-arg="gates"><b>${keyCount()}</b><span>Keys</span></button>
+    <button data-act="goTab" data-arg="gates"><b>${itemCount()-keyCount()}</b><span>Items</span></button>
+    <button data-act="goProg" data-arg="army"><b>${S.shadows.length}</b><span>Shadows</span></button>
+    <button data-act="goProg" data-arg="feats"><b>${Object.keys(S.feats).length}<small>/${FEATS.length}</small></b><span>Feats</span></button></div>
+  <button class="license-link" data-act="card"><span class="overline">Hunter License</span><span class="overline">View card →</span></button>
+  ${S.elixirActive?`<div class="card" style="border-top:1px solid var(--hair);padding:12px var(--gut)"><p class="overline" style="color:var(--red)">${ic('elixir')} Elixir active · next quest gives 1.5× EXP</p></div>`:''}`;
   const sq=suddenActive();
   if(sq)h+=`<div class="card bad"><div class="card-head"><span class="h3">Sudden quest</span><span class="pill bad">${Math.max(1,Math.ceil((sq.deadline-Date.now())/60000))} min left</span></div>
     <p class="h2" style="margin-bottom:6px">${sq.task}</p><p class="muted small">+${SUDDEN_EXP} EXP. No penalty if you miss it.</p>
@@ -168,10 +174,10 @@ ACT.cue=id=>{openCues.has(id)?openCues.delete(id):openCues.add(id);renderQuest()
 
 /* ---------- PROGRESS ---------- */
 function renderProgress(){
-  const tabs=[['skills','Skills'],['plan','Plan'],['history','History']];
+  const tabs=[['skills','Skills'],['plan','Plan'],['history','History'],['army','Shadows'],['feats','Feats']];
   let h=`<div class="page-head"><h1 class="h1">Progress</h1></div>
     <div class="seg" role="tablist">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${progTab===k}" data-act="prog" data-arg="${k}">${l}</button>`).join('')}</div><div id="progBody">`;
-  h+=progTab==='skills'?skillsHTML():progTab==='plan'?planHTML():historyHTML();
+  h+=progTab==='skills'?skillsHTML():progTab==='plan'?planHTML():progTab==='army'?armyHTML():progTab==='feats'?featsHTML():historyHTML();
   $('progress').innerHTML=h+'</div>';
 }
 ACT.prog=k=>{progTab=k;renderProgress();animateIn($('progBody'))};
@@ -226,7 +232,7 @@ const DAY_LABEL={done:'Quest cleared',pass:'Rest Pass',miss:'Missed',rest:'Recov
 function historyHTML(){
   const durs=Object.values(S.log).map(r=>r.duration||0).filter(Boolean),mins=durs.reduce((a,b)=>a+b,0);
   const tiles=[['timer',mins>=60?`${Math.floor(mins/60)}h ${mins%60}m`:`${mins}m`,'Time trained'],['calendar',durs.length?`${Math.round(mins/durs.length)}m`:'—','Avg session'],['zap',S.totalQuests,'Quests cleared'],['flame',S.bestStreak,'Best streak'],['dumbbell',S.totalReps.toLocaleString(),'Total reps'],['skull',S.deaths,'Deaths']];
-  let h=`<div class="tiles">${tiles.map(([i,v,l])=>`<div class="tile"><span class="lead">${ic(i)}</span><b>${v}</b><span>${l}</span></div>`).join('')}</div>`;
+  let h=`<button class="license-link" data-act="report" style="border-top:0;margin-bottom:12px"><span class="overline">Weekly System report</span><span class="overline">Last week →</span></button><div class="tiles">${tiles.map(([i,v,l])=>`<div class="tile"><span class="lead">${ic(i)}</span><b>${v}</b><span>${l}</span></div>`).join('')}</div>`;
 
   const W=12,start=addDays(mondayOf(todayStr()),-7*(W-1));
   h+=`<div class="card"><div class="card-head"><span class="h3">Last 12 weeks</span></div><div class="heat" role="grid" aria-label="Training calendar, last 12 weeks">
@@ -254,3 +260,6 @@ function historyHTML(){
     :`<div class="card state-card"><div class="state-ic">${ic('trophy')}</div><div><p class="h3">No records yet</p><p class="muted small">Log sets in workout mode and your best set for each move appears here.</p></div></div>`;
   return h;
 }
+
+ACT.goTab=t=>showTab(t);
+ACT.goProg=k=>{progTab=k;showTab('progress');renderProgress()};

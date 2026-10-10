@@ -25,18 +25,32 @@ function fresh(){return {
   pointsInit:true,   // marks saves that already got back-dated points
   sudden:null,       // today's sudden quest, if any
   job:null,          // {path, date} after the S-rank job change
+  inv:{keys:{E:0,D:0,C:0,B:0,A:0,S:0},box:0,potion:0,elixir:0,holy:0},
+  elixirActive:false,// next quest gives 1.5x EXP
+  feats:{},          // achievement id -> date unlocked
+  shadows:[],        // [{ex, n, rank, best, timed, date, lvl}]
+  dungeons:[],       // [{g, date, ok, secs}]
+  dungeonRun:null,   // the gate in progress, survives reloads
+  titleEquipped:null,
+  suddenDone:0,
+  weekSnaps:{},      // monday -> stats at the start of that week (weekly report)
+  reportSeen:null,   // monday of the last weekly report shown
+  huntInit:true,     // marks saves that already got retroactive feats and shadows
   profile:null       // {name, haptics, theme, remindAt} once awakened
 }}
 
 /* Older saves are upgraded in place: any missing field gets its default. */
 function migrate(s){
-  const legacy=s.pointsInit===undefined;
+  const legacy=s.pointsInit===undefined,legacyHunt=s.huntInit===undefined;
   const f=fresh();
   Object.keys(f).forEach(k=>{if(s[k]===undefined)s[k]=f[k]});
   Object.keys(LADDERS).forEach(k=>{if(!s.ladders[k])s.ladders[k]={step:0,streak:0}});
   delete s.weeklyBonus;
   // saves from before stat points existed get the points their level already earned
   if(legacy){s.statPoints=Math.max(0,((s.level||1)-1)*3);s.pointsInit=true}
+  // saves from before items/feats/shadows get them retroactively on next start
+  if(legacyHunt){s.huntPending=true;s.huntInit=true}
+  if(!s.inv.keys)s.inv.keys={E:0,D:0,C:0,B:0,A:0,S:0};
   return s;
 }
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&typeof s==='object')return migrate(s)}catch(e){}return fresh()}

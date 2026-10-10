@@ -18,7 +18,8 @@ function openWorkout(){
   if(todayRec().completed||notStarted()||penaltyDue())return;
   W.steps=wSteps();
   W.i=W.steps.findIndex(s=>!stepDone(s));
-  if(W.i<0){W.i=W.steps.length;W.phase='final'}else enterStep();
+  W.coolSkip=false;
+  if(W.i<0){W.i=W.steps.length;goFinal()}else enterStep();
   W.open=true;
   swStart(); // the session clock runs while you train
   $('workout').hidden=false;$('workout').classList.remove('show');void $('workout').offsetWidth;$('workout').classList.add('show');
@@ -57,11 +58,11 @@ function startClock(sec,phase){
 }
 function left(){return Math.max(0,Math.ceil((W.end-Date.now())/1000))}
 function wTick(){
-  if(W.phase!=='rest'&&W.phase!=='hold'){clearInterval(W.tick);return}
+  if(W.phase!=='rest'&&W.phase!=='hold'&&W.phase!=='coolrun'){clearInterval(W.tick);return}
   const l=left();
   const c=$('wClock');if(c)c.textContent=fmtClock(l);
   const r=$('wRing');if(r)r.style.strokeDashoffset=String(339.3*(1-l/W.total));
-  if(l<=0){clearInterval(W.tick);W.phase==='hold'?holdFinished():restFinished()}
+  if(l<=0){clearInterval(W.tick);W.phase==='hold'?holdFinished():W.phase==='coolrun'?coolNext():restFinished()}
 }
 function fmtClock(n){return n>=60?Math.floor(n/60)+':'+String(n%60).padStart(2,'0'):String(n)}
 
@@ -75,15 +76,14 @@ function nextOpen(){
 function afterSet(it){
   const doneEx=setsLogged(it)>=it.sets;
   W.nextI=doneEx?nextOpen():W.i;
-  if(doneEx&&W.nextI<0){W.phase='final';buzz('done');wRender();return}
+  if(doneEx&&W.nextI<0){goFinal();buzz('done');wRender();return}
   W.after=doneEx?'next':'set';
   startClock(restFor(it),'rest');
 }
 function holdFinished(){
   const it=W.steps[W.i].item;
   buzz('alarm');
-  const pr=logSet(it,it.amt);
-  if(pr)toast('New record: '+dn(it.name));
+  logSet(it,it.amt);
   afterSet(it);
 }
 function restFinished(){
@@ -95,15 +95,14 @@ function restFinished(){
 ACT.workout=openWorkout;
 ACT.wClose=()=>closeWorkout(false);
 ACT.wWarm=id=>{toggleDone(id);wRender()};
-ACT.wWarmNext=()=>{if(!stepDone(W.steps[W.i]))return;const j=nextOpen();if(j<0)W.phase='final';else{W.i=j;enterStep()}buzz('set');wRender()};
-ACT.wFinal=()=>{W.phase='final';wRender()};
+ACT.wWarmNext=()=>{if(!stepDone(W.steps[W.i]))return;const j=nextOpen();if(j<0)goFinal();else{W.i=j;enterStep()}buzz('set');wRender()};
+ACT.wFinal=()=>{goFinal();wRender()};
 ACT.wStep=d=>{W.reps=Math.max(0,Math.min(999,W.reps+(+d)));buzz('tap');const e=$('wReps');if(e)e.textContent=W.reps};
 ACT.wSet=()=>{
   const it=W.steps[W.i].item;
   if(W.reps<=0)return;
   buzz('set');
-  const pr=logSet(it,W.reps);
-  if(pr)toast('New record: '+dn(it.name)+' · '+W.reps);
+  logSet(it,W.reps);
   afterSet(it);
 };
 ACT.wHold=()=>{buzz('set');startClock(W.steps[W.i].item.amt,'hold')};
@@ -115,6 +114,24 @@ ACT.wSkip=()=>{clearInterval(W.tick);restFinished()};
 ACT.wJump=i=>{if(W.phase==='hold'||W.phase==='rest')clearInterval(W.tick);W.i=+i;enterStep();wRender()};
 ACT.wClaim=()=>{closeWorkout(false);completeDay()};
 
+/* ---------- cool-down ----------
+   Three 60-second stretches after the last exercise, picked per day. Each one
+   runs straight into the next. Finishing it marks today as cooled (bonus EXP). */
+function coolSet(){const r=rng(todayStr()+'|cool');return [...COOLDOWN].sort(()=>r()-.5).slice(0,3)}
+function goFinal(){
+  if(!todayRec().cooled&&!W.coolSkip&&!todaysSplit().rest){W.phase='cool';W.ci=0;W.cool=coolSet()}
+  else W.phase='final';
+}
+function coolNext(){
+  W.ci++;buzz('alarm');
+  if(W.ci>=W.cool.length){todayRec().cooled=true;save();W.phase='final';toast(`Cool-down complete · +${COOLDOWN_EXP} EXP bonus`);checkFeats();wRender();return}
+  startClock(COOLDOWN_SECS,'coolrun');
+}
+function stretchCue(name){for(const k in LADDERS){const s=LADDERS[k].steps.find(x=>x[0]===name);if(s)return s[2]}return ''}
+ACT.coolStart=()=>{buzz('set');startClock(COOLDOWN_SECS,'coolrun')};
+ACT.coolNextNow=()=>{clearInterval(W.tick);coolNext()};
+ACT.coolSkip=()=>{clearInterval(W.tick);W.coolSkip=true;W.phase='final';wRender()};
+
 /* ---------- render ---------- */
 function timerRing(sec,label,sub){
   return `<div class="ring-wrap"><svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true"><circle class="bg" cx="60" cy="60" r="54" stroke-width="7"/><circle id="wRing" class="fg" cx="60" cy="60" r="54" stroke-width="7" style="stroke-dasharray:339.3;stroke-dashoffset:${339.3*(1-sec/W.total)}"/></svg>
@@ -124,10 +141,16 @@ function timerRing(sec,label,sub){
 function wRender(){
   const steps=W.steps,st=steps[W.i];
   let h=`<div class="w-top"><button class="icon-btn" data-act="wClose" aria-label="Pause workout and close">${ic('x')}</button>
-    <span class="w-pos"><span>${W.phase==='final'?'All done':st&&st.warm?'Warm-up':`Exercise ${W.i+(steps[0]&&steps[0].warm?0:1)} of ${steps.filter(s=>!s.warm).length}`}</span><b id="wElapsed">${fmtElapsed(swElapsed())}</b></span><span style="width:44px"></span></div>
+    <span class="w-pos"><span>${W.phase==='cool'||W.phase==='coolrun'?`Cool-down · ${W.ci+1} of 3`:W.phase==='final'?'All done':st&&st.warm?'Warm-up':`Exercise ${W.i+(steps[0]&&steps[0].warm?0:1)} of ${steps.filter(s=>!s.warm).length}`}</span><b id="wElapsed">${fmtElapsed(swElapsed())}</b></span><span style="width:44px"></span></div>
     <div class="w-prog">${steps.map((s,i)=>`<button class="${stepDone(s)?'d':''}${i===W.i?' c':''}" data-act="wJump" data-arg="${i}" aria-label="Go to ${s.warm?'warm-up':esc(dn(s.item.name))}"></button>`).join('')}</div>`;
 
-  if(W.phase==='final'){
+  if(W.phase==='cool'||W.phase==='coolrun'){
+    const name=W.cool[W.ci],run=W.phase==='coolrun';
+    h+=`<div class="w-body"><p class="overline">Cool-down · stretch ${W.ci+1} of 3</p><h2 class="w-name">${dn(name)}</h2>${demoHTML(name)}
+      ${run?timerRing(left(),'Breathe','Ease in. No bouncing.'):`<p class="muted" style="margin:4px 0 0">${stretchCue(name)}</p>`}</div>
+      <div class="w-foot">${run?`<div class="row-btns" style="width:100%"><button class="btn ghost" data-act="coolSkip">Skip all</button><button class="btn" data-act="coolNextNow">Next stretch</button></div>`
+        :`<button class="btn" data-act="coolStart">Start ${COOLDOWN_SECS}s stretch</button><button class="btn quiet" data-act="coolSkip">Skip cool-down</button>`}</div>`;
+  }else if(W.phase==='final'){
     h+=`<div class="w-body w-final"><div class="badge">${ic('trophy')}</div><p class="overline">Daily quest</p><h2 class="w-name" style="margin:0">All exercises done</h2>
       <p class="muted">Claim your EXP. The System is waiting.</p></div>
       <div class="w-foot"><button class="btn glow" data-act="wClaim">Claim reward</button></div>`;

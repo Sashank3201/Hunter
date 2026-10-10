@@ -5,7 +5,7 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 /* ---------- dates ----------
    All dates are local 'YYYY-MM-DD' strings. Arithmetic is done in UTC on those
    strings so DST and timezone offsets can never shift a day. */
-window.__TODAY=null; // test hook: force "today"
+window.__TODAY=window.__TODAY||null; // test hook: force "today"
 function todayStr(d){if(!d){if(window.__TODAY)return window.__TODAY;d=new Date()}const z=new Date(d.getTime()-d.getTimezoneOffset()*60000);return z.toISOString().slice(0,10)}
 function addDays(ds,n){const t=new Date(ds+'T00:00:00Z');t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10)}
 function dayDiff(a,b){return Math.round((Date.parse(b+'T00:00:00Z')-Date.parse(a+'T00:00:00Z'))/864e5)}
@@ -68,6 +68,14 @@ const ICONS={
   calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
   scale:'<path d="M3 7h18M6 7l-3 7a3 3 0 0 0 6 0zM18 7l-3 7a3 3 0 0 0 6 0zM12 3v18M8 21h8"/>',
   vibrate:'<rect x="7" y="4" width="10" height="16" rx="2"/><path d="M3 9v6M21 9v6"/>',
-  info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>'
+  info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+  key:'<circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3 20 3M16 7l3 3M14 9l2 2"/>',
+  flask:'<path d="M9 3h6M10 3v6l-5.5 9.5A2 2 0 0 0 6.3 21h11.4a2 2 0 0 0 1.8-2.5L14 9V3M7 15h10"/>',
+  drop:'<path d="M12 2.7s-6 6.6-6 11a6 6 0 0 0 12 0c0-4.4-6-11-6-11zM9.5 14a2.5 2.5 0 0 0 2.5 2.5"/>',
+  box:'<path d="M21 8 12 3 3 8l9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8M7.5 5.5l9 5"/>',
+  elixir:'<path d="M10 2h4M10 2v4L7 9v11a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9l-3-3V2M7 14h10M12 16.5l1-2.5h-2l1-2.5"/>',
+  gate:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="2"/>',
+  helm:'<path d="M5 21v-8a7 7 0 0 1 14 0v8l-3-2-2 2-2-2-2 2-2-2z"/><path d="M9 12h1.5M13.5 12H15"/>',
+  medal:'<circle cx="12" cy="15" r="6"/><path d="M8.5 10 6 2h4l2 5 2-5h4l-2.5 8M12 12.5v5M10 15h4"/>'
 };
 function ic(name,cls){return `<svg class="ic${cls?' '+cls:''}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]||''}</svg>`}

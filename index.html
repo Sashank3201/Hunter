@@ -28,6 +28,7 @@ if(p.theme==='light'||p.theme==='dark')document.documentElement.dataset.theme=p.
   <main>
     <section id="status"></section>
     <section id="quest" hidden></section>
+    <section id="gates" hidden></section>
     <section id="progress" hidden></section>
     <section id="diet" hidden></section>
   </main>
@@ -35,6 +36,7 @@ if(p.theme==='light'||p.theme==='dark')document.documentElement.dataset.theme=p.
 <nav class="nav" aria-label="Sections">
   <button data-t="status" aria-current="page"><span class="ic-wrap"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg></span>Status</button>
   <button data-t="quest"><span class="ic-wrap"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M21 21l-1-1M3 3l1 1M18 22l4-4M2 6l4-4M3 10l7-7M14 21l7-7"/></svg></span>Quest</button>
+  <button data-t="gates"><span class="ic-wrap"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="2"/></svg></span>Gates</button>
   <button data-t="progress"><span class="ic-wrap"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18M8 17v-4M13 17V8M18 17v-7"/></svg></span>Progress</button>
   <button data-t="diet"><span class="ic-wrap"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3zm0 0v7"/></svg></span>Diet</button>
 </nav>
@@ -43,10 +45,13 @@ if(p.theme==='light'||p.theme==='dark')document.documentElement.dataset.theme=p.
 <div class="layer" id="cardLayer" role="dialog" aria-modal="true" aria-label="Hunter License" hidden></div>
 <div class="layer" id="recipeLayer" role="dialog" aria-modal="true" aria-label="Recipe" hidden></div>
 <div class="layer" id="groceryLayer" role="dialog" aria-modal="true" aria-label="Grocery list" hidden></div>
+<div class="layer" id="dungeon" role="dialog" aria-modal="true" aria-label="Gate" hidden></div>
+<div class="layer" id="reportLayer" role="dialog" aria-modal="true" aria-label="Weekly report" hidden></div>
 <div class="layer" id="awaken" role="dialog" aria-modal="true" aria-label="Awakening" hidden></div>
 <div class="modal" id="modal" role="dialog" aria-modal="true"><div class="modal-box" id="modalBox"></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="tip" id="tip" hidden></div>
+<div class="arise" id="arise" role="dialog" aria-label="Shadow extraction" hidden></div>
 <script src="js/data.js"></script>
 <script src="js/recipes.js"></script>
 <script src="js/util.js"></script>
@@ -60,6 +65,11 @@ if(p.theme==='light'||p.theme==='dark')document.documentElement.dataset.theme=p.
 <script src="js/awaken.js"></script>
 <script src="js/menu.js"></script>
 <script src="js/card.js"></script>
+<script src="js/items.js"></script>
+<script src="js/shadows.js"></script>
+<script src="js/feats.js"></script>
+<script src="js/dungeons.js"></script>
+<script src="js/report.js"></script>
 <script src="js/main.js"></script>
 <script>
 if('serviceWorker' in navigator){

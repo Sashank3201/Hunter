@@ -14,7 +14,9 @@ function hunterPower(){
   const parts={
     level:S.level*120, stats:Math.round(statSum*12), rank:RANK_POWER[currentRank().r]||0,
     quests:S.totalQuests*15, streak:S.bestStreak*25, records:prs*30,
-    volume:Math.round(S.totalReps*.4), job:S.job?2500:0, deaths:-S.deaths*100
+    volume:Math.round(S.totalReps*.4), job:S.job?2500:0,
+    shadows:S.shadows.reduce((a,s)=>a+30+s.lvl*10,0), gates:S.dungeons.filter(d=>d.ok).reduce((a,d)=>a+150*(gi(d.g)+1),0),
+    feats:Object.keys(S.feats).length*80, deaths:-S.deaths*100
   };
   const total=Math.max(0,Object.values(parts).reduce((a,b)=>a+b,0));
   const cls=POWER_CLASSES.find(([t])=>total<t)[1];
@@ -64,7 +66,12 @@ async function drawCard(canvas){
 
   // identity column
   const ix=bx+bs+70,iw=CW-M-18-ix;
-  ctx.fillStyle=C.ink2;ctx.font=F.m(22);spaced(ctx,'NAME',ix,by+24,4);
+  ctx.fillStyle=C.ink2;ctx.font=F.m(22);const nameEnd=spaced(ctx,'NAME',ix,by+24,4);
+  if(S.titleEquipped){ // equipped title rides on the NAME line, right-aligned
+    const t='« '+S.titleEquipped.toUpperCase()+' »',right=CW-M-18;let px=22,tw;
+    do{ctx.font=F.m(px);tw=[...t].reduce((a,ch)=>a+ctx.measureText(ch).width+3,-3);px-=2}while(tw>right-nameEnd-24&&px>12);
+    ctx.fillStyle=C.red;spaced(ctx,t,right-tw,by+24,3);
+  }
   ctx.fillStyle=C.ink;const np=fitText(ctx,name,px=>F.d(900,px),iw,150);ctx.font=F.d(900,np);ctx.fillText(name,ix,by+24+np*.86);
   let y=by+24+np*.86+52;
   const kv=(k,v,big)=>{ctx.fillStyle=C.ink2;ctx.font=F.m(20);spaced(ctx,k,ix,y,3);ctx.fillStyle=C.ink;ctx.font=F.d(800,big||44);ctx.fillText(v,ix,y+(big||44)*.95);y+=(big||44)+44};
@@ -100,7 +107,7 @@ async function drawCard(canvas){
 
   // record grid
   y=1158;ctx.fillStyle=C.ink;ctx.fillRect(M/2,y-28,CW-M,2);
-  const recs=[[S.totalQuests,'QUESTS'],[P.days,'DAYS TRAINED'],[S.totalReps.toLocaleString('en-US'),'TOTAL REPS'],[P.prs,'RECORDS'],[S.deaths,'DEATHS']];
+  const recs=[[S.totalQuests,'QUESTS'],[P.days,'DAYS TRAINED'],[S.totalReps.toLocaleString('en-US'),'TOTAL REPS'],[S.shadows.length,'SHADOWS'],[S.deaths,'DEATHS']];
   const rw=(CW-M*2-36)/recs.length;
   recs.forEach(([v,l],i)=>{const rx=M+18+i*rw;
     ctx.fillStyle=C.ink;ctx.font=F.d(900,64);ctx.fillText(String(v),rx,y+50);
@@ -139,7 +146,8 @@ async function openCard(){
   document.body.classList.add('locked');
   const P=await drawCard($('cardCanvas'));
   const rows=[['Level',P.parts.level],['Stats',P.parts.stats],['Official rank',P.parts.rank],['Quests cleared',P.parts.quests],
-    ['Best streak',P.parts.streak],['Personal records',P.parts.records],['Total reps',P.parts.volume],['Job',P.parts.job],['Deaths',P.parts.deaths]];
+    ['Best streak',P.parts.streak],['Personal records',P.parts.records],['Total reps',P.parts.volume],['Job',P.parts.job],
+    ['Shadow army',P.parts.shadows],['Gates cleared',P.parts.gates],['Achievements',P.parts.feats],['Deaths',P.parts.deaths]];
   $('cardBreak').innerHTML=`<div class="sec-label"><span class="overline">How your power is assessed</span><span class="small">${P.total.toLocaleString('en-US')} total</span></div>
     <div class="card tight"><ul class="list plain">${rows.filter(r=>r[1]).map(([k,v])=>`<li class="lrow" style="min-height:44px"><span class="grow t">${k}</span><span class="target">${v>0?'+':''}${v.toLocaleString('en-US')}</span></li>`).join('')}</ul></div>
     <p class="faint small" style="padding:14px 0 40px">Official rank only rises by passing rank tests. Assessed class is what your training numbers say, and it can run ahead of your rank.</p>`;

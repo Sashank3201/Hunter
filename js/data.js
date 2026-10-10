@@ -155,3 +155,46 @@ const JOBS={
     focus:['Build the base: steady pace.','Shorter rests, same reps.','Burpee volume week.','Sprint intervals extended.','Circuit week: minimal rest.','Deload: easy volume.',
       'Tempo endurance block.','Long sets, clean form.','Interval peak week.','Mixed circuits.','Conditioning test week.','Final trial: Ranger exam.']}
 };
+
+/* ---------- items ----------
+   Earned by effort only: weekly goals, boss days, dungeons, achievements, boxes. */
+const GRADES=['E','D','C','B','A','S'];
+const ITEMS={
+  key:{name:'Dungeon Key',icon:'key',desc:'Opens a Gate of its grade or lower. Use it from the Gates tab.'},
+  box:{name:'Random Box',icon:'box',desc:'Open it for a random reward: EXP, a stat point, a potion, a key, or something rarer.'},
+  potion:{name:'Healing Potion',icon:'flask',desc:'Lowers your penalty level by 1 and clears up to 20 owed reps.'},
+  elixir:{name:'Elixir of Growth',icon:'elixir',desc:'Drink before training. Your next daily quest gives 1.5× EXP.'},
+  holy:{name:'Holy Water of Life',icon:'drop',desc:'Passive. If you would die, it is consumed and you survive at penalty level 3.'}
+};
+
+/* ---------- gates (dungeons) ----------
+   Waves are done in order inside the time limit. hold = seconds held instead of reps.
+   demo = the exercise demo to show. Clearing gives EXP and drops; failing only costs the key. */
+const WV=(n,amt,demo,hold,boss)=>({n,amt,demo,hold:!!hold,boss:!!boss});
+const DUNGEONS=[
+  {g:'E',name:'Goblin Cave',boss:'Hobgoblin',limit:12,exp:60,title:'Goblin Hunter',drops:{box:1},waves:[
+    WV('Bodyweight squats',30,'Bodyweight squat'),WV('Push-ups, any style',20,'Knee push-up'),WV('Jumping jacks',40,'Jumping jacks'),WV('Plank',40,'Plank (secs)',1,1)]},
+  {g:'D',name:'Kasaka\'s Den',boss:'Kasaka, the giant serpent',limit:15,exp:90,title:'Serpent Slayer',drops:{box:1,potion:.4},waves:[
+    WV('Bodyweight squats',40,'Bodyweight squat'),WV('Push-ups, any style',25,'Knee push-up'),WV('Split squats, alternating',20,'Split squat'),WV('Burpees',15,'Burpee (no push-up)',0,1)]},
+  {g:'C',name:'Frozen Forest',boss:'Ice Elf Captain',limit:18,exp:130,title:'Frost Breaker',drops:{box:1,potion:1},waves:[
+    WV('Bodyweight squats',50,'Bodyweight squat'),WV('Push-ups',30,'Full push-up'),WV('Split squats, alternating',30,'Split squat'),WV('Burpees',20,'Burpee (no push-up)'),WV('Plank',60,'Plank (secs)',1,1)]},
+  {g:'B',name:'Red Gate',boss:'Baruka, the Ice Elf Lord',limit:20,exp:180,title:'Red Gate Survivor',drops:{box:2,potion:1,elixir:.4},waves:[
+    WV('Bodyweight squats',60,'Bodyweight squat'),WV('Push-ups',40,'Full push-up'),WV('Burpees',20,'Full burpee'),WV('Split squats, alternating',40,'Split squat'),WV('Hollow hold',45,'Hollow hold (secs)',1,1)]},
+  {g:'A',name:'Demon Castle',boss:'Vulcan, the Demon Monarch\'s gatekeeper',limit:25,exp:240,title:'Demon Castle Raider',drops:{box:2,potion:1,elixir:1,holy:.25},waves:[
+    WV('Bodyweight squats',80,'Bodyweight squat'),WV('Push-ups',50,'Full push-up'),WV('Burpees',30,'Full burpee'),WV('Split squats, alternating',50,'Split squat'),WV('Plank',90,'Plank (secs)',1,1)]},
+  {g:'S',name:'Jeju Island',boss:'Beru, the Ant King',limit:30,exp:350,title:'Ant King Slayer',drops:{box:3,elixir:1,holy:1},waves:[
+    WV('Bodyweight squats',100,'Bodyweight squat'),WV('Push-ups',60,'Full push-up'),WV('Burpees',40,'Full burpee'),WV('Split squats, alternating',60,'Split squat'),WV('Tuck jumps',30,'Tuck jump'),WV('Plank',120,'Plank (secs)',1,1)]}
+];
+
+/* ---------- shadow army ----------
+   Beating a personal record on a move extracts that move's shadow; beating it
+   again levels the shadow up. The first ten shadows carry legendary names. */
+const SHADOW_LEGENDS=[['Igris','Knight Commander'],['Iron','Elite Knight'],['Tank','Elite'],['Tusk','Elite Knight'],['Beru','Marshal'],
+  ['Bellion','Grand Marshal'],['Kaisel','Elite'],['Greed','Elite Knight'],['Jima','Knight'],['Fangs','Knight']];
+const SHADOW_GRADES=['Normal','Normal','Elite','Elite','Knight','Knight','Elite Knight','Elite Knight'];
+
+/* ---------- cool-down ----------
+   Three stretches of 60 seconds after the last exercise. */
+const COOLDOWN=['Standing hamstring stretch (secs)','Seated forward fold (secs)','Couch stretch (secs)','Pigeon pose (secs)',
+  'Deep squat hold (secs)','Thoracic rotations','Cat-cow + hip circles','World\'s greatest stretch'];
+const COOLDOWN_SECS=60, COOLDOWN_EXP=5;
