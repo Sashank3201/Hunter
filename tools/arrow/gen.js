@@ -30,7 +30,7 @@ const BODYP=['chest','arms','biceps','triceps','forearms','shoulders','legs','ba
 const GOALW=['cut','bulk','lean bulk','lose weight','lose fat','gain weight','gain muscle','maintain','maintenance','recomp','fat loss','get shredded'];
 const STATW=['strength','speed','agility','mobility','flexibility','str','agi'];
 const PAGES=['status','home','quest','quests','gates','dungeons','progress','diet','nutrition','recipes','history','feats','achievements','plan','skills','army',
-  'shadows','armory','weapons','grocery list','shopping list','weekly report'];
+  'shadows','armory','weapons','grocery list','shopping list','weekly report','event','events','story event','story'];
 const ING_EXTRA=['eggs','paneer','chicken','rice','dal','onions','tomatoes','spinach','potatoes','milk','curd','bread','oats','soya chunks','chickpeas','rajma',
   'besan','atta','peanuts','bananas','apples','cheese','butter','mushrooms','capsicum','carrots','cabbage','cauliflower','fish','mutton','tofu','sprouts','moong dal',
   'poha','rava','noodles','pasta','corn','peas','beans','ginger','garlic','lemons','coconut','kodi guddu','paalu','perugu','pyaz','aloo','tamatar','palak','anda','doodh','dahi'];

@@ -19,6 +19,9 @@ function openMenu(){
     <li><label class="lrow" for="mHaptics" style="cursor:pointer"><span class="lead">${ic('vibrate')}</span><span class="grow t">Vibration</span><span class="switch"><input type="checkbox" id="mHaptics" ${p.haptics!==false?'checked':''}><i></i></span></label></li>
     <li><label class="lrow" for="mArrow" style="cursor:pointer"><span class="lead">${ic('zap')}</span><span class="grow"><span class="t" style="display:block">Arrow on every tab</span><span class="s" style="display:block">The floating chat orb. On Diet, Arrow lives in the food card.</span></span><span class="switch"><input type="checkbox" id="mArrow" ${p.arrowOrb!==false?'checked':''}><i></i></span></label></li>
     <li><label class="lrow" for="mArrowNudge" style="cursor:pointer"><span class="lead">${ic('alert')}</span><span class="grow"><span class="t" style="display:block">Arrow nudges</span><span class="s" style="display:block">Reminders about meals, water and your quest, at most every 90 minutes</span></span><span class="switch"><input type="checkbox" id="mArrowNudge" ${p.arrowNudge!==false?'checked':''}><i></i></span></label></li>
+    <li class="skin-wrap"><div class="lrow" style="padding-bottom:6px"><span class="lead">${ic('user')}</span><div class="grow"><p class="t">Arrow skin</p><p class="s">${S.skins.length?`${S.skins.length} of ${Object.keys(ARROW_SKINS).length} unlocked`:'Unlock skins in story events'}</p></div></div>
+      <div class="skin-pick" role="radiogroup" aria-label="Arrow skin">${['',...Object.keys(ARROW_SKINS)].map(id=>{const own=!id||S.skins.includes(id),on=own&&(S.skins.includes(p.arrowSkin)?p.arrowSkin:'')===id;
+        return `<button class="skin-opt${on?' on':''}" role="radio" aria-checked="${on}" ${own?`data-act="skinPick" data-arg="${id}"`:'disabled'} aria-label="${id?esc(ARROW_SKINS[id].n):'Ink'}${own?'':', locked'}">${skinSVG(id)}<span>${id?esc(ARROW_SKINS[id].n):'Ink'}</span>${own?'':ic('lock','sk-lock')}</button>`}).join('')}</div></li>
     <li><button class="lrow" data-act="arrowForget"><span class="lead">${ic('trash')}</span><span class="grow"><span class="t" style="display:block">Forget what Arrow learned</span><span class="s" style="display:block">${arMem().mem.length} phrase${arMem().mem.length===1?'':'s'} learned from your corrections</span></span></button></li>
     <li><form id="remForm" class="rem"><div class="lrow" style="padding-bottom:4px"><span class="lead">${ic('timer')}</span><div class="grow"><p class="t">Daily reminder</p><p class="s">A repeating alarm in your phone's calendar, plus a 9 pm penalty warning</p></div></div>
       <div class="rem-row"><input id="mRemind" type="time" class="text-in" value="${p.remindAt||'18:00'}" aria-label="Reminder time"><button class="btn sm" type="submit">Add to calendar</button></div></form></li>
@@ -91,6 +94,7 @@ ACT.menu=openMenu;
 ACT.cardFromMenu=()=>{closeMenu();openCard()};
 ACT.theme=k=>{S.profile=Object.assign(S.profile||{},{theme:k});save();applyTheme();openMenu()};
 ACT.menuClose=closeMenu;
+ACT.skinPick=id=>{equipSkin(id);document.querySelectorAll('.skin-opt[data-act]').forEach(b=>{const on=b.dataset.arg===(id||'');b.classList.toggle('on',on);b.setAttribute('aria-checked',on)})};
 ACT.exportData=exportData;
 ACT.replayBrief=()=>{closeMenu();startAwakening(true)};
 ACT.resetAsk=()=>openModal(`<div class="m-stamp">Reset everything?</div><p class="m-text">All progress, titles, records and diet settings will be deleted. This cannot be undone.</p>

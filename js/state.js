@@ -41,6 +41,8 @@ function fresh(){return {
   login:{last:null,streak:0,shown:null}, // daily supply chest
   weapons:{},        // id -> {refine, date}
   weaponEquipped:null,
+  events:null,       // story events: {anchor, runs:{n:{id, ch:[dates], raid, clears}}, seen, mission}
+  skins:[],          // Arrow skins unlocked in story events
   profile:null       // {name, haptics, theme, remindAt} once awakened
 }}
 

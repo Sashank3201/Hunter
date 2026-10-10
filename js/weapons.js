@@ -64,6 +64,18 @@ function bladeParts(L,uid){
       ${[80,110,140,170,200].map(y=>`<path d="M52 ${y}q8 6 16 0" stroke="${dk}" stroke-width="1.4" fill="none" opacity=".55"/>`).join('')}
       <path d="M30 236q30-12 60 0l-6 12q-24-8-48 0z" fill="${dk}"/>${grip(248,300,10)}<circle cx="60" cy="306" r="7" fill="${dk}"/><circle cx="60" cy="306" r="3" fill="${e}"/>`;
       return {blade:`<g transform="rotate(-21 60 190)">${one}</g><g transform="rotate(21 60 190)">${one}</g>`,hilt:''}}
+    case 'stone':return {blade:`<path d="M60 6 79 32 77 92 81 99 77 106 76 248H44L43 172 39 165 43 158 42 34z" fill="${g}"/><path d="M60 42V238" stroke="${L.glow}" stroke-width="2.6" opacity=".95"/>
+      <g fill="none" stroke="${dk}" stroke-width="2"><path d="M49 112l7 9-4 11M70 178l-7 7 4 10M48 214l5 5"/><circle cx="60" cy="70" r="5"/><path d="M55 150h10M60 145v10"/></g>`,
+      hilt:`<path d="M20 244h80v15H20z" fill="${dk}"/><path d="M20 244 12 236v20l8 3zM100 244l8-8v20l-8 3z" fill="${dk}"/>${grip(259,318,13)}<rect x="49" y="318" width="22" height="22" fill="${dk}"/><circle cx="60" cy="329" r="4.5" fill="${e}"/>`};
+    case 'cleaver':return {blade:`<path d="M37 30 90 16V206L76 228H48L37 212z" fill="${g}"/><path d="M39 34V210" stroke="${e}" stroke-width="2.4" opacity=".85"/>
+      <circle cx="75" cy="52" r="6" fill="${dk}"/><circle cx="75" cy="80" r="6" fill="${dk}"/><path d="M90 40l6 6-6 6M90 70l6 6-6 6M90 100l6 6-6 6" fill="${dk}"/><path d="M50 120l14 10-6 16" stroke="${dk}" stroke-width="2" fill="none"/>`,
+      hilt:`<rect x="38" y="226" width="46" height="11" fill="${dk}"/>${grip(237,316,14)}<circle cx="60" cy="326" r="10" fill="${dk}"/><path d="M54 334l6 20 6-20z" fill="${e}"/>`};
+    case 'harpoon':return {blade:`<path d="M60 6C71 30 75 62 71 96L66 122H54L49 96C45 62 49 30 60 6z" fill="${g}"/><path d="M52 94 36 120 55 109zM68 94l16 26-19-11z" fill="${g}"/>
+      <path d="M60 22V112" stroke="${dk}" stroke-width="1.8" opacity=".6"/><path d="M55 58q5 4 10 0M55 78q5 4 10 0" stroke="${dk}" stroke-width="1.5" fill="none" opacity=".6"/>`,
+      hilt:`<rect x="56" y="120" width="8" height="232" fill="${L.grip}"/>${[140,196,252,308].map(y=>`<rect x="52" y="${y}" width="16" height="8" fill="${dk}"/>`).join('')}<path d="M53 352h14l-7 8z" fill="${dk}"/>`};
+    case 'claw':return {blade:`<path d="M70 26C95 80 91 172 73 248H46C59 182 65 112 70 26z" fill="${g}"/><path d="M72 48C86 100 84 182 69 242" stroke="${e}" stroke-width="2.6" fill="none"/>
+      <path d="M52 196 38 184 54 180zM56 150 44 138 58 136z" fill="${g}"/><path d="M60 90q6 4 4 12M58 120q6 4 4 12" stroke="${dk}" stroke-width="1.6" fill="none" opacity=".7"/>`,
+      hilt:`<path d="M26 246q34-15 68 0l-6 13q-28-11-56 0z" fill="${dk}"/>${grip(258,312,11)}<path d="M48 312h24l-12 26z" fill="${dk}"/><circle cx="60" cy="320" r="3.5" fill="${e}"/>`};
   }
   return {blade:'',hilt:''};
 }
@@ -116,7 +128,7 @@ function renderWeapon(anim,slash){
       <span class="overline">${wvI+1} / ${n}</span><button class="icon-btn" data-act="weaponStep" data-arg="1" aria-label="Next weapon" ${n>1?'':'disabled'}>${ic('right')}</button></div></div>
     <div class="sc-stage"><div class="sc-wrap ${anim||''}${slash?' slam':''}">${weaponCard(id)}${slash?'<div class="w-slashfx"></div><div class="sc-stamp">Equipped</div>':''}</div></div>
     <div class="sc-acts">${eq?`<button class="btn ghost" disabled>Equipped</button>`:`<button class="btn" data-act="weaponEquip">Equip</button>`}</div>
-    <p class="sc-note">The equipped weapon adds its effect to your army's skills, its attack to your Hunter License, and it is the blade you swing inside 3D Gates. Clear its Gate again for a chance to refine it (+1, up to +5).</p>`;
+    <p class="sc-note">The equipped weapon adds its effect to your army's skills, its attack to your Hunter License, and it is the blade you swing inside 3D Gates. ${weaponOf(id).ev?'Win its story event raid again, or its rerun,':'Clear its Gate again'} for a chance to refine it (+1, up to +5).</p>`;
   if(slash)buzz('level');
   const stage=L.querySelector('.sc-stage');let sx=null;
   stage.addEventListener('touchstart',e=>{sx=e.touches[0].clientX},{passive:true});

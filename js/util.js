@@ -77,6 +77,7 @@ const ICONS={
   sword:'<path d="M14.5 3.5 20.5 3.5 20.5 9.5 9 21 3 15z"/><path d="M5 13l6 6M3 21l3-3"/>',
   gate:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="2"/>',
   helm:'<path d="M5 21v-8a7 7 0 0 1 14 0v8l-3-2-2 2-2-2-2 2-2-2z"/><path d="M9 12h1.5M13.5 12H15"/>',
-  medal:'<circle cx="12" cy="15" r="6"/><path d="M8.5 10 6 2h4l2 5 2-5h4l-2.5 8M12 12.5v5M10 15h4"/>'
+  medal:'<circle cx="12" cy="15" r="6"/><path d="M8.5 10 6 2h4l2 5 2-5h4l-2.5 8M12 12.5v5M10 15h4"/>',
+  lock:'<rect x="4" y="11" width="16" height="10"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'
 };
 function ic(name,cls){return `<svg class="ic${cls?' '+cls:''}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]||''}</svg>`}

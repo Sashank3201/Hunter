@@ -245,7 +245,12 @@ const SHADOW_BODY={
   Jima:{atk:12,def:14,spd:10,look:'naga',epithet:'Naga of the Deep',art:{src:'img/jima.jpg',pos:'50% 50%',mini:'50% 0%',mzoom:1.3,morigin:'26% 40%'}},
   push:{atk:14,def:8,spd:8,look:'soldier'},pull:{atk:12,def:9,spd:9,look:'soldier'},legs:{atk:11,def:12,spd:7,look:'spiked'},
   core:{atk:8,def:14,spd:8,look:'spiked'},speed:{atk:8,def:7,spd:15,look:'hooded'},agility:{atk:9,def:7,spd:14,look:'hooded'},
-  mobility:{atk:7,def:12,spd:11,look:'hooded'},flex:{atk:6,def:13,spd:11,look:'soldier'}
+  mobility:{atk:7,def:12,spd:11,look:'hooded'},flex:{atk:6,def:13,spd:11,look:'soldier'},
+  // event shadows, extracted from story event raids (see story.js)
+  Granite:{atk:13,def:19,spd:7,look:'statue',epithet:'Stone Knight of Cartenon'},
+  Fury:{atk:19,def:12,spd:9,look:'warlord',epithet:'High Orc Warchief'},
+  Titan:{atk:18,def:17,spd:5,look:'giant',epithet:'Giant of Tokyo Bay'},
+  Ruin:{atk:20,def:12,spd:17,look:'dragon',epithet:'Black Dragon of the Last War'}
 };
 /* Passive skills. kind decides where the bonus applies; v is the base value in percent.
    Skills grow with the shadow's level (up to 2x at Lv 21). Captain doubles, vice-captain 1.5x. */
@@ -258,7 +263,11 @@ const SHADOW_SKILLS={
   Bellion:{name:'Grand Marshal\'s Order',kind:'expAll',v:3,text:v=>`+${v}% EXP on every quest`},
   Kaisel:{name:'Wings of the Sky',kind:'gateTime',v:10,text:v=>`+${v}% Gate time limit`},
   Greed:{name:'Greed',kind:'luck',v:5,text:v=>`+${v}% luck on Random Boxes and daily chests`},
-  Jima:{name:'Coils of the Deep',kind:'stat:Flexibility,Mobility',v:8,text:v=>`+${v}% Flexibility and Mobility gains`}
+  Jima:{name:'Coils of the Deep',kind:'stat:Flexibility,Mobility',v:8,text:v=>`+${v}% Flexibility and Mobility gains`},
+  Granite:{name:'Stone Skin',kind:'penalty',v:8,text:v=>`−${v}% penalty reps`},
+  Fury:{name:'Plunder',kind:'gateExp',v:6,text:v=>`+${v}% Gate EXP`},
+  Titan:{name:'Long Stride',kind:'gateTime',v:6,text:v=>`+${v}% Gate time limit`},
+  Ruin:{name:'Black Flame',kind:'expAll',v:3,text:v=>`+${v}% EXP on every quest`}
 };
 /* Soldiers: a small boost to the stat their move trains. */
 const SOLDIER_SKILL=st=>({name:`${st} Drill`,kind:'stat:'+st,v:3,text:v=>`+${v}% ${st} gains`});
@@ -287,9 +296,18 @@ const WEAPONS={
   'demon-sword':{name:'Demon King\'s Longsword',type:'sword',rarity:'legendary',atk:130,fx:[{kind:'expAll',v:6}],src:'Demon Castle · A',
     lore:'Taken from the throne room of the Demon Castle. It hungers.',look:{blade:'#2a1216',dark:'#0e0507',edge:'#ff5a3d',glow:'#ff3b2f',grip:'#1a0a0c',shape:'demon'}},
   kamish:{name:'Kamish\'s Wrath',type:'twin',rarity:'mythic',atk:200,fx:[{kind:'expAll',v:10},{kind:'gateTime',v:10}],src:'Jeju Island · S',
-    lore:'Twin daggers forged from the bones of the dragon Kamish. The strongest blades on earth.',look:{blade:'#ffe6a8',dark:'#d7261e',edge:'#fff4d6',glow:'#ff7a2a',grip:'#2a0e08',shape:'dragon'}}
+    lore:'Twin daggers forged from the bones of the dragon Kamish. The strongest blades on earth.',look:{blade:'#ffe6a8',dark:'#d7261e',edge:'#fff4d6',glow:'#ff7a2a',grip:'#2a0e08',shape:'dragon'}},
+  // story event weapons: the first clear of an event's boss raid drops it; later clears and reruns can refine it
+  commandment:{name:'Blade of the Commandments',type:'sword',rarity:'epic',atk:85,fx:[{kind:'penalty',v:10}],src:'Story event · Double Dungeon',ev:'dd',
+    lore:'Cut from the altar stone of the Cartenon Temple. It remembers every hunter who broke the rules.',look:{blade:'#bdb6a9',dark:'#5d574e',edge:'#ffd9d4',glow:'#ff3b2f',grip:'#2a2622',shape:'stone'}},
+  cleaver:{name:'Warchief\'s Cleaver',type:'sword',rarity:'epic',atk:105,fx:[{kind:'stat:Strength',v:10}],src:'Story event · Orc Invasion',ev:'orc',
+    lore:'Too heavy for any human to lift, the orcs said. They were wrong.',look:{blade:'#a29d93',dark:'#3a352d',edge:'#f0e9dc',glow:'#ff8a2a',grip:'#3a2614',shape:'cleaver'}},
+  'giant-spear':{name:'Spear of the Giant King',type:'spear',rarity:'legendary',atk:150,fx:[{kind:'expBoss',v:12}],src:'Story event · Giants of Japan',ev:'giant',
+    lore:'Carved from the tusk of a giant that walked out of Tokyo Bay. It still smells of the sea.',look:{blade:'#efe2c2',dark:'#8a6a3a',edge:'#fff6dc',glow:'#ffb347',grip:'#3a2614',shape:'harpoon'}},
+  antares:{name:'Fang of Antares',type:'dagger',rarity:'mythic',atk:220,fx:[{kind:'expAll',v:8},{kind:'expBoss',v:10}],src:'Story event · Monarchs\' War',ev:'war',
+    lore:'Broken from the jaw of the Monarch of Destruction. Black fire still runs along the edge.',look:{blade:'#3a2444',dark:'#0c0710',edge:'#ff9a4a',glow:'#b05cff',grip:'#140b18',shape:'claw'}}
 };
-const WEAPON_ORDER=['rusty','knight-killer','venom-fang','frost-spear','baruka','demon-sword','kamish'];
+const WEAPON_ORDER=['rusty','knight-killer','venom-fang','frost-spear','baruka','demon-sword','kamish','commandment','cleaver','giant-spear','antares'];
 const GATE_WEAPON={E:'knight-killer',D:'venom-fang',C:'frost-spear',B:'baruka',A:'demon-sword',S:'kamish'};
 
 /* ---------- daily supply chest ----------

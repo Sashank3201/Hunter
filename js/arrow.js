@@ -11,7 +11,7 @@ const ARROW_LABEL={log_food:'Log food',food_info:'Nutrition facts',undo:'Undo la
   joke:'Joke',laugh:'Haha',affirm:'Yes',deny:'No',out_of_scope:'Something else',ask_streak:'My streak',ask_level:'Level and rank',ask_quest:'Today\'s quest',
   ask_records:'My records',ask_shadows:'My shadows',ask_next_rank:'Next rank-up',ask_stats:'My stats',ask_items:'Inventory',ask_week:'This week',
   exercise_howto:'Exercise form',motivate:'Motivation',recovery:'Rest and soreness',pain:'Pain or injury',coach_tip:'Training tips',open_tab:'Open a page',
-  start_workout:'Start workout',open_license:'Hunter License',open_settings:'Settings',theme:'Theme'};
+  start_workout:'Start workout',open_license:'Hunter License',open_settings:'Settings',theme:'Theme',ask_event:'Story event'};
 
 /* ---------- voice: a sassy friend ---------- */
 const SAY={
@@ -86,7 +86,7 @@ function arRules(low){
   const R=[[/^(undo|oops)\b/,'undo'],[/\bclear\b.*\bchat\b|\bchat\b.*\b(clear|delete|saaf)\b/,'clear_chat'],[/^(hi|hello|hey|yo|namaste)\b/,'greet'],[/\b(thanks|thank you|thx)\b/,'thanks'],
     [/^(lol|haha+|lmao)\b/,'laugh'],[/^(yes|yeah|ok|okay|sure|haan|avunu)\b/,'affirm'],[/^(no|nope|nah|vaddu|nahi)\b/,'deny'],[/\bhelp\b|what can you do/,'help'],
     [/\b(calories|protein|macros)\b.*\b(in|of)\b/,'food_info'],[/\bwhat should i eat\b|\bhungry\b/,'suggest_meal'],[/\bstreak\b/,'ask_streak'],[/\b(summary|so far|how am i doing)\b/,'summary'],
-    [/\bstart\b.*\bworkout\b/,'start_workout'],[/\b(dark|light|night) mode\b/,'theme']];
+    [/\bstart\b.*\bworkout\b/,'start_workout'],[/\b(dark|light|night) mode\b/,'theme'],[/\b(event|chapter|story)\b/,'ask_event']];
   const m=R.find(([re])=>re.test(low));return m?m[1]:'log_food';
 }
 function arrowClassify(ds,text){
@@ -152,7 +152,7 @@ function arExercise(low){
   if(f){const k=f[1],i=Math.min(S.ladders[k].step,LADDERS[k].steps.length-1),s=LADDERS[k].steps[i];return {k,i,name:s[0],cue:s[2],current:true}}
   return best&&bs>=.5?best:null;
 }
-const AR_PAGES=[[/armou?ry|weapons?/,'armory','the Armory'],[/shadows?|army/,'army','your shadow army'],[/history/,'history','History'],[/feats?|achievements?|badges?/,'feats','Feats'],
+const AR_PAGES=[[/\bevents?\b|\bstory\b|chapters?/,'event','the story event'],[/armou?ry|weapons?/,'armory','the Armory'],[/shadows?|army/,'army','your shadow army'],[/history/,'history','History'],[/feats?|achievements?|badges?/,'feats','Feats'],
   [/\bplan\b/,'plan','your Plan'],[/skills?/,'skills','Skills'],[/grocery|shopping/,'grocery','your grocery list'],[/report/,'report','the weekly report'],[/gates?|dungeons?/,'gates','Gates'],
   [/quests?/,'quest','the Quest tab'],[/progress/,'progress','Progress'],[/diet|nutrition|food|recipes?/,'diet','Diet'],[/status|home|main/,'status','Status']];
 function arGo(k){
@@ -160,7 +160,7 @@ function arGo(k){
   if(['status','quest','gates','progress','diet'].includes(k))showTab(k);
   else if(['history','feats','plan','skills','army'].includes(k))ACT.goProg(k);
   else if(k==='armory'){showTab('gates');setTimeout(()=>{const a=document.querySelector('.armory');if(a)a.scrollIntoView({behavior:'smooth',block:'center'})},350)}
-  else if(k==='grocery')ACT.grocery();else if(k==='report')ACT.report();
+  else if(k==='grocery')ACT.grocery();else if(k==='report')ACT.report();else if(k==='event')openEvent();
 }
 const chip=(l,a,arg)=>({l,a,arg:arg===undefined?'':String(arg)});
 
@@ -344,6 +344,21 @@ AH.ask_items=()=>{
   const w=equippedWeapon();
   return {say:`${bits.length?`You have ${arList(bits)}.`:'Your bag is empty.'} ${w?`Weapon: ${weaponOf(w).name}${refineOf(w)?` +${refineOf(w)}`:''}.`:'No weapon equipped.'}${S.titleEquipped?` Title: ${S.titleEquipped}.`:''}`,mood:'happy'};
 };
+/* The live story event: where you are, what is open, what you win. */
+AH.ask_event=c=>{
+  const cur=evNow(),ev=cur.ev,R=evRun(cur.n),done=evDone(cur),nx=STORY_EVENTS[(cur.n+1)%STORY_EVENTS.length],open=chip('Open the event','arrowGo','event');
+  if(/\b(next|agla|agli)\b/.test(c.low))return {say:`Next up: ${nx.name}, starting ${fmtDate(cur.end)}. ${nx.blurb}`,mood:'curious',chips:[open]};
+  const ready=ev.chapters.findIndex((x,i)=>evChapter(cur,i)==='ready'),M=evMission();
+  let say=`${ev.name} is live for another ${evLeft(cur)}. You've cleared ${done} of ${EVENT_CHAPTERS} chapters.`;
+  if(M)say+=` Your chapter ${M.i+1} mission is half done, finish it.`;
+  else if(R.raid)say+=` You already beat ${ev.raid.boss}. Show-off. Replay the raid for more loot.`;
+  else if(evRaidOpen(cur))say+=` The boss raid is open and ${ev.raid.boss} is waiting.`;
+  else if(ready>=0)say+=` Chapter ${ready+1}, "${ev.chapters[ready].t}", is ready right now.`;
+  else say+=' The next chapter opens tomorrow.';
+  say+=` Rewards: ${WEAPONS[ev.weapon].name}, the shadow ${ev.shadow}, and the ${ARROW_SKINS[ev.skin].n} skin for me.`;
+  if(S.skins.includes(ev.skin)&&S.profile.arrowSkin!==ev.skin)say+=' Which you already own. And I\'m still in ink? Rude.';
+  return {say,mood:R.raid?'proud':evRaidOpen(cur)||ready>=0?'excited':'curious',chips:[open]};
+};
 AH.ask_week=()=>{
   const mon=mondayOf(todayStr());let reps=0;
   for(let i=0;i<7;i++){const r=S.log[addDays(mon,i)];if(r&&r.sets)Object.values(r.sets).forEach(a=>a.forEach(n=>reps+=n))}
@@ -434,6 +449,7 @@ function arrowNudgeText(){
   const ds=dietState(),day=flDay(ds),T=foodTargets(ds),t=flTotals(day),h=flHour(),rec=todayRec(),sp=todaysSplit(),has=m=>day.items.some(i=>i.meal===m);
   if(notStarted())return null;
   if(h>=18&&!rec.completed&&!sp.rest)return {say:'Your daily quest is still open. Penalty zone is real, Hunter.',mood:'suspicious'};
+  const ev=evNudge();if(ev)return ev; // the story event, at most once a day
   if(h>=10&&h<15&&!day.items.length)return {say:'No breakfast logged. Did you eat, or are we photosynthesizing now?',mood:'curious'};
   if(h>=15&&h<20&&!has('lunch')&&day.items.length<3)return {say:'Lunch? Hello? Log it or I\'ll assume you ate air.',mood:'curious'};
   if(h>=12&&day.water<Math.floor((h-8)/14*T.water)-2)return {say:`Water check: ${day.water} of ${T.water} glasses. Drink. Now.`,mood:'angry'};
@@ -447,7 +463,7 @@ function arrowNudge(){
   if(!revealIdle()||REVEALQ.length||document.body.classList.contains('locked'))return; // never over a reward, modal or open layer
   const M=arMem();if(Date.now()-(M.nudgeAt||0)<90*60000)return;
   const n=arrowNudgeText();if(!n)return;
-  M.nudgeAt=Date.now();arMemSave(M);
+  M.nudgeAt=Date.now();if(n.ev)M.evDay=todayStr();arMemSave(M);
   b.innerHTML=`<button class="an-say" data-act="arrowNudgeOpen">${esc(n.say)}</button><button class="an-x" data-act="arrowNudgeX" aria-label="Dismiss">${ic('x')}</button>`;
   b.dataset.say=n.say;b.classList.toggle('raised',fab.classList.contains('raised'));b.hidden=false;b.classList.remove('in');void b.offsetWidth;b.classList.add('in');
   Bot.react(n.mood,3200);buzz('tap');clearTimeout(arNudgeT);arNudgeT=setTimeout(()=>{b.hidden=true},12000);
