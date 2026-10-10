@@ -225,9 +225,9 @@ const DUNGEONS=[
 /* ---------- shadow army ----------
    Beating a personal record on a move extracts that move's shadow. Shadows earn
    XP from your training, level up, get promoted, and each carries a passive skill.
-   The first ten shadows carry legendary names, looks and skills. */
+   The first nine shadows carry legendary names, looks and skills. */
 const SHADOW_LEGENDS=[['Igris','Knight Commander'],['Iron','Elite Knight'],['Tank','Elite'],['Tusk','Elite Knight'],['Beru','Marshal'],
-  ['Bellion','Grand Marshal'],['Kaisel','Elite'],['Greed','Elite Knight'],['Jima','Knight'],['Fangs','Knight']];
+  ['Bellion','Grand Marshal'],['Kaisel','Elite'],['Greed','Elite Knight'],['Jima','Knight']];
 const SHADOW_GRADES=['Normal','Normal','Elite','Elite','Knight','Knight','Elite Knight','Elite Knight'];
 /* Promotion ladder: a shadow moves up one grade at Lv 10, 20 and 30. */
 const SHADOW_RANKS=['Normal','Elite','Knight','Elite Knight','Knight Commander','Marshal','Grand Marshal'];
@@ -242,8 +242,7 @@ const SHADOW_BODY={
   Bellion:{atk:20,def:16,spd:16,look:'marshal',epithet:'Grand Marshal of the Army',art:{src:'img/bellion.jpg',pos:'50% 50%',mini:'50% 0%',mzoom:1.15,morigin:'50% 30%'}},
   Kaisel:{atk:10,def:8,spd:20,look:'wyvern',epithet:'Sky Wyvern',art:{src:'img/kaisel.jpg',pos:'50% 50%',ty:'-22%',mini:'50% 82%',mzoom:1.25,morigin:'52% 62%'}},
   Greed:{atk:15,def:11,spd:12,look:'horned',epithet:'The Fallen Knight',art:{src:'img/greed.jpg',pos:'50% 50%',mini:'50% 4%',mzoom:1.15,morigin:'50% 40%'}},
-  Jima:{atk:12,def:14,spd:10,look:'naga',epithet:'Naga of the Deep'},
-  Fangs:{atk:13,def:9,spd:12,look:'orc',epithet:'High Orc Pack Leader'},
+  Jima:{atk:12,def:14,spd:10,look:'naga',epithet:'Naga of the Deep',art:{src:'img/jima.jpg',pos:'50% 50%',mini:'50% 0%',mzoom:1.3,morigin:'26% 40%'}},
   push:{atk:14,def:8,spd:8,look:'soldier'},pull:{atk:12,def:9,spd:9,look:'soldier'},legs:{atk:11,def:12,spd:7,look:'spiked'},
   core:{atk:8,def:14,spd:8,look:'spiked'},speed:{atk:8,def:7,spd:15,look:'hooded'},agility:{atk:9,def:7,spd:14,look:'hooded'},
   mobility:{atk:7,def:12,spd:11,look:'hooded'},flex:{atk:6,def:13,spd:11,look:'soldier'}
@@ -259,8 +258,7 @@ const SHADOW_SKILLS={
   Bellion:{name:'Grand Marshal\'s Order',kind:'expAll',v:3,text:v=>`+${v}% EXP on every quest`},
   Kaisel:{name:'Wings of the Sky',kind:'gateTime',v:10,text:v=>`+${v}% Gate time limit`},
   Greed:{name:'Greed',kind:'luck',v:5,text:v=>`+${v}% luck on Random Boxes and daily chests`},
-  Jima:{name:'Coils of the Deep',kind:'stat:Flexibility,Mobility',v:8,text:v=>`+${v}% Flexibility and Mobility gains`},
-  Fangs:{name:'Pack Hunter',kind:'stat:Speed,Agility',v:8,text:v=>`+${v}% Speed and Agility gains`}
+  Jima:{name:'Coils of the Deep',kind:'stat:Flexibility,Mobility',v:8,text:v=>`+${v}% Flexibility and Mobility gains`}
 };
 /* Soldiers: a small boost to the stat their move trains. */
 const SOLDIER_SKILL=st=>({name:`${st} Drill`,kind:'stat:'+st,v:3,text:v=>`+${v}% ${st} gains`});

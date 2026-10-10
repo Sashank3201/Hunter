@@ -2,7 +2,7 @@
    Beating a personal record on a move extracts that move's shadow (ARISE).
    Shadows train with you: they earn XP from your sets, quests and Gates, level
    up, get promoted, and each one carries a passive skill. Appoint a captain
-   (skill x2) and a vice-captain (skill x1.5). The first ten are legends. */
+   (skill x2) and a vice-captain (skill x1.5). The first nine are legends. */
 
 /* ---------- model ---------- */
 function shadowFor(ex){return S.shadows.find(s=>s.ex===ex)}
