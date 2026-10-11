@@ -10,98 +10,239 @@ const RANKS=[
 ];
 const STATS=['Strength','Speed','Agility','Mobility','Flexibility'];
 
-/* Progression ladders. Each step: [name, target reps/secs at that step, unit]
-   The Hunter climbs a ladder when they hit the "graduate" target twice. */
-const LADDERS={
-  push:{stat:'Strength',title:'Push',steps:[
-    ['Wall push-up',15,'Stand an arm\'s length from a wall, hands on it at chest height. Bend your elbows to bring your chest to the wall, then push back.'],
-    ['Incline push-up (hands on chair/table)',12,'Hands on a heavy table or chair seat, body in one straight line. Lower your chest to the edge, then push away.'],
-    ['Knee push-up',12,'Knees on the floor, body straight from knees to head. Lower your chest to just above the floor, then push up.'],
-    ['Full push-up',10,'Hands under shoulders, body like a plank. Lower until your chest is a fist above the floor, then push up without sagging your hips.'],
-    ['Diamond push-up',10,'Hands close together under your chest, thumbs and index fingers forming a diamond. Keep your elbows tight to your body.'],
-    ['Decline push-up (feet on chair)',10,'Feet on a chair, hands on the floor. Keep a straight body and lower your chest between your hands.'],
-    ['Archer push-up',8,'Hands wide. Lower toward one hand while the other arm stays straight, push up, then switch sides.'],
-    ['Pseudo-planche push-up',8,'Hands beside your lower ribs, fingers turned out. Lean forward so your shoulders are ahead of your hands, then push up.']]},
-  pull:{stat:'Strength',title:'Pull',steps:[
-    ['Prone Y-T-W raise',12,'Lie face down. Lift your arms into a Y, then a T, then a W, squeezing your shoulder blades. Go slow.'],
-    ['Backpack row (hinged)',10,'Hold a backpack loaded with books. Hinge forward at the hips with a flat back, then pull the bag to your belly button and lower slowly.'],
-    ['Table row, feet flat',10,'Lie under a very heavy, stable table and grip the edge. Keep your body straight and pull your chest up to your hands. Test the table first: if it slides or tips, skip this.'],
-    ['Table row, feet elevated',10,'Same as the table row, but with your feet on a low chair. Body stays in one straight line. Only use a table that does not move.'],
-    ['Archer table row',8,'Pull toward one hand while the other arm stays mostly straight, then switch sides. Only use a table that does not move.'],
-    ['Tempo table row (3s up, 3s down)',6,'A table row, but take 3 seconds to pull up and 3 seconds to lower. Only use a table that does not move.']]},
-  legs:{stat:'Strength',title:'Legs',steps:[
-    ['Chair sit-to-stand',15,'Sit on the edge of a sturdy chair, feet flat. Stand up without using your hands, then sit down slowly.'],
-    ['Bodyweight squat',15,'Feet shoulder-width apart. Sit your hips back and down, chest up, knees over your toes. Stand tall.'],
-    ['Split squat',10,'One foot forward, one back. Drop your back knee toward the floor, keep your front heel down, then stand up.'],
-    ['Bulgarian split squat',10,'Back foot on a chair behind you. Lower straight down and drive up through your front heel.'],
-    ['Assisted pistol (hold support)',6,'Hold a door frame or table edge. Sit down on one leg with the other leg out front, and stand using as little help as you can.'],
-    ['Shrimp squat',6,'Hold your back foot behind you. Lower your back knee toward the floor on one leg, then stand.'],
-    ['Pistol squat',5,'A full single-leg squat with the other leg straight out in front and your heel down.']]},
-  core:{stat:'Strength',title:'Core',steps:[
-    ['Dead bug',10,'Lie on your back, arms up, knees bent over your hips. Lower the opposite arm and leg slowly and keep your lower back on the floor.'],
-    ['Plank (secs)',30,'Forearms on the floor, body in one straight line. Squeeze your abs and glutes and do not let your hips sag.'],
-    ['Hollow hold (secs)',20,'On your back, press your lower back into the floor and lift your shoulders and straight legs slightly. Hold it tight.'],
-    ['Leg raise',12,'Lie flat with your hands under your hips. Lift straight legs to vertical, then lower slowly without arching your back.'],
-    ['V-up (floor)',12,'Lie flat, arms overhead. Lift your legs and torso at the same time to reach your toes, then lower slowly.'],
-    ['L-sit on floor (secs)',15,'Sit with legs straight, palms flat by your hips. Press down and lift your hips off the floor. Even a small lift counts.']]},
-  speed:{stat:'Speed',title:'Speed',steps:[
-    ['Fast feet in place (secs)',20,'Stand tall on the balls of your feet and tap them as fast as you can in tiny steps.'],
-    ['High knees (secs)',30,'Run in place, drive your knees to hip height, and pump your arms.'],
-    ['Skater hops',20,'Leap side to side from one foot to the other, landing softly and reaching across with the opposite hand.'],
-    ['Burpee (no push-up)',10,'Squat, kick your feet back to a plank, jump your feet in, then stand and jump.'],
-    ['Full burpee',10,'Same as a burpee, but do a push-up when you are in the plank.'],
-    ['Sprint intervals (secs on/off)',20,'Sprint for the time shown, then walk for the same time. Only on a safe, flat surface, and only after a warm-up.']]},
-  agility:{stat:'Agility',title:'Agility',steps:[
-    ['Lateral shuffle (each side)',10,'Stay low and step side to side without crossing your feet.'],
-    ['Line hops fwd/back',20,'Picture a line on the floor and hop forward and back over it on both feet, quick and light.'],
-    ['Crab walk (secs)',30,'Sit with hands behind you, lift your hips, and walk on your hands and feet.'],
-    ['Bear crawl (secs)',30,'On hands and toes with knees just off the floor, crawl forward moving opposite hand and foot together.'],
-    ['Lunge-to-jump',12,'Lunge down, then jump up and switch legs in the air. Land softly.'],
-    ['Tuck jump',10,'Jump straight up and pull your knees toward your chest. Land soft with bent knees.'],
-    ['Broad jump + stick',8,'Swing your arms and jump forward as far as you can. Land on both feet and hold still for a second.']]},
-  mobility:{stat:'Mobility',title:'Mobility',steps:[
-    ['Cat-cow + hip circles',10,'On hands and knees, round your back up, then arch it down, slowly. Then draw big circles with each knee.'],
-    ['World\'s greatest stretch',6,'Step into a deep lunge, put a hand inside your front foot, and rotate your chest up toward the ceiling. Switch sides.'],
-    ['Deep squat hold (secs)',45,'Sink into the deepest comfortable squat, heels down, elbows pushing your knees out. Hold.'],
-    ['Shoulder dislocates (towel)',12,'Hold a towel wide. Lift it over your head and behind you with straight arms. Go slow and only as far as it is pain-free.'],
-    ['Thoracic rotations',10,'On hands and knees, put one hand behind your head and rotate that elbow up toward the ceiling, then back down.'],
-    ['Full joint flow (secs)',60,'Slow circles through your neck, shoulders, wrists, hips, knees and ankles, in that order.']]},
-  flex:{stat:'Flexibility',title:'Flexibility',steps:[
-    ['Standing hamstring stretch (secs)',30,'Put one heel forward and hinge at the hips with a flat back. Stop when you feel a stretch, not pain.'],
-    ['Seated forward fold (secs)',40,'Sit with legs straight and fold from the hips toward your feet. Bend your knees if you need to.'],
-    ['Couch stretch (secs)',40,'Back knee on the floor, back foot up against a couch or wall. Tuck your tailbone and stand tall.'],
-    ['Pigeon pose (secs)',45,'One shin forward on the floor, the other leg stretched back. Lean forward over your front shin, easing in slowly.'],
-    ['Straddle stretch (secs)',60,'Sit with your legs wide apart and fold forward with a long back.'],
-    ['Front-split progression (secs)',60,'Kneel in a lunge and slide your front heel forward until you feel a stretch, hands on the floor. Never force it.']]}
+/* ---------- the exercise library ----------
+   Each training area holds a few chains, one movement pattern each, from easiest to hardest.
+   A move is [name, unlock level, starting target, how-to, demo it shares].
+   - A move unlocks at its level, but your rank caps that level until you pass the next
+     rank trial, so the big jumps (archer, pistol, handstand) wait for the rank that proves you ready.
+   - Targets are reps, or seconds when the name says (secs). Each session aims one rep (or 3 s)
+     past your last best, up to a cap; then the next move in the chain takes over as you level.
+   - A move without its own animation names the demo of a close variation.
+   Names are the moves' identities (records, shadows, demos), so never rename one.
+   Mobility and flexibility are pools: a session rotates through every move unlocked. */
+const AREAS={
+  push:{stat:'Strength',title:'Push'},pull:{stat:'Strength',title:'Pull'},legs:{stat:'Strength',title:'Legs'},core:{stat:'Strength',title:'Core'},
+  speed:{stat:'Speed',title:'Speed'},agility:{stat:'Agility',title:'Agility'},mobility:{stat:'Mobility',title:'Mobility',pool:true},flex:{stat:'Flexibility',title:'Flexibility',pool:true}
 };
+const CHAINS={
+  push:[
+    ['Chest',[
+      ['Wall push-up',1,10,'Stand an arm\'s length from a wall, hands on it at chest height. Bend your elbows to bring your chest to the wall, then push back.'],
+      ['Incline push-up (hands on chair/table)',2,10,'Hands on a heavy table, box or chair seat, body in one straight line. Lower your chest to the edge, then push away.'],
+      ['Knee push-up',3,8,'Knees on the floor, body straight from knees to head. Lower your chest to just above the floor, then push up.'],
+      ['Full push-up',5,6,'Hands under shoulders, body like a plank. Lower until your chest is a fist above the floor, then push up without sagging your hips.'],
+      ['Wide push-up',6,8,'Hands wider than your shoulders, elbows out at about 45 degrees. Lower your chest between your hands, then press up.','Full push-up'],
+      ['Tempo push-up (3s down)',7,6,'Take three full seconds to lower, touch the floor lightly, then push up fast. The slow lowering builds muscle.','Full push-up'],
+      ['Decline push-up (feet on chair)',9,8,'Feet on a box or chair, hands on the floor. Keep a straight body and lower your chest between your hands.'],
+      ['Pause push-up',10,8,'A full push-up with a two-second stop just above the floor. No bouncing out of the bottom.','Full push-up'],
+      ['Archer push-up',12,5,'Hands wide. Lower toward one hand while the other arm stays straight, push up, then switch sides.'],
+      ['Clap push-up',14,5,'Lower under control, then push up hard enough for your hands to leave the floor. Clap, and land with soft elbows.'],
+      ['Pseudo-planche push-up',16,6,'Hands beside your lower ribs, fingers turned out. Lean forward so your shoulders are ahead of your hands, then push up.'],
+      ['One-arm push-up (hand on box)',18,4,'One hand on a box or chair, the other behind your back, feet wide. Lower your chest to the box and press up. Count each arm.'],
+      ['One-arm push-up',20,3,'Feet wide, one hand under your chest, the other behind your back. Lower until your chest nearly touches the floor, then press up. Count each arm.']]],
+    ['Shoulders',[
+      ['Plank shoulder taps',1,10,'High plank, feet a little wide. Tap one shoulder with the opposite hand without letting your hips rock. Each tap is one rep.'],
+      ['Incline pike push-up (hands on box)',3,8,'Hands on a box or chair, hips high so your body makes an upside-down V. Bend your elbows to bring your head toward the box, then press back up.'],
+      ['Pike push-up',5,6,'Hands and feet on the floor, hips high. Lower the top of your head toward the floor just in front of your hands, then press up.'],
+      ['Elevated pike push-up (feet on box)',9,6,'Feet on a box or chair, hands on the floor, hips stacked over your shoulders. Lower your head toward the floor and press up.'],
+      ['Wall handstand hold (secs)',12,15,'Walk your feet up the wall until your chest faces it, hands a forearm\'s length away. Stay straight, push the floor away and breathe.'],
+      ['Wall handstand push-up negative',16,3,'From a wall handstand, take 3 to 5 seconds to lower your head to a folded towel. Come down, then walk back up.'],
+      ['Wall handstand push-up',20,3,'From a wall handstand, lower your head to a folded towel and press all the way back up.','Wall handstand push-up negative']]],
+    ['Triceps',[
+      ['Bench dip (knees bent)',1,8,'Hands on the edge of a box or bench behind you, knees bent at 90 degrees. Lower until your elbows reach 90 degrees, then press up. Keep your shoulders down.'],
+      ['Bench dip (legs straight)',4,10,'The same dip with your legs straight and heels on the floor. Elbows point straight back.'],
+      ['Diamond push-up',8,8,'Hands close together under your chest, thumbs and index fingers forming a diamond. Keep your elbows tight to your body.'],
+      ['Bench dip (feet elevated)',11,10,'Hands on one box, heels on a chair in front of you. Lower until your elbows reach 90 degrees and press up.'],
+      ['Bodyweight triceps extension (hands on box)',14,8,'Hands on a box edge, body straight like a plank. Bend only your elbows so your forehead drops toward the box, then straighten your arms.'],
+      ['Decline diamond push-up',17,8,'A diamond push-up with your feet on a box or chair. Elbows stay tight to your ribs.','Diamond push-up']]]],
+  pull:[
+    ['Rows',[
+      ['Backpack row (hinged)',1,10,'Hold a backpack loaded with books. Hinge forward at the hips with a flat back, then pull the bag to your belly button and lower slowly.'],
+      ['Doorframe row (each arm)',2,8,'Stand in a doorway and hold the frame with one hand at chest height, feet close to it. Lean back on a straight arm, then pull your chest to the frame.'],
+      ['One-arm backpack row (each arm)',3,10,'One hand on a box or chair, back flat. Row a loaded backpack up to your hip, pause, and lower slowly.'],
+      ['Table row, feet flat',4,6,'Lie under a very heavy, stable table and grip the edge. Keep your body straight and pull your chest up to your hands. Test the table first: if it slides or tips, skip this.'],
+      ['Table row, legs straight',6,6,'Under a very heavy table, legs straight and heels on the floor. Keep your body in one line and pull your chest to the edge.'],
+      ['Table row, feet elevated',8,6,'Same as the table row, but with your feet on a low chair. Body stays in one straight line. Only use a table that does not move.'],
+      ['Archer table row',12,5,'Pull toward one hand while the other arm stays mostly straight, then switch sides. Only use a table that does not move.'],
+      ['Tempo table row (3s up, 3s down)',14,5,'A table row, but take 3 seconds to pull up and 3 seconds to lower. Only use a table that does not move.'],
+      ['One-arm table row (each arm)',18,3,'Under a heavy table, grip the edge with one hand, body straight, and pull your chest up. Only use a table that does not move.','Archer table row']]],
+    ['Upper back',[
+      ['Prone Y-T-W raise',1,6,'Lie face down. Lift your arms into a Y, then a T, then a W, squeezing your shoulder blades. Go slow.'],
+      ['Superman hold (secs)',3,20,'Lie face down, arms reaching overhead. Lift your arms, chest and legs a little off the floor and hold, looking at the floor.'],
+      ['Wide table row',10,8,'Under a heavy table with your hands wide on the edge. Pull your upper chest up, squeezing your shoulder blades together.','Table row, feet flat']]],
+    ['Biceps',[
+      ['Backpack curl',1,12,'Hold a loaded backpack by its top handle, elbows at your sides. Curl it up to your chest and lower slowly.'],
+      ['Underhand table row',6,6,'A table row with your palms facing you. Pull your chest up to the edge and lower slowly. It works your biceps hard.','Table row, feet flat'],
+      ['Doorframe curl (each arm)',9,8,'Hold a doorframe with an underhand grip and lean back on a straight arm. Curl yourself in using only your biceps.','Doorframe row (each arm)'],
+      ['Bodyweight curl (table edge)',13,6,'Under a heavy table, palms up on the edge, body straight. Curl your forehead toward your hands while your elbows stay still.','Table row, feet elevated'],
+      ['Tempo backpack curl (4s down)',17,10,'A backpack curl where you take four seconds to lower. No swinging.','Backpack curl']]]],
+  legs:[
+    ['Squat',[
+      ['Chair sit-to-stand',1,12,'Sit on the edge of a sturdy chair, feet flat. Stand up without using your hands, then sit down slowly.'],
+      ['Bodyweight squat',2,15,'Feet shoulder-width apart. Sit your hips back and down, chest up, knees over your toes. Stand tall.'],
+      ['Wall sit (secs)',3,30,'Back flat against a wall, slide down until your thighs are level, knees over your ankles. Hold.'],
+      ['Pause squat (2s at the bottom)',4,12,'A full squat with a two-second stop at the bottom. Stay tight, then stand up.','Bodyweight squat'],
+      ['Tempo squat (3s down)',6,12,'Take three seconds to sit down into the squat, then stand up fast.','Bodyweight squat'],
+      ['Cossack squat (each side)',8,6,'Wide stance. Sit down over one bent leg while the other stays straight, toes up. Keep your chest up, then switch sides.'],
+      ['Box pistol (each leg)',11,5,'Stand in front of a box or chair on one leg, the other leg out front. Sit down slowly to the box, then stand up on one leg.'],
+      ['Assisted pistol (hold support)',13,6,'Hold a door frame or table edge. Sit down on one leg with the other leg out front, and stand using as little help as you can.'],
+      ['Shrimp squat',16,5,'Hold your back foot behind you. Lower your back knee toward the floor on one leg, then stand.'],
+      ['Pistol squat',18,4,'A full single-leg squat with the other leg straight out in front and your heel down.']]],
+    ['Lunge',[
+      ['Step-up (each leg)',1,10,'Step onto a stair or low box with your whole foot, stand up tall, then step down slowly.'],
+      ['Reverse lunge (each leg)',2,8,'Step one foot back and lower your back knee toward the floor, front shin upright. Push through your front heel to stand.'],
+      ['Split squat',4,10,'One foot forward, one back. Drop your back knee toward the floor, keep your front heel down, then stand up.'],
+      ['Walking lunge (each leg)',6,10,'Lunge forward, then bring your back foot through into the next lunge. Torso tall, front knee over your foot.','Split squat'],
+      ['Lateral lunge (each side)',7,8,'Step wide to one side and sit your hips back over that foot, the other leg straight. Push back to standing.','Cossack squat (each side)'],
+      ['Bulgarian split squat',8,8,'Back foot on a box or chair behind you. Lower straight down and drive up through your front heel.'],
+      ['Deficit reverse lunge (each leg)',10,8,'Stand on a low step and lunge back off it, so your back knee can travel lower.','Reverse lunge (each leg)'],
+      ['High step-up (each leg)',12,8,'Foot on a knee-high box. Drive up through that heel without pushing off the back foot, then lower slowly.','Step-up (each leg)'],
+      ['Bulgarian split squat, tempo (3s down)',14,8,'A Bulgarian split squat with a three-second lowering on every rep.','Bulgarian split squat'],
+      ['Skater squat (each leg)',17,5,'Stand on one leg, the other knee bent behind you. Lower until your back knee nearly touches the floor, arms reaching forward, then stand.','Shrimp squat']]],
+    ['Glutes and hamstrings',[
+      ['Glute bridge',1,12,'On your back, knees bent, feet flat. Drive through your heels to lift your hips until knees, hips and shoulders line up. Squeeze, then lower slowly.'],
+      ['Good morning',2,12,'Feet hip-width, hands behind your head, knees soft. Push your hips back with a flat back until you feel your hamstrings, then stand tall.'],
+      ['Single-leg glute bridge (each leg)',4,10,'A glute bridge on one foot, the other leg straight. Keep your hips level.'],
+      ['Hip thrust (shoulders on box)',6,12,'Upper back against a box, bench or couch, feet flat. Drive your hips up to a straight line, pause, and lower.'],
+      ['Single-leg Romanian deadlift (each leg)',8,8,'Stand on one leg. Hinge forward with a flat back as the other leg reaches back, hands toward the floor, then stand tall.'],
+      ['Sliding leg curl (towel)',10,8,'On your back, heels on a towel on a smooth floor, hips up. Slide your heels in toward you and back out slowly, hips up the whole time.'],
+      ['Single-leg hip thrust (each leg)',12,8,'A hip thrust on one foot, the other knee pulled up. Keep your hips level.','Hip thrust (shoulders on box)'],
+      ['Nordic curl negative',15,3,'Kneel with your heels hooked under a heavy couch. Keep a straight line from knees to head and lower forward as slowly as you can. Catch yourself with your hands.'],
+      ['Single-leg sliding leg curl (each leg)',18,6,'A sliding leg curl with one heel on the towel and the other leg raised.','Sliding leg curl (towel)']]],
+    ['Calves',[
+      ['Calf raise',1,15,'Stand tall, rise onto the balls of your feet, pause at the top, and lower slowly.'],
+      ['Calf raise on a step',4,15,'Balls of your feet on a stair edge, heels hanging. Lower your heels below the step, then rise all the way up.'],
+      ['Single-leg calf raise (each leg)',8,12,'A calf raise on one foot, a hand on the wall for balance.','Calf raise'],
+      ['Single-leg calf raise on a step (each leg)',12,12,'A single-leg calf raise off a stair edge for the full range.','Calf raise on a step']]]],
+  core:[
+    ['Upper abs',[
+      ['Crunch',1,12,'On your back, knees bent, fingertips by your ears. Curl your shoulders off the floor by squeezing your abs, then lower slowly. Do not pull on your head.'],
+      ['Leg-extended crunch',3,12,'Legs straight up toward the ceiling, hands behind your head. Crunch up toward your feet and lower slowly.'],
+      ['Tuck-up',6,10,'Sit balanced on your bottom, leaning back a little. Pull your knees and chest together, then extend out without touching the floor.'],
+      ['V-up (floor)',9,10,'Lie flat, arms overhead. Lift your legs and torso at the same time to reach your toes, then lower slowly.'],
+      ['Dragon flag negative',16,3,'Lie on a bench and grip it behind your head. Lift your body to vertical, then lower it as one straight line as slowly as you can.'],
+      ['Dragon flag',20,4,'Lower your straight body from vertical and raise it again, moving only at the shoulders.','Dragon flag negative']]],
+    ['Lower abs',[
+      ['Dead bug',1,8,'Lie on your back, arms up, knees bent over your hips. Lower the opposite arm and leg slowly and keep your lower back on the floor.'],
+      ['Reverse crunch',2,10,'On your back, knees bent over your hips. Curl your hips off the floor toward your chest, then lower slowly. No swinging.'],
+      ['Seated leg raise',4,10,'Sit leaning back on your hands, legs straight. Lift both legs up, then lower them without touching the floor.'],
+      ['Leg raise',6,10,'Lie flat with your hands under your hips. Lift straight legs to vertical, then lower slowly without arching your back.'],
+      ['Flutter kicks (secs)',8,25,'On your back, legs straight and low, lower back pressed into the floor. Kick small and fast.'],
+      ['Bench leg raise',11,10,'Lie on a bench holding it behind your head. Raise straight legs to vertical, then lower them below the bench edge under control.'],
+      ['Tuck L-sit (secs)',13,10,'Hands on the floor beside your hips. Press down to lift your bottom off the floor with your knees tucked to your chest. Hold.'],
+      ['L-sit on floor (secs)',16,10,'Sit with legs straight, palms flat by your hips. Press down and lift your hips off the floor. Even a small lift counts.']]],
+    ['Obliques',[
+      ['Knee side plank (secs)',1,20,'On your side, knees bent, elbow under your shoulder. Lift your hips so your body is straight from head to knees. Hold, then switch sides.'],
+      ['Bicycle crunch',3,12,'On your back, hands by your ears. Bring one elbow toward the opposite knee as the other leg straightens, then switch. Each side is one rep.'],
+      ['Side plank (secs)',5,25,'On your side, legs straight, elbow under your shoulder. Lift your hips into a straight line and hold, then switch sides.'],
+      ['Russian twist',7,12,'Sit leaning back with your knees bent and your feet light on the floor. Turn your chest and hands to one side, then the other. Each side is one rep.'],
+      ['Side plank hip dips',10,10,'In a side plank, lower your hip toward the floor and lift it back up. Count each side.','Side plank (secs)'],
+      ['Star side plank (secs)',15,15,'A side plank with your top arm and leg raised. Hold, then switch sides.','Side plank (secs)']]],
+    ['Stability',[
+      ['Plank (secs)',1,20,'Forearms on the floor, body in one straight line. Squeeze your abs and glutes and do not let your hips sag.'],
+      ['Bird dog',2,8,'On hands and knees, reach one arm forward and the opposite leg back until both are straight. Pause, return, and switch sides. Each side is one rep.'],
+      ['Hollow hold (secs)',6,20,'On your back, press your lower back into the floor and lift your shoulders and straight legs slightly. Hold it tight.'],
+      ['Hollow rocks',9,12,'Hold the hollow shape and rock from your shoulders to your hips without breaking it.'],
+      ['Body saw (towel)',12,10,'Forearm plank with your feet on a towel on a smooth floor. Slide your body back and forth from the shoulders, hips level.'],
+      ['Kneeling towel rollout',14,8,'Kneel with your hands on a towel on a smooth floor. Slide your hands forward as far as you can keep a flat back, then pull back.']]]],
+  speed:[
+    ['Drills',[
+      ['Fast feet in place (secs)',1,15,'Stand tall on the balls of your feet and tap them as fast as you can in tiny steps.'],
+      ['A-march (secs)',2,20,'March in place: drive one knee up to hip height, toes pulled up, opposite arm forward. Stand tall.'],
+      ['High knees (secs)',3,20,'Run in place, drive your knees to hip height, and pump your arms.'],
+      ['Butt kicks (secs)',4,20,'Jog in place and flick your heels up to your bottom, staying on the balls of your feet.'],
+      ['Skater hops',6,16,'Leap side to side from one foot to the other, landing softly and reaching across with the opposite hand.'],
+      ['Sprint intervals (secs on/off)',8,15,'Sprint for the time shown, then walk for the same time. Only on a safe, flat surface, and only after a warm-up.'],
+      ['Wall drill (secs)',11,15,'Lean into a wall at 45 degrees, hands on it. Drive one knee up, then switch legs fast while holding the lean.'],
+      ['Shuttle run (secs)',14,20,'In a corridor or on a terrace, sprint 5 m, touch the line, turn and sprint back. Stay low on the turns.','Sprint intervals (secs on/off)']]],
+    ['Conditioning',[
+      ['Incline burpee (hands on box)',1,6,'Hands on a box or chair, step your feet back to a plank, step them in, and stand up.'],
+      ['Mountain climbers (secs)',3,20,'High plank. Drive your knees toward your chest one after the other, fast, hips low.'],
+      ['Burpee (no push-up)',5,8,'Squat, kick your feet back to a plank, jump your feet in, then stand and jump.'],
+      ['Full burpee',8,8,'Same as a burpee, but do a push-up when you are in the plank.'],
+      ['Burpee tuck jump',12,8,'A full burpee that finishes with a tuck jump instead of a normal jump.','Full burpee'],
+      ['Burpee box jump',16,6,'A full burpee, then jump onto a box and step down.','Full burpee']]]],
+  agility:[
+    ['Jumps',[
+      ['Snap-down + stick',1,6,'Rise onto your toes with your arms up, then snap down into a quarter squat and freeze. Chest up, knees over toes. This teaches you to land.'],
+      ['Pogo hops',2,20,'Small, quick bounces on the balls of your feet, knees almost straight, heels just off the floor.'],
+      ['Squat jump',4,8,'Squat down, then jump straight up. Land softly back into the squat and reset before the next jump.'],
+      ['Box jump (step down)',6,6,'Swing your arms and jump onto a stable box or stair. Land soft in a squat, stand up, then step down. Never jump down.'],
+      ['Broad jump + stick',8,6,'Swing your arms and jump forward as far as you can. Land on both feet and hold still for a second.'],
+      ['Tuck jump',10,8,'Jump straight up and pull your knees toward your chest. Land soft with bent knees.'],
+      ['Hurdle hops',12,8,'Jump forward over a backpack or rolled towel, land soft and quiet, turn around and jump back.'],
+      ['Depth drop + stick',14,5,'Step off a low box, land on both feet and freeze in a quarter squat. Quiet landing, knees over toes.'],
+      ['Depth jump',17,5,'Step off a low box and jump straight up the moment your feet touch the floor.']]],
+    ['Footwork',[
+      ['Lateral shuffle (each side)',1,10,'Stay low and step side to side without crossing your feet.'],
+      ['Line hops fwd/back',2,20,'Picture a line on the floor and hop forward and back over it on both feet, quick and light.'],
+      ['Lateral bound + stick (each side)',5,6,'Bound sideways off one leg, land on the other and hold still for a second before the next bound.','Skater hops'],
+      ['Lunge-to-jump',9,10,'Lunge down, then jump up and switch legs in the air. Land softly.'],
+      ['Single-leg hops (each leg)',15,8,'Hop forward on one leg, landing soft and quiet, then hop back.','Pogo hops']]],
+    ['Crawls',[
+      ['Crab walk (secs)',1,20,'Sit with hands behind you, lift your hips, and walk on your hands and feet.'],
+      ['Bear crawl (secs)',3,20,'On hands and toes with knees just off the floor, crawl forward moving opposite hand and foot together.']]]],
+  mobility:[
+    ['Mobility',[
+      ['Cat-cow + hip circles',1,8,'On hands and knees, round your back up, then arch it down, slowly. Then draw big circles with each knee.'],
+      ['Deep squat hold (secs)',1,30,'Sink into the deepest comfortable squat, heels down, elbows pushing your knees out. Hold.'],
+      ['World\'s greatest stretch',2,6,'Step into a deep lunge, put a hand inside your front foot, and rotate your chest up toward the ceiling. Switch sides.'],
+      ['Shoulder dislocates (towel)',3,10,'Hold a towel wide. Lift it over your head and behind you with straight arms. Go slow and only as far as it is pain-free.'],
+      ['Thoracic rotations',4,8,'On hands and knees, put one hand behind your head and rotate that elbow up toward the ceiling, then back down.'],
+      ['Full joint flow (secs)',6,45,'Slow circles through your neck, shoulders, wrists, hips, knees and ankles, in that order.']]]],
+  flex:[
+    ['Flexibility',[
+      ['Standing quad stretch (secs)',1,30,'Stand on one leg, hold the other ankle behind you and pull the heel to your bottom, knees together. Switch sides halfway.'],
+      ['Standing hamstring stretch (secs)',1,30,'Put one heel forward and hinge at the hips with a flat back. Stop when you feel a stretch, not pain.'],
+      ['Kneeling hip flexor stretch (secs)',1,30,'Half-kneel, back knee on a cushion. Tuck your tailbone and shift your hips forward until the front of the back hip stretches. Switch sides halfway.'],
+      ['Calf stretch (wall) (secs)',1,30,'Hands on a wall, one foot far back with the heel down and the leg straight. Lean in. Switch sides halfway.'],
+      ['Doorway chest stretch (secs)',1,30,'Forearm on a door frame at shoulder height. Step through until your chest stretches. Switch sides halfway.'],
+      ['Child\'s pose (secs)',1,30,'Kneel, sit back on your heels and reach your arms forward on the floor. Breathe into your back.'],
+      ['Figure-4 glute stretch (secs)',2,30,'On your back, cross one ankle over the other knee and pull that leg toward your chest. Switch sides halfway.'],
+      ['Butterfly stretch (secs)',2,30,'Sit with the soles of your feet together and knees out. Hold your feet and lean forward gently with a long back.'],
+      ['Overhead triceps stretch (secs)',2,30,'Reach one hand down your back and gently press that elbow with the other hand. Switch sides halfway.'],
+      ['Cobra stretch (secs)',3,30,'Lie face down, hands under your shoulders. Press your chest up, hips on the floor, shoulders down.'],
+      ['Seated forward fold (secs)',4,40,'Sit with legs straight and fold from the hips toward your feet. Bend your knees if you need to.'],
+      ['Couch stretch (secs)',5,40,'Back knee on the floor, back foot up against a couch or wall. Tuck your tailbone and stand tall.'],
+      ['Pigeon pose (secs)',8,45,'One shin forward on the floor, the other leg stretched back. Lean forward over your front shin, easing in slowly.'],
+      ['Straddle stretch (secs)',12,60,'Sit with your legs wide apart and fold forward with a long back.'],
+      ['Front-split progression (secs)',16,60,'Kneel in a lunge and slide your front heel forward until you feel a stretch, hands on the floor. Never force it.']]]]
+};
+/* Every move by name: {a: area, c: chain, i: place in the chain, lv, base, cue, demo}. */
+const MOVES={};
+Object.entries(CHAINS).forEach(([a,cs])=>cs.forEach(([,ms],c)=>ms.forEach((m,i)=>{MOVES[m[0]]={a,c,i,lv:m[1],base:m[2],cue:m[3],demo:m[4]||m[0]}})));
+/* The areas as the rest of the app knows them: title, stat, and every move in unlock order. */
+const LADDERS=Object.fromEntries(Object.entries(AREAS).map(([k,A])=>[k,{stat:A.stat,title:A.title,
+  steps:CHAINS[k].flatMap(c=>c[1]).sort((x,y)=>x[1]-y[1]).map(m=>[m[0],m[2],m[3]])}]));
 
-/* Weekly split. Each day has main quests (ladder keys) + a note.
-   Daily quest = warm-up + 3 main + finisher, sized for 20-30 min. */
+/* Weekly split. Each day is a list of blocks, [area, moves]: speed and jumps come first while you
+   are fresh. With the warm-up and cool-down a session takes about 45 minutes. */
 const SPLIT=[
-  {name:'Sunday',  type:'Recovery',  quests:['mobility','flex'], note:'Light day. Breathe, stretch, walk 10 min. Recovery is where you grow.', rest:true},
-  {name:'Monday',  type:'Push + Core', quests:['push','core','speed'], note:'Chest, shoulders, triceps, abs.'},
-  {name:'Tuesday', type:'Legs + Agility', quests:['legs','agility','mobility'], note:'Legs and footwork.'},
-  {name:'Wednesday',type:'Pull + Flex', quests:['pull','core','flex'], note:'Back, biceps, and stretch.'},
-  {name:'Thursday',type:'Speed + Push', quests:['speed','push','agility'], note:'Fast and explosive day.'},
-  {name:'Friday',  type:'Legs + Core', quests:['legs','core','mobility'], note:'Leg strength and trunk control.'},
-  {name:'Saturday',type:'Full Body Boss Day', quests:['push','legs','speed','mobility'], note:'Weekly boss day. Longer session, all five stats. Push your limit on the last set of each move.', boss:true}
+  {name:'Sunday',  type:'Recovery', blocks:[['mobility',3],['flex',3]], note:'Light day. Breathe, stretch, walk 10 min. Recovery is where you grow.', rest:true},
+  {name:'Monday',  type:'Push + Abs', blocks:[['push',3],['core',3],['speed',1]], note:'Chest, shoulders and triceps, then abs. A burst of speed to finish.'},
+  {name:'Tuesday', type:'Legs + Plyometrics', blocks:[['agility',2],['legs',4]], note:'Jumps first while you are fresh, then a full leg block.'},
+  {name:'Wednesday',type:'Pull + Core', blocks:[['pull',3],['core',3]], note:'Back, rear shoulders and biceps, then core.'},
+  {name:'Thursday',type:'Speed + Upper Body', blocks:[['speed',2],['push',2],['pull',2]], note:'Fast feet and conditioning, then push and pull.'},
+  {name:'Friday',  type:'Legs + Abs', blocks:[['legs',3],['core',3],['mobility',1]], note:'Single-leg strength, abs, then mobility.'},
+  {name:'Saturday',type:'Full Body Boss Day', blocks:[['agility',1],['push',1],['pull',1],['legs',1],['core',1]], note:'Weekly boss day. Four sets of every move. Push your limit on the last set.', boss:true}
 ];
+SPLIT.forEach(d=>{d.quests=[...new Set(d.blocks.map(b=>b[0]))]});
 
 const WARMUP=[['Jumping jacks',30,'sec'],['Arm circles',10,'each way'],['Hip circles',10,'each way']];
 
 /* 24-week phases */
 const PHASES=[
-  {name:'Phase 1: Foundation',weeks:[1,4],goal:'Learn form, build the habit. Nothing fancy.'},
-  {name:'Phase 2: Awakening',weeks:[5,10],goal:'Real push-ups. First pull movements. Bigger volume.'},
-  {name:'Phase 3: Iron Body',weeks:[11,16],goal:'Harder variations. Speed and agility get serious.'},
-  {name:'Phase 4: Elite',weeks:[17,22],goal:'Skill work: archer, pistol, L-sit, splits.'},
+  {name:'Phase 1: Foundation',weeks:[1,4],goal:'E-Rank moves: wall and knee push-ups, squats, bridges, crunches, step-ups. Learn every move with clean form.'},
+  {name:'Phase 2: Awakening',weeks:[5,10],goal:'D-Rank opens full and pike push-ups, table rows, split squats, seated leg raises, squat jumps and box jumps.'},
+  {name:'Phase 3: Iron Body',weeks:[11,16],goal:'C-Rank opens decline and diamond push-ups, Bulgarian split squats, cossack squats, V-ups and full burpees.'},
+  {name:'Phase 4: Elite',weeks:[17,22],goal:'B and A ranks open archer and clap push-ups, wall handstands, pistols, Nordic curls and dragon flags.'},
   {name:'Phase 5: Monarch',weeks:[23,24],goal:'Test everything. Prove your rank.'}
 ];
 const WEEKLY_FOCUS={
- 1:'Learn the moves. Slow reps, full range.',2:'Same moves, cleaner form.',3:'Add 2 reps to everything.',4:'Rank test: E to D. Clean form beats big numbers.',
- 5:'Volume up. Start climbing ladders.',6:'Push-ups should now be on knees or full.',7:'Introduce first table rows.',8:'Speed work gets timed.',9:'Push your limit sets.',10:'Rank test: D to C.',
- 11:'Harder variations begin.',12:'Agility: add jumps.',13:'Core: hollow holds.',14:'Leg strength: split squats.',15:'Flexibility check-in.',16:'Rank test: C to B.',
- 17:'Skill work begins.',18:'Archer and pistol progressions.',19:'L-sit attempts.',20:'Rank test: B to A.',21:'Splits and deep mobility.',22:'Endurance week: long, controlled sets.',
+ 1:'Learn the moves. Slow reps, full range.',2:'Same moves, cleaner form. Beat last time by one rep.',3:'New moves arrive as you level up. Read each How-to first.',4:'Rank test: E to D. Clean form beats big numbers.',
+ 5:'Full push-ups and table rows join your quest.',6:'Jumps: land soft and quiet, every time.',7:'Tempo week: three seconds down on every rep.',8:'Box jumps and squat jumps: quality over speed.',9:'Push your limit sets.',10:'Rank test: D to C.',
+ 11:'Harder variations begin: decline and diamond push-ups.',12:'Single-leg week: Bulgarian split squats and cossack squats.',13:'Core: hollow rocks and V-ups.',14:'Glutes and hamstrings: sliding leg curls.',15:'Flexibility check-in: pigeon and couch stretches.',16:'Rank test: C to B.',
+ 17:'Skill work begins: wall handstand holds.',18:'Archer push-ups and archer rows.',19:'Explosive week: clap push-ups and hurdle hops.',20:'Rank test: B to A.',21:'Pistols, shrimps and Nordic curls.',22:'Endurance week: long, controlled sets.',
  23:'Peak week.',24:'Final trial: Monarch test.'
 };
 
@@ -130,12 +271,12 @@ const DIET_TYPES={
   nonveg:{label:'Non-veg',sub:'Everything',allow:['veg','egg','nonveg']}
 };
 
-/* Rest between sets, in seconds. Stretches recover fast; boss strength sets get longer. */
-const REST={stretch:30,normal:60,boss:90};
+/* Rest between sets, in seconds. Stretches recover fast, abs a little slower; boss strength sets get longer. */
+const REST={stretch:30,core:45,normal:60,boss:90};
 
 /* System briefing shown during the Awakening and from the System menu. */
 const BRIEFING=[
-  {h:'Daily Quest',lines:['Every day the System issues a quest: a short warm-up and 3 exercises.','About 20 to 30 minutes. Finish it to earn EXP and grow your stats.','Sunday is recovery. Light, and it never brings a penalty.']},
+  {h:'Daily Quest',lines:['Every day the System issues a quest: a warm-up, 6 or 7 moves in blocks, and a short stretch.','About 45 minutes. Finish it to earn EXP and grow your stats. New, harder moves unlock as you level up and rank up.','Sunday is recovery. Light, and it never brings a penalty.']},
   {h:'Penalty',red:true,lines:['Miss a training day and your penalty level rises by 1.','You then owe extra reps: 10 times your penalty level. Clear them before your next quest.','Three clean days in a row lower the penalty by 1.']},
   {h:'Death',red:true,lines:['At penalty level 5 you die. Your run resets to Week 1.','Stay away 9 days or more and you die.','You keep a title. The first 3 days of any run are safe.']},
   {h:'Rank & Rest Pass',lines:['Levels alone never raise your rank. You must pass a rank test.','Really sick or injured? You get 1 Rest Pass each week. It saves your streak.','Your health matters more than any streak. Pain is not progress.']}
@@ -315,7 +456,9 @@ const GATE_WEAPON={E:'knight-killer',D:'venom-fang',C:'frost-spear',B:'baruka',A
 const LOGIN_REWARDS=[['exp',10],['exp',15],['box',1],['exp',20],['elixir',1],['exp',30],['key',1]];
 
 /* ---------- cool-down ----------
-   Three stretches of 60 seconds after the last exercise. */
-const COOLDOWN=['Standing hamstring stretch (secs)','Seated forward fold (secs)','Couch stretch (secs)','Pigeon pose (secs)',
-  'Deep squat hold (secs)','Thoracic rotations','Cat-cow + hip circles','World\'s greatest stretch'];
-const COOLDOWN_SECS=60, COOLDOWN_EXP=5;
+   Four stretches after the last exercise, picked for the muscles the day trained:
+   legs and jumps get lower-body stretches, push and pull days upper-body ones. */
+const COOL_LOWER=['Standing quad stretch (secs)','Standing hamstring stretch (secs)','Kneeling hip flexor stretch (secs)','Calf stretch (wall) (secs)','Figure-4 glute stretch (secs)','Butterfly stretch (secs)'];
+const COOL_UPPER=['Doorway chest stretch (secs)','Overhead triceps stretch (secs)','Child\'s pose (secs)','Cobra stretch (secs)','Thoracic rotations','Shoulder dislocates (towel)'];
+const COOLDOWN=[...COOL_LOWER,...COOL_UPPER];
+const COOLDOWN_SECS=40, COOLDOWN_EXP=5;

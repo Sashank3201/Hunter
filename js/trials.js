@@ -88,13 +88,14 @@ ACT.tForfeitOk=()=>{closeModal();trialFail(true)};
 
 /* ---------- outcomes ---------- */
 function trialPass(){
-  const r=tRun().r,rk=RANKS.find(x=>x.r===r),from=currentRank().r;
+  const r=tRun().r,rk=RANKS.find(x=>x.r===r),from=currentRank().r,eff0=effLevel();
   S.rankTestsPassed=[...new Set([...S.rankTestsPassed,r])];delete S.rankFails[r];S.trialRun=null;
   const exp=TRIAL_EXP;S.exp+=exp;
   const loot=[`+${exp} EXP`,grantItem('key',1,r),grantItem('box')];
   const firstTitle=!S.titles.includes(rk.name);if(firstTitle)S.titles=[...S.titles,rk.name];
   const ups=[];armyTrain(100,ups);const shLv=announceUps(ups);
   const up=syncLevel();save();
+  const opened=newMoves(eff0,effLevel()).map(n=>dn(n));
   const L=$('trial');L.className='layer t-rankup';
   L.innerHTML=`<div class="rankup">
     <div class="ru-rays">${Array.from({length:16},(_,i)=>`<i style="--a:${i*22.5}deg"></i>`).join('')}</div>
@@ -102,7 +103,7 @@ function trialPass(){
     <p class="ru-word">Rank up</p>
     <p class="ru-name">${r}-Rank · ${rk.name}</p>
     <div class="ru-body"><p class="m-text">The Hunter Association has re-assessed you. You are now officially <b>${r}-Rank</b>.${up?` <b>Level ${S.level}!</b>`:''}</p>
-      ${firstTitle?`<div class="m-flag lvl-flag">New title · ${rk.name}</div>`:''}${shLv.length?`<div class="m-flag">Your army trained with you · ${esc(shLv.join(', '))}</div>`:''}
+      ${firstTitle?`<div class="m-flag lvl-flag">New title · ${rk.name}</div>`:''}${opened.length?`<div class="m-list"><span>${opened.length} new ${opened.length>1?'moves':'move'} unlocked</span>${opened.slice(0,8).map(n=>`<b>${esc(n)}</b>`).join('')}${opened.length>8?`<b>and ${opened.length-8} more</b>`:''}</div>`:''}${shLv.length?`<div class="m-flag">Your army trained with you · ${esc(shLv.join(', '))}</div>`:''}
       <p class="overline">Rewards</p>${lootHTML(loot)}
       <button class="btn block" data-act="trialClose" style="margin-top:16px">Continue</button></div></div>`;
   buzz('level');setTimeout(()=>buzz('level'),1100);

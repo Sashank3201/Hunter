@@ -25,12 +25,22 @@ function todayCard(){
   if(rec.completed)return `<div class="card ${rec.rested?'':'good'} state-card"><div class="state-ic">${ic(rec.rested?'moon':'check')}</div><div>
     <p class="h3">${rec.rested?'Resting today':'Daily quest cleared'}</p>
     <p class="muted small">${rec.rested?'Rest Pass used. Your streak is safe.':`+${rec.exp||0} EXP earned. Tomorrow: ${SPLIT[(dayIndex()+1)%7].type}.`}</p></div></div>`;
-  const mins=sp.rest?'15':sp.boss?'35':'25';
+  const mins=sessionMins(all);
   return `<div class="sec-label"><span class="overline">Today's quest</span><span class="small">${esc(sp.type.replace(' Boss Day',''))} · ${mins} min</span></div>
   <div class="card tight"><ul class="list">${items.map((it,k)=>{const d=rec.done.includes(it.id);return `<li class="${d?'done':''}"><div class="lrow"><span class="ex-num">${String(k+1).padStart(2,'0')}</span><div class="grow"><p class="t">${esc(dn(it.name))}</p></div><span class="target">${it.sets}<i>×</i>${it.amt}${it.timed?'s':''}</span></div></li>`}).join('')}</ul></div>
   <div class="cta-wrap">${sp.boss?`<p class="warn-line" style="padding:0 0 10px">${ic('flame')}Weekly boss day. Push the last set to your limit.</p>`:''}
     <button class="btn block" data-act="goQuest">${doneN?`Continue quest · ${doneN}/${all.length}`:'Begin quest'}</button>
     <p class="warn-line">${ic('alert')}<span>${penaltyDue()?`Clear ${S.penaltyReps-S.penaltyProgress} penalty reps first`:`Failure to complete will result in a penalty · <b id="timeLeft">${timeLeft()}</b> left`}</span></p></div>`;
+}
+
+/* Block headings in the quest list and the plan. */
+const BLOCK_NAMES={push:'Push',pull:'Pull',legs:'Legs',core:'Abs and core',speed:'Speed and conditioning',agility:'Plyometrics',mobility:'Mobility',flex:'Flexibility'};
+const blocksLine=d=>(d.blocks||d.quests.map(k=>[k,2])).map(([a,n])=>`${BLOCK_NAMES[a]} ×${n}`).join(' · ');
+/* Rough session length in minutes: every set's work (about 3.5 s a rep, both sides for
+   one-sided moves) plus its rest, and about 6 minutes of warm-up and cool-down. */
+function sessionMins(items){
+  const secs=items.filter(i=>!i.warm).reduce((a,it)=>a+it.sets*((it.timed?it.amt:it.amt*3.5)*(/each/.test(it.name)?2:1)+restFor(it)),0);
+  return Math.max(10,Math.round(secs/60+(items.some(i=>i.warm)?6:0)));
 }
 
 /* Time until midnight, when an unfinished quest becomes a missed day. */
@@ -133,15 +143,16 @@ function renderQuest(){
     const open=openCues.has(t.id),logged=rec.sets[t.id]||[],pr=S.prs[t.name];
     return `<li class="ex-row${on?' done':''}"><div class="lrow">
       <button class="chk${on?' on':''}${pop}" aria-pressed="${on}" aria-label="${esc(dn(t.name))}: mark ${on?'not done':'done'}" data-act="toggle" data-arg="${t.id}" ${lock?'disabled':''}>${ic('check')}</button>
-      <div class="grow"><p class="t">${dn(t.name)}</p>
+      <div class="grow"><p class="t">${dn(t.name)}${t.fresh&&!on?' <span class="tag-new">New</span>':''}</p>
         <p class="s">${t.stat===t.family?t.stat:`${t.family} · ${t.stat}`}${t.note?` · <span class="boss-note">${t.note}</span>`:''}</p>
         ${logged.length?`<p class="log-line">Logged ${logged.join(' · ')}${t.timed?' sec':''}</p>`:pr?`<p class="log-line faint">Best ${pr.best}${pr.timed?' sec':''}</p>`:''}
-        <button class="how-btn" aria-expanded="${open}" data-act="cue" data-arg="${t.id}">How to ${ic('down')}</button></div>
+        <button class="how-btn" aria-expanded="${open}" data-act="cue" data-arg="${t.id}">How to ${ic('down')}</button>${!lock&&!on&&!logged.length&&canEase(t)?`<button class="how-btn ease-btn" data-act="ease" data-arg="${t.id}">${t.orig?`Back to ${esc(dn(t.orig))}`:'Too hard? Easier version'}</button>`:''}</div>
       <span class="target">${t.sets}<i>×</i>${t.amt}${t.timed?'s':''}</span></div>
       ${open&&t.cue?`<div class="ex-cue">${demoHTML(t.name)}<p>${t.cue}</p></div>`:''}</li>`;
   };
   if(warm.length)h+=`<div class="sec-label"><span class="overline">Warm-up</span><span class="faint small">2 min</span></div><div class="card tight"><ul class="list">${warm.map(w=>row(w,true)).join('')}</ul></div>`;
-  h+=`<div class="sec-label"><span class="overline">Main quest</span><span class="faint small">Tap □ to log by hand</span></div><div class="card tight"><ul class="list">${main.map(t=>row(t,false)).join('')}</ul></div>`;
+  const blocks=[];main.forEach(t=>{const B=blocks[blocks.length-1];if(B&&B.b===t.block&&B.key===t.key)B.items.push(t);else blocks.push({b:t.block,key:t.key,items:[t]})});
+  h+=blocks.map((B,i)=>`<div class="sec-label"><span class="overline">${BLOCK_NAMES[B.key]}${B.items.length>1?` · ${B.items.length} moves`:''}</span>${i===0?'<span class="faint small">Tap □ to log by hand</span>':''}</div><div class="card tight"><ul class="list">${B.items.map(t=>row(t,false)).join('')}</ul></div>`).join('');
   justToggled=null;
 
   if(!sp.rest&&!notStarted())h+=fuelHTML();
@@ -162,6 +173,7 @@ function renderQuest(){
   startDemos();
 }
 ACT.cue=id=>{openCues.has(id)?openCues.delete(id):openCues.add(id);renderQuest()};
+ACT.ease=id=>{if(swapMove(id)){buzz('tap');renderAll()}};
 
 /* ---------- PROGRESS ---------- */
 function renderProgress(){
@@ -174,13 +186,18 @@ function renderProgress(){
 ACT.prog=k=>{progTab=k;renderProgress();animateIn($('progBody'))};
 
 function skillsHTML(){
-  let h=`<p class="muted small" style="margin:-4px 4px 16px">The System moves you up a step after steady training. Never rush a step.</p>`;
-  Object.keys(LADDERS).forEach(k=>{
-    const L=LADDERS[k],cur=S.ladders[k].step,pr=S.prs[L.steps[cur][0]];
-    h+=`<div class="card ladder"><div class="card-head"><span class="h2">${L.title}</span><span class="pill">${cur+1} / ${L.steps.length}</span></div>
-      <p class="move">${dn(L.steps[cur][0])}${pr?` · <span style="color:var(--accent-hi)">best ${pr.best}${pr.timed?'s':''}</span>`:''}</p>
-      <div class="steps-bar" aria-hidden="true">${L.steps.map((s,i)=>`<i class="${i<cur?'d':i===cur?'c':''}"></i>`).join('')}</div>
-      <details class="more"><summary>All steps ${ic('down')}</summary><ol class="step-list">${L.steps.map((s,i)=>`<li class="${i<cur?'d':i===cur?'c':''}">${dn(s[0])}</li>`).join('')}</ol></details></div>`;
+  const lv=effLevel(),nr=nextRank();
+  let h=`<p class="muted small" style="margin:-4px 4px 16px">Each area trains several patterns. Harder moves unlock as you level up${nr&&S.level>=nr.lv?`. You're at the cap for your rank: pass the ${nr.r}-Rank trial to open the next moves`:', and each rank caps your level until you pass its trial'}.</p>`;
+  Object.keys(AREAS).forEach(k=>{
+    const A=AREAS[k],all=CHAINS[k].flatMap(c=>c[1]).sort((x,y)=>x[1]-y[1]),open=all.filter(m=>m[1]<=lv).length;
+    h+=`<div class="card ladder"><div class="card-head"><span class="h2">${A.title}</span><span class="pill">${open} / ${all.length}</span></div>`;
+    if(A.pool){const nx=all.find(m=>m[1]>lv);h+=`<p class="move">${open} moves in rotation${nx?`<br><span class="faint small">Next: ${dn(nx[0])} at level ${nx[1]}</span>`:''}</p>`}
+    else CHAINS[k].forEach(([cn,ms],c)=>{
+      const cur=chainMove(k,c,lv),nx=ms.find(m=>m[1]>lv),pr=cur&&S.prs[cur];
+      h+=`<p class="move chain-line"><span class="faint">${cn}</span> ${cur?dn(cur):`opens at level ${ms[0][1]}`}${pr?` · <span style="color:var(--accent-hi)">best ${pr.best}${pr.timed?'s':''}</span>`:''}${nx?`<br><span class="faint small">Next: ${dn(nx[0])} · level ${nx[1]}</span>`:''}</p>`;
+    });
+    h+=`<div class="steps-bar" aria-hidden="true">${all.map(m=>`<i class="${m[1]<=lv?'d':''}"></i>`).join('')}</div>
+      <details class="more"><summary>All moves ${ic('down')}</summary><ol class="step-list">${all.map(m=>`<li class="${m[1]<=lv?'d':''}">${dn(m[0])} <span class="faint">· Lv ${m[1]}</span></li>`).join('')}</ol></details></div>`;
   });
   return h;
 }
@@ -189,7 +206,7 @@ function planHTML(){
   const cw=weekNumber(),today=dayIndex();
   const testWeek={};Object.keys(RANK_TESTS).forEach(r=>testWeek[RANK_TESTS[r].week]=r);
   let h=`<div class="sec-label" style="margin-top:0"><span class="overline">Weekly split</span></div><div class="card tight"><ul class="list plain">`+
-    [1,2,3,4,5,6,0].map(i=>`<li class="lrow plan-row${i===today?' today':''}"><div class="grow"><p class="t">${SPLIT[i].name}</p><p class="s">${SPLIT[i].type}</p></div>${i===today?'<span class="pill accent">Today</span>':SPLIT[i].boss?`<span class="pill warn">${ic('flame')}Boss</span>`:SPLIT[i].rest?`<span class="pill">${ic('moon')}Rest</span>`:''}</li>`).join('')+`</ul></div>`;
+    [1,2,3,4,5,6,0].map(i=>`<li class="lrow plan-row${i===today?' today':''}"><div class="grow"><p class="t">${SPLIT[i].name}</p><p class="s">${SPLIT[i].type}</p><p class="s faint">${blocksLine(SPLIT[i])}</p></div>${i===today?'<span class="pill accent">Today</span>':SPLIT[i].boss?`<span class="pill warn">${ic('flame')}Boss</span>`:SPLIT[i].rest?`<span class="pill">${ic('moon')}Rest</span>`:''}</li>`).join('')+`</ul></div>`;
   const phases=S.job?[...PHASES,{name:`Phase 6: ${JOBS[S.job.path].title}`,weeks:[25,36],goal:JOBS[S.job.path].desc}]:PHASES;
   phases.forEach(p=>{
     const nowIn=cw>=p.weeks[0]&&cw<=p.weeks[1];

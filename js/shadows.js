@@ -6,8 +6,9 @@
 
 /* ---------- model ---------- */
 function shadowFor(ex){return S.shadows.find(s=>s.ex===ex)}
-function ladderOf(ex){for(const k in LADDERS)if(LADDERS[k].steps.some(s=>s[0]===ex))return k;return null}
-function stepIndexOf(ex){for(const k in LADDERS){const i=LADDERS[k].steps.findIndex(s=>s[0]===ex);if(i>=0)return i}return 0}
+function ladderOf(ex){return MOVES[ex]?MOVES[ex].a:null}
+/* How advanced a move is, 0-7 by its unlock level, for the grade of the shadow it extracts. */
+function stepIndexOf(ex){return MOVES[ex]?Math.min(7,Math.round((MOVES[ex].lv-1)*7/19)):0}
 const bodyOf=sh=>SHADOW_BODY[sh.n]||SHADOW_BODY[ladderOf(sh.ex)]||SHADOW_BODY.push;
 const skillOf=sh=>SHADOW_SKILLS[sh.n]||SOLDIER_SKILL((LADDERS[ladderOf(sh.ex)]||LADDERS.push).stat);
 const roleOf=sh=>S.army.captain===sh.ex?'captain':S.army.vice===sh.ex?'vice':null;

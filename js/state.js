@@ -105,16 +105,68 @@ function syncLevel(){
 function currentRank(){let r=RANKS[0];for(const x of RANKS)if(S.level>=x.lv&&(x.lv===0||S.rankTestsPassed.includes(x.r)))r=x;return r}
 function nextRank(){const c=currentRank();const i=RANKS.findIndex(x=>x.r===c.r);return RANKS[i+1]||null}
 
-/* Target reps scale with the week so you improve every week even without a ladder step. */
-function targetFor(key){
-  const L=LADDERS[key],st=L.steps[Math.min(S.ladders[key].step,L.steps.length-1)];
-  const base=st[1],w=weekNumber();
-  // grows slowly then plateaus until step up; the job phase keeps raising it
-  const bonus=w>24?Math.min(12,6+Math.floor((w-24)/2)):Math.min(6,Math.floor((w-1)/2));
-  const isTimed=/secs|sec on|secs on/.test(st[0]);
-  const val=isTimed?base+bonus*3:base+bonus;
-  return {name:st[0],goal:base,sets:3,target:Math.max(3,Math.round(val*0.7)),graduate:base,timed:isTimed};
+/* ---------- the program ----------
+   Moves unlock by level, but a rank caps your level until its trial is passed,
+   so passing a trial is what opens the next rank's moves. */
+function effLevel(){const nr=nextRank();return Math.min(S.level,nr?nr.lv-1:99)}
+/* The current move of a chain: the hardest one unlocked. */
+function chainMove(a,c,lv=effLevel()){let m=null;CHAINS[a][c][1].forEach(x=>{if(x[1]<=lv)m=x});return m&&m[0]}
+/* Moves that unlock when the capped level rises from a to b. */
+function newMoves(a,b){return Object.keys(MOVES).filter(n=>MOVES[n].lv>a&&MOVES[n].lv<=b)}
+const isTimed=n=>/secs|sec on|secs on/.test(n);
+const moveId=n=>'m-'+n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+/* The best set of this move in its last session before today. Older saves logged sets by area,
+   so with no history yet the record (a little under it) stands in. */
+function lastBest(n){
+  const id=moveId(n),today=todayStr();let d=null;
+  for(const k in S.log)if(k<today&&S.log[k].sets&&S.log[k].sets[id]&&(!d||k>d))d=k;
+  if(d)return Math.max(...S.log[d].sets[id]);
+  const pr=S.prs[n];return pr?Math.round(pr.best*.85):0;
 }
+/* Today's target: one rep (or 3 s) past last time, from the move's start up to its cap. */
+function moveGoal(n){
+  const M=MOVES[n],t=isTimed(n),base=M?M.base:10,last=lastBest(n);
+  const cap=t?base*2:base+8;
+  return Math.max(t?10:3,Math.min(cap,last?last+(t?3:1):base));
+}
+/* An area's headline move and target, for story missions and raids. */
+function targetFor(key){
+  const name=chainMove(key,0)||LADDERS[key].steps[0][0],t=moveGoal(name);
+  return {name,goal:t,sets:3,target:t,graduate:t,timed:isTimed(name)};
+}
+/* n moves for one block. Strength areas take the current move of n chains: the area's main chain
+   (push-ups, rows, squats...) always, the others in rotation when there are more than n.
+   Mobility and flexibility rotate through every move unlocked. */
+function pickMoves(a,n,seed){
+  const lv=effLevel(),day=dayDiff('2024-01-01',todayStr())+seed;
+  if(AREAS[a].pool){
+    const all=CHAINS[a].flatMap(c=>c[1]).filter(m=>m[1]<=lv).map(m=>m[0]);
+    return all.map((m,i)=>all[(i+day)%all.length]).slice(0,Math.min(n,all.length));
+  }
+  const cur=CHAINS[a].map((c,i)=>[i,chainMove(a,i,lv)]).filter(x=>x[1]);
+  if(cur.length<=n)return cur.map(x=>x[1]);
+  const head=cur[0][0]===0?[cur[0]]:[],rest=cur.slice(head.length),off=day%rest.length;
+  return [...head,...[...rest.slice(off),...rest.slice(0,off)].slice(0,n-head.length)].sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
+}
+function dayBlocks(sp){return sp.blocks||sp.quests.map((k,i)=>[k,i?2:3])}
+/* Today's plan, fixed once made so a level-up or rank-up never changes it mid-day.
+   A day begun before blocks existed keeps one move per area under the area's key. */
+function planToday(){
+  const rec=todayRec();if(rec.plan)return rec.plan;
+  const sp=todaysSplit(),legacy=sp.quests.some(k=>rec.done.includes(k)||rec.sets[k]);
+  rec.plan=legacy?sp.quests.map(k=>({id:k,a:k,n:chainMove(k,0)||LADDERS[k].steps[0][0],b:0}))
+    :dayBlocks(sp).flatMap(([a,n],b)=>pickMoves(a,n,b*3).map(m=>({id:moveId(m),a,n:m,b})));
+  return rec.plan;
+}
+/* Swap a move for the one before it in its chain (or back), for today only, before any set is logged. */
+function swapMove(id){
+  const rec=todayRec(),p=(rec.plan||[]).find(x=>x.id===id);
+  if(!p||rec.sets[id]||rec.done.includes(id))return false;
+  if(p.orig){p.n=p.orig;delete p.orig}
+  else{const M=MOVES[p.n],prev=M&&CHAINS[M.a][M.c][1][M.i-1];if(!prev||AREAS[M.a].pool)return false;p.orig=p.n;p.n=prev[0]}
+  p.id=moveId(p.n);save();return true;
+}
+function canEase(t){const M=MOVES[t.name];return !!(t.orig||M&&M.i>0&&!AREAS[M.a].pool)}
 
 /* ---------- today ---------- */
 function todayRec(){const k=todayStr();if(!S.log[k])S.log[k]={done:[],completed:false,penaltyDone:false};const r=S.log[k];if(!r.sets)r.sets={};return r}
@@ -122,13 +174,14 @@ function todaysSplit(){
   const base=SPLIT[dayIndex()];
   if(!inJobPhase()||base.rest)return base;
   const J=JOBS[S.job.path],q=J.days[dayIndex()];
-  return Object.assign({},base,{quests:q,type:(base.boss?'Boss Day: ':'')+q.map(k=>LADDERS[k].title).join(' + '),
+  return Object.assign({},base,{quests:q,blocks:q.map((k,i)=>[k,i?2:3]),type:(base.boss?'Boss Day: ':'')+q.map(k=>LADDERS[k].title).join(' + '),
     note:`${J.title} program, week ${weekNumber()-24} of 12. ${J.focus[weekNumber()-25]}`});
 }
 const dn=n=>n.replace(' (secs)','').replace('(secs on/off)','(on/off)');
 
 function restFor(it){
   if(it.key==='mobility'||it.key==='flex')return REST.stretch;
+  if(it.key==='core'&&!todaysSplit().boss)return REST.core;
   if(inJobPhase())return JOBS[S.job.path].rest;
   if(todaysSplit().boss&&it.stat==='Strength')return REST.boss;
   return REST.normal;
@@ -138,13 +191,12 @@ function buildQuestItems(){
   const sp=todaysSplit();
   const items=[];
   if(!sp.rest)WARMUP.forEach((w,i)=>items.push({id:'w'+i,name:w[0],amt:w[1]+' '+w[2],warm:true}));
-  sp.quests.forEach(k=>{
-    const L=LADDERS[k],t=targetFor(k);
+  planToday().forEach(p=>{
+    const L=LADDERS[p.a],M=MOVES[p.n]||{};
     const sets=sp.rest?1:(sp.boss||inJobPhase()?4:3);
-    const tg=sp.boss?Math.round(t.target*1.25):t.target;
-    const st=L.steps[Math.min(S.ladders[k].step,L.steps.length-1)];
-    items.push({id:k,key:k,name:t.name,sets,amt:tg,timed:t.timed,stat:L.stat,family:L.title,cue:st[2]||'',
-      note:(sp.boss&&L.stat==='Strength')?'Last set to your limit':''});
+    const t=moveGoal(p.n),tg=sp.boss?Math.round(t*1.25):t;
+    items.push({id:p.id,key:p.a,name:p.n,sets,amt:tg,timed:isTimed(p.n),stat:L.stat,family:L.title,cue:M.cue||'',block:p.b,orig:p.orig,
+      fresh:!S.prs[p.n],note:(sp.boss&&L.stat==='Strength')?'Last set to your limit':''});
   });
   return items;
 }
