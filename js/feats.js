@@ -5,7 +5,8 @@ const completedDays=()=>Object.entries(S.log).filter(([,r])=>r.completed&&!r.res
 const hourOf=r=>r.doneAt?new Date(r.doneAt).getHours():null;
 function goalWeeks(){const m=new Set(completedDays().map(([d])=>mondayOf(d)));return [...m].filter(x=>trainedInWeek(x)>=5).length}
 function minutesTrained(){return Object.values(S.log).reduce((a,r)=>a+(r.duration||0),0)}
-function fullPushupDone(){const st=LADDERS.push.steps.map(s=>s[0]);return st.slice(3).some(n=>S.prs[n])||S.ladders.push.step>3}
+/* Any floor push-up from the full push-up up the chest chain, or a diamond push-up. */
+function fullPushupDone(){const F=MOVES['Full push-up'];return Object.keys(S.prs).some(n=>{const M=MOVES[n];return M&&M.a==='push'&&(M.c===F.c&&M.i>=F.i||/diamond/i.test(n))})||S.ladders.push.step>3}
 const FEAT=(id,title,desc,target,prog,reward,exp)=>({id,title,desc,target,prog,reward,exp});
 const FEATS=[
   FEAT('first-quest','The Beginning','Clear your first daily quest.',1,()=>S.totalQuests,[['key',1,'E'],['weapon',1,'rusty']],25),

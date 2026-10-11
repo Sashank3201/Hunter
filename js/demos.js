@@ -217,7 +217,247 @@ const DEMOS={
     P([100,112],-90,{tl:.55,a1:ang(40,10),a2:ang(140,170),l1:ang(8,8),l2:ang(172,172)})]},
   'Front-split progression (secs)':{dur:1.4,f:[
     P([96,100],-88,{a1:ik(104,119,1),a2:ik(88,119,1),l1:ik(150,117,1),l2:ik(42,116,1)}),
-    P([96,110],-88,{a1:ik(106,119,1),a2:ik(86,119,1),l1:ik(158,117,1),l2:ik(34,116,1)})]}
+    P([96,110],-88,{a1:ik(106,119,1),a2:ik(86,119,1),l1:ik(158,117,1),l2:ik(34,116,1)})]},
+
+  /* ---------- the rank program's moves ---------- */
+  /* push */
+  'Plank shoulder taps':{dur:.5,f:[
+    P([83,100],-22,{a1:ik(116,119,-1),a2:ik(120,119,-1),l1:ik(38,117,1),l2:ik(46,117,1)}),
+    P([83,99],-22,{a1:ik(112,90,1),a2:ik(120,119,-1),l1:ik(38,117,1),l2:ik(46,117,1)})]},
+  'Incline pike push-up (hands on box)':{props:['bench:136:178:96'],f:[
+    P([88,72],20,{a1:ik(152,96,-1),a2:ik(156,96,-1),l1:ik(72,117,1),l2:ik(76,117,1)}),
+    P([96,78],32,{a1:ik(152,96,1),a2:ik(156,96,1),l1:ik(72,117,1),l2:ik(76,117,1)})]},
+  'Pike push-up':{f:[
+    P([86,76],39,{a1:ik(140,119,-1),a2:ik(144,119,-1),l1:ik(62,117,1),l2:ik(66,117,1)}),
+    P([96,86],35,{a1:ik(140,119,1),a2:ik(144,119,1),l1:ik(62,117,1),l2:ik(66,117,1)})]},
+  'Elevated pike push-up (feet on box)':{props:['bench:24:62:94'],f:[
+    P([84,58],62,{a1:ik(114,119,-1),a2:ik(118,119,-1),l1:ik(50,91,1),l2:ik(54,91,1)}),
+    P([90,66],66,{a1:ik(114,119,1),a2:ik(118,119,1),l1:ik(50,91,1),l2:ik(54,91,1)})]},
+  'Wall handstand hold (secs)':{props:['wall:150'],dur:1.6,f:[
+    P([136,50],90,{hd:0,a1:ik(134,119,1),a2:ik(138,119,1),l1:ik(147,6,1),l2:ik(145,8,1)}),
+    P([137,50],91,{hd:0,a1:ik(134,119,1),a2:ik(138,119,1),l1:ik(147,6,1),l2:ik(145,8,1)})]},
+  'Wall handstand push-up negative':{props:['wall:150'],dur:1.2,f:[
+    P([136,50],90,{a1:ik(134,119,1),a2:ik(138,119,1),l1:ik(147,6,1),l2:ik(145,8,1)}),
+    P([136,66],90,{a1:ik(130,119,1),a2:ik(142,119,1),l1:ik(147,22,1),l2:ik(145,24,1)})]},
+  'Bench dip (knees bent)':{props:['bench:40:78:90'],f:[
+    P([83,94],-92,{a1:ik(76,90,1),a2:ik(74,90,1),l1:ik(108,117,-1),l2:ik(104,117,-1)}),
+    P([83,110],-92,{a1:ik(76,90,1),a2:ik(74,90,1),l1:ik(108,117,-1),l2:ik(104,117,-1)})]},
+  'Bench dip (legs straight)':{props:['bench:40:78:90'],f:[
+    P([83,94],-92,{a1:ik(76,90,1),a2:ik(74,90,1),l1:ik(128,117,1),l2:ik(124,117,1)}),
+    P([83,110],-92,{a1:ik(76,90,1),a2:ik(74,90,1),l1:ik(128,117,1),l2:ik(124,117,1)})]},
+  'Bench dip (feet elevated)':{props:['bench:40:78:90','bench:118:152:96'],f:[
+    P([83,94],-92,{a1:ik(76,90,1),a2:ik(74,90,1),l1:ik(130,93,1),l2:ik(126,93,1)}),
+    P([83,110],-92,{a1:ik(76,90,1),a2:ik(74,90,1),l1:ik(130,93,1),l2:ik(126,93,1)})]},
+  'Bodyweight triceps extension (hands on box)':{props:['bench:138:178:96'],f:[
+    P([119,87],-41,{a1:ik(146,96,-1),a2:ik(150,96,-1),l1:ik(84,117,1),l2:ik(88,117,1)}),
+    P([127,102],-18,{a1:ik(146,96,-1),a2:ik(150,96,-1),l1:ik(84,117,1),l2:ik(88,117,1)})]},
+  'Clap push-up':{mode:'loop',dur:.3,f:[
+    P([86,111],-7,{a1:ik(116,119,-1),a2:ik(120,119,-1),l1:ik(40,117,1),l2:ik(44,117,1)}),
+    P([83,100],-22,{a1:ik(116,119,-1),a2:ik(120,119,-1),l1:ik(40,117,1),l2:ik(44,117,1)}),
+    P([82,94],-28,{a1:ang(60,40),a2:ang(64,44),l1:ik(40,117,1),l2:ik(44,117,1)}),
+    P([83,100],-22,{a1:ik(116,119,-1),a2:ik(120,119,-1),l1:ik(40,117,1),l2:ik(44,117,1)})]},
+  'One-arm push-up (hand on box)':{props:['bench:138:178:96'],f:[
+    P([119,87],-41,{a1:ik(146,96,-1),a2:ang(160,20),l1:ik(80,117,1),l2:ik(90,117,1)}),
+    P([124,95],-26,{a1:ik(146,96,-1),a2:ang(168,20),l1:ik(80,117,1),l2:ik(90,117,1)})]},
+  'One-arm push-up':{f:[
+    P([83,100],-22,{a1:ik(116,119,-1),a2:ang(160,20),l1:ik(38,117,1),l2:ik(48,117,1)}),
+    P([86,109],-9,{a1:ik(116,119,-1),a2:ang(172,20),l1:ik(38,117,1),l2:ik(48,117,1)})]},
+
+  /* pull */
+  'Doorframe row (each arm)':{props:['wall:136'],f:[
+    P([118,80],-112,{a1:ik(136,54,1),a2:ang(100,92),l1:ik(130,117,-1),l2:ik(126,117,-1)}),
+    P([122,78],-96,{a1:ik(136,54,1),a2:ang(96,92),l1:ik(130,117,-1),l2:ik(126,117,-1)})]},
+  'One-arm backpack row (each arm)':{props:['bench:128:170:92','bag'],f:[
+    P([88,74],-18,{a1:ang(92,90),a2:ik(142,92,-1),l1:ik(100,117,-1),l2:ik(70,117,1)}),
+    P([88,74],-18,{a1:ik(108,70,1),a2:ik(142,92,-1),l1:ik(100,117,-1),l2:ik(70,117,1)})]},
+  'Table row, legs straight':{props:['table:60:142:62'],f:[
+    P([106,104],-16,{a1:ik(140,65,1),a2:ik(136,65,1),l1:ik(62,117,1),l2:ik(66,117,1)}),
+    P([103,95],-28,{a1:ik(140,65,1),a2:ik(136,65,1),l1:ik(62,117,1),l2:ik(66,117,1)})]},
+  'Superman hold (secs)':{dur:1.4,f:[
+    P([82,113],0,{a1:ang(0,0),a2:ang(2,2),l1:ang(180,180),l2:ang(182,182)}),
+    P([82,113],-8,{a1:ang(-10,-10),a2:ang(-8,-8),l1:ang(188,188),l2:ang(190,190),hd:4})]},
+  'Backpack curl':{props:['bag'],dur:.9,f:[
+    STAND(96,{a1:ang(94,92)}),
+    STAND(96,{a1:ang(96,-62)})]},
+
+  /* legs */
+  'Wall sit (secs)':{props:['wall:70'],dur:1.6,f:[
+    P([80,94],-90,{a1:ang(70,10),a2:ang(74,14),l1:ik(104,117,-1),l2:ik(100,117,-1)}),
+    P([80,95],-90,{a1:ang(70,10),a2:ang(74,14),l1:ik(104,117,-1),l2:ik(100,117,-1)})]},
+  'Cossack squat (each side)':{front:1,f:[
+    P([100,82],-90,{a1:ik(106,62,1),a2:ik(94,62,-1),l1:ik(130,117,-1),l2:ik(70,117,1)}),
+    P([114,100],-96,{a1:ik(116,80,1),a2:ik(104,80,-1),l1:ik(130,117,-1),l2:ik(70,117,1)})]},
+  'Box pistol (each leg)':{props:['bench:56:90:92'],f:[
+    P([100,72],-90,{a1:ang(10,4),a2:ang(14,8),l1:ik(104,117,-1),l2:ik(126,100,-1)}),
+    P([86,90],-66,{a1:ang(0,0),a2:ang(4,4),l1:ik(104,117,-1),l2:ik(130,94,-1)})]},
+  'Step-up (each leg)':{props:['bench:112:150:104'],f:[
+    STAND(92,{l1:ik(118,101,-1),l2:ik(90,117,1)}),
+    P([122,56],-90,{a1:ang(96,92),a2:ang(84,88),l1:ik(124,101,1),l2:ik(112,94,-1)})]},
+  'Reverse lunge (each leg)':{f:[
+    STAND(100),
+    P([96,96],-88,{a1:ang(94,92),a2:ang(86,88),l1:ik(116,117,-1),l2:ik(66,116,-1)})]},
+  'Glute bridge':{f:[
+    P([84,113],0,{a1:ang(172,174),a2:ang(170,172),l1:ik(56,117,1),l2:ik(60,117,1)}),
+    P([84,96],28,{a1:ang(176,178),a2:ang(174,176),l1:ik(56,117,1),l2:ik(60,117,1)})]},
+  'Single-leg glute bridge (each leg)':{f:[
+    P([84,113],0,{a1:ang(172,174),a2:ang(170,172),l1:ik(56,117,1),l2:ang(200,200)}),
+    P([84,96],28,{a1:ang(176,178),a2:ang(174,176),l1:ik(56,117,1),l2:ang(208,208)})]},
+  'Good morning':{f:[
+    STAND(96,{a1:ik(90,28,1),a2:ik(92,30,1)}),
+    P([84,72],-12,{a1:ik(126,57,1),a2:ik(128,59,1),l1:ik(98,117,-1),l2:ik(94,117,-1)})]},
+  'Hip thrust (shoulders on box)':{props:['bench:118:152:96'],f:[
+    P([86,110],-24,{a1:ang(160,175),a2:ang(162,177),l1:ik(58,117,1),l2:ik(62,117,1)}),
+    P([86,94],-2,{a1:ang(170,178),a2:ang(172,180),l1:ik(56,117,1),l2:ik(60,117,1)})]},
+  'Single-leg Romanian deadlift (each leg)':{f:[
+    STAND(100,{l2:ik(94,117,1)}),
+    P([96,72],-6,{a1:ang(88,90),a2:ang(92,92),l1:ik(100,117,-1),l2:ang(178,178)})]},
+  'Sliding leg curl (towel)':{f:[
+    P([84,104],14,{a1:ang(172,174),a2:ang(170,172),l1:ik(40,117,1),l2:ik(44,117,1)}),
+    P([84,94],30,{a1:ang(176,178),a2:ang(174,176),l1:ik(58,117,1),l2:ik(62,117,1)})]},
+  'Nordic curl negative':{props:['couch'],dur:1.6,f:[
+    P([66,94],-90,{a1:ang(96,92),a2:ang(84,88),l1:ang(90,180),l2:ang(92,182)}),
+    P([85,104],-35,{a1:ik(124,117,-1),a2:ik(128,117,-1),l1:ang(145,180),l2:ang(147,182)})]},
+  'Calf raise':{f:[
+    STAND(100),
+    P([100,67],-90,{a1:ang(96,92),a2:ang(84,88),l1:ik(104,113,1),l2:ik(100,113,1),tip:1})]},
+  'Calf raise on a step':{props:['bench:96:150:106'],f:[
+    P([100,60],-90,{a1:ang(96,92),a2:ang(84,88),l1:ik(104,106,1),l2:ik(100,106,1)}),
+    P([100,56],-90,{a1:ang(96,92),a2:ang(84,88),l1:ik(104,102,1),l2:ik(100,102,1),tip:1})]},
+
+  /* core */
+  'Crunch':{f:[
+    P([84,113],0,{a1:ik(128,106,1),a2:ik(130,106,1),l1:ik(56,117,1),l2:ik(60,117,1)}),
+    P([84,113],-26,{a1:ik(124,92,1),a2:ik(126,92,1),l1:ik(56,117,1),l2:ik(60,117,1)})]},
+  'Leg-extended crunch':{f:[
+    P([84,113],0,{a1:ik(128,106,1),a2:ik(130,106,1),l1:ang(-88,-88),l2:ang(-92,-92)}),
+    P([84,113],-28,{a1:ik(123,91,1),a2:ik(125,91,1),l1:ang(-88,-88),l2:ang(-92,-92)})]},
+  'Tuck-up':{dur:.8,f:[
+    P([88,112],-160,{a1:ang(-165,-165),a2:ang(-162,-162),l1:ang(-8,-8),l2:ang(-6,-6)}),
+    P([88,110],-112,{a1:ang(-20,10),a2:ang(-16,14),l1:ang(-58,32),l2:ang(-56,34)})]},
+  'Dragon flag negative':{props:['bench:60:150:100'],dur:1.6,f:[
+    P([130,61],90,{hd:-90,a1:ik(150,100,1),a2:ik(152,100,1),l1:ang(-90,-90),l2:ang(-92,-92)}),
+    P([95,88],15,{hd:-15,a1:ik(150,100,1),a2:ik(152,100,1),l1:ang(195,195),l2:ang(193,193)})]},
+  'Reverse crunch':{f:[
+    P([84,113],0,{a1:ang(172,174),a2:ang(170,172),l1:ang(-90,180),l2:ang(-92,182)}),
+    P([84,106],8,{a1:ang(176,178),a2:ang(174,176),l1:ang(-48,170),l2:ang(-50,172)})]},
+  'Seated leg raise':{dur:.9,f:[
+    P([84,113],-125,{a1:ik(64,119,1),a2:ik(60,119,1),l1:ang(0,0),l2:ang(2,2)}),
+    P([84,113],-125,{a1:ik(64,119,1),a2:ik(60,119,1),l1:ang(-32,-32),l2:ang(-30,-30)})]},
+  'Flutter kicks (secs)':{dur:.22,f:[
+    P([84,113],0,{a1:ang(172,174),a2:ang(170,172),l1:ang(188,188),l2:ang(198,198)}),
+    P([84,113],0,{a1:ang(172,174),a2:ang(170,172),l1:ang(198,198),l2:ang(188,188)})]},
+  'Bench leg raise':{props:['bench:84:150:100'],f:[
+    P([90,97],0,{a1:ik(146,100,1),a2:ik(148,100,1),l1:ang(172,172),l2:ang(174,174)}),
+    P([90,97],0,{a1:ik(146,100,1),a2:ik(148,100,1),l1:ang(-90,-90),l2:ang(-92,-92)})]},
+  'Tuck L-sit (secs)':{dur:1.6,f:[
+    P([92,108],-90,{a1:ik(94,119,1),a2:ik(90,119,1),l1:ang(-40,100),l2:ang(-36,104)}),
+    P([92,106],-90,{a1:ik(94,119,1),a2:ik(90,119,1),l1:ang(-42,98),l2:ang(-38,102)})]},
+  'Knee side plank (secs)':{front:1,dur:1.6,f:[
+    P([100,112],-162,{a1:ang(90,180),a2:ik(98,104,1),l1:ang(28,180),l2:ang(30,182)}),
+    P([100,110],-162,{a1:ang(90,180),a2:ik(98,102,1),l1:ang(28,180),l2:ang(30,182)})]},
+  'Side plank (secs)':{front:1,dur:1.6,f:[
+    P([100,110],-165,{a1:ang(90,180),a2:ik(98,102,1),l1:ang(10,10),l2:ang(8,8)}),
+    P([100,108],-164,{a1:ang(90,180),a2:ik(98,100,1),l1:ang(10,10),l2:ang(8,8)})]},
+  'Bicycle crunch':{dur:.6,f:[
+    P([84,113],-24,{a1:ik(124,93,1),a2:ik(126,93,1),l1:ang(-50,180),l2:ang(190,190)}),
+    P([84,113],-24,{a1:ik(124,93,1),a2:ik(126,93,1),l1:ang(190,190),l2:ang(-50,180)})]},
+  'Russian twist':{front:1,dur:.6,f:[
+    P([100,110],-86,{tl:.85,a1:ik(80,98,1),a2:ik(82,100,-1),l1:ik(116,116,-1),l2:ik(84,116,1)}),
+    P([100,110],-94,{tl:.85,a1:ik(118,100,1),a2:ik(120,98,-1),l1:ik(116,116,-1),l2:ik(84,116,1)})]},
+  'Bird dog':{dur:1,f:[
+    P([78,93],-10,{a1:ik(115,119,1),a2:ik(119,119,1),l1:ang(90,180),l2:ang(92,182)}),
+    P([78,93],-10,{a1:ang(-12,-12),a2:ik(119,119,1),l1:ang(90,180),l2:ang(184,184)})]},
+  'Hollow rocks':{dur:.45,f:[
+    P([96,111],-4,{a1:ang(-14,-14),a2:ang(-12,-12),l1:ang(204,204),l2:ang(202,202),hd:-6}),
+    P([96,112],-22,{a1:ang(-30,-30),a2:ang(-28,-28),l1:ang(186,186),l2:ang(184,184),hd:-6})]},
+  'Body saw (towel)':{f:[
+    P([85,108],-11,{a1:ang(90,0),a2:ang(92,2),l1:ik(40,117,1),l2:ik(44,117,1)}),
+    P([77,108],-11,{a1:ang(65,0),a2:ang(67,2),l1:ik(32,117,1),l2:ik(36,117,1)})]},
+  'Kneeling towel rollout':{dur:1,f:[
+    P([80,93],-12,{a1:ik(116,119,-1),a2:ik(120,119,-1),l1:ang(90,180),l2:ang(92,182)}),
+    P([94,104],-4,{a1:ik(160,117,-1),a2:ik(164,117,-1),l1:ang(137,180),l2:ang(139,182)})]},
+
+  /* speed */
+  'A-march (secs)':{dur:.6,f:[
+    P([100,70],-88,{a1:ang(130,-60),a2:ang(40,-80),l1:ang(-4,90),l2:ik(100,117,-1)}),
+    P([100,70],-88,{a1:ang(40,-80),a2:ang(130,-60),l1:ik(104,117,-1),l2:ang(-4,90)})]},
+  'Butt kicks (secs)':{dur:.22,f:[
+    P([100,70],-86,{a1:ang(140,-150),a2:ang(40,-60),l1:ang(96,-100),l2:ik(100,116,1)}),
+    P([100,70],-86,{a1:ang(40,-60),a2:ang(140,-150),l1:ik(104,116,1),l2:ang(96,-100)})]},
+  'Wall drill (secs)':{props:['wall:156'],dur:.3,f:[
+    P([116,85],-45,{a1:ik(156,52,1),a2:ik(156,56,1),l1:ang(-12,76),l2:ik(84,117,1)}),
+    P([116,85],-45,{a1:ik(156,52,1),a2:ik(156,56,1),l1:ik(84,117,1),l2:ang(-12,76)})]},
+  'Incline burpee (hands on box)':{props:['bench:138:178:96'],mode:'loop',dur:.5,f:[
+    STAND(112),
+    P([112,80],-36,{a1:ik(146,96,-1),a2:ik(150,96,-1),l1:ik(118,117,-1),l2:ik(114,117,-1)}),
+    P([119,87],-41,{a1:ik(146,96,-1),a2:ik(150,96,-1),l1:ik(84,117,1),l2:ik(88,117,1)}),
+    P([112,80],-36,{a1:ik(146,96,-1),a2:ik(150,96,-1),l1:ik(118,117,-1),l2:ik(114,117,-1)})]},
+  'Mountain climbers (secs)':{dur:.22,f:[
+    P([83,100],-22,{a1:ik(116,119,-1),a2:ik(120,119,-1),l1:ik(92,117,-1),l2:ik(42,117,1)}),
+    P([83,100],-22,{a1:ik(116,119,-1),a2:ik(120,119,-1),l1:ik(40,117,1),l2:ik(94,117,-1)})]},
+
+  /* agility: jumps */
+  'Snap-down + stick':{mode:'cut',dur:.4,f:[
+    P([100,67],-90,{a1:ang(-40,-50),a2:ang(-46,-56),l1:ik(104,113,1),l2:ik(100,113,1),tip:1}),
+    P([90,90],-62,{a1:ang(150,160),a2:ang(146,156),l1:ik(106,117,-1),l2:ik(102,117,-1)}),
+    P([90,90],-62,{a1:ang(150,160),a2:ang(146,156),l1:ik(106,117,-1),l2:ik(102,117,-1)})]},
+  'Pogo hops':{dur:.2,f:[
+    P([100,64],-90,{a1:ang(96,92),a2:ang(84,88),l1:ik(104,110,1),l2:ik(100,110,1),tip:1}),
+    P([100,70],-90,{a1:ang(96,92),a2:ang(84,88),l1:ik(104,116,1),l2:ik(100,116,1),tip:1})]},
+  'Squat jump':{dur:.45,f:[
+    P([84,96],-58,{a1:ang(150,160),a2:ang(146,156),l1:ik(106,117,-1),l2:ik(102,117,-1)}),
+    P([100,58],-90,{a1:ang(-20,-30),a2:ang(-26,-36),l1:ik(104,103,1),l2:ik(100,103,1),tip:1})]},
+  'Box jump (step down)':{props:['bench:122:166:104'],mode:'cut',dur:.45,f:[
+    P([84,94],-60,{a1:ang(150,160),a2:ang(146,156),l1:ik(104,117,-1),l2:ik(100,117,-1)}),
+    P([110,58],-80,{a1:ang(-20,-40),a2:ang(-26,-46),l1:ang(60,140),l2:ang(64,144)}),
+    P([128,82],-62,{a1:ang(20,0),a2:ang(24,4),l1:ik(146,101,-1),l2:ik(142,101,-1)}),
+    P([140,56],-90,{a1:ang(96,92),a2:ang(84,88),l1:ik(144,101,1),l2:ik(140,101,1)}),
+    P([140,56],-90,{a1:ang(96,92),a2:ang(84,88),l1:ik(144,101,1),l2:ik(140,101,1)})]},
+  'Hurdle hops':{props:['bench:96:108:110'],mode:'cut',dur:.4,f:[
+    P([62,92],-60,{a1:ang(150,160),a2:ang(146,156),l1:ik(80,117,-1),l2:ik(76,117,-1)}),
+    P([100,62],-80,{a1:ang(-40,-60),a2:ang(-50,-70),l1:ang(40,120),l2:ang(44,124)}),
+    P([134,92],-60,{a1:ang(30,10),a2:ang(34,14),l1:ik(152,117,-1),l2:ik(148,117,-1)}),
+    P([134,92],-60,{a1:ang(30,10),a2:ang(34,14),l1:ik(152,117,-1),l2:ik(148,117,-1)})]},
+  'Depth drop + stick':{props:['bench:28:72:104'],mode:'cut',dur:.45,f:[
+    P([64,56],-90,{a1:ang(96,92),a2:ang(84,88),l1:ik(68,101,1),l2:ik(64,101,1)}),
+    P([84,66],-90,{a1:ang(-30,-40),a2:ang(-40,-50),l1:ik(90,110,1),l2:ik(86,110,1),tip:1}),
+    P([90,92],-62,{a1:ang(30,10),a2:ang(34,14),l1:ik(106,117,-1),l2:ik(102,117,-1)}),
+    P([90,92],-62,{a1:ang(30,10),a2:ang(34,14),l1:ik(106,117,-1),l2:ik(102,117,-1)})]},
+  'Depth jump':{props:['bench:28:72:104'],mode:'cut',dur:.4,f:[
+    P([64,56],-90,{a1:ang(96,92),a2:ang(84,88),l1:ik(68,101,1),l2:ik(64,101,1)}),
+    P([84,66],-90,{a1:ang(-30,-40),a2:ang(-40,-50),l1:ik(90,110,1),l2:ik(86,110,1),tip:1}),
+    P([90,92],-62,{a1:ang(150,160),a2:ang(146,156),l1:ik(106,117,-1),l2:ik(102,117,-1)}),
+    P([100,56],-90,{a1:ang(-20,-30),a2:ang(-26,-36),l1:ik(104,101,1),l2:ik(100,101,1),tip:1}),
+    P([100,56],-90,{a1:ang(-20,-30),a2:ang(-26,-36),l1:ik(104,101,1),l2:ik(100,101,1),tip:1})]},
+
+  /* flexibility (cool-down stretches) */
+  'Standing quad stretch (secs)':{dur:1.4,f:[
+    P([100,72],-90,{a1:ang(20,0),a2:ik(95,76,1),l1:ik(104,117,1),l2:ang(96,-96)}),
+    P([100,72],-92,{a1:ang(16,-4),a2:ik(94,74,1),l1:ik(104,117,1),l2:ang(100,-92)})]},
+  'Kneeling hip flexor stretch (secs)':{dur:1.4,f:[
+    P([96,96],-90,{a1:ang(96,92),a2:ang(84,88),l1:ik(122,117,-1),l2:ang(124,180)}),
+    P([102,98],-94,{a1:ang(-96,-94),a2:ang(-84,-86),l1:ik(124,117,-1),l2:ang(118,180)})]},
+  'Calf stretch (wall) (secs)':{props:['wall:150'],dur:1.4,f:[
+    P([96,84],-55,{a1:ik(150,52,-1),a2:ik(150,56,-1),l1:ik(120,117,-1),l2:ik(66,117,1)}),
+    P([100,86],-50,{a1:ik(150,52,-1),a2:ik(150,56,-1),l1:ik(122,117,-1),l2:ik(66,117,1)})]},
+  'Doorway chest stretch (secs)':{props:['wall:96'],dur:1.4,f:[
+    STAND(110,{a1:ik(93,22,-1)}),
+    P([114,72],-82,{a1:ik(93,22,-1),a2:ang(84,88),l1:ik(118,117,1),l2:ik(112,117,1)})]},
+  'Overhead triceps stretch (secs)':{front:1,dur:1.4,f:[
+    FSTAND(100,{a1:ang(-100,100),a2:ik(98,20,-1)}),
+    FSTAND(100,{a1:ang(-104,104),a2:ik(97,18,-1)})]},
+  'Child\'s pose (secs)':{dur:1.6,f:[
+    P([74,108],-10,{a1:ik(150,119,-1),a2:ik(154,119,-1),l1:ang(22,180),l2:ang(24,182),hd:30}),
+    P([74,109],-8,{a1:ik(150,119,-1),a2:ik(154,119,-1),l1:ang(20,180),l2:ang(22,182),hd:30})]},
+  'Cobra stretch (secs)':{dur:1.4,f:[
+    P([80,113],-12,{a1:ik(116,119,1),a2:ik(118,119,1),l1:ang(180,180),l2:ang(182,182)}),
+    P([80,113],-30,{a1:ik(114,119,1),a2:ik(116,119,1),l1:ang(180,180),l2:ang(182,182),hd:-10})]},
+  'Figure-4 glute stretch (secs)':{dur:1.4,f:[
+    P([84,113],0,{a1:ik(96,94,1),a2:ik(98,96,1),l1:ang(-60,170),l2:ang(-95,-10)}),
+    P([84,113],0,{a1:ik(98,92,1),a2:ik(100,94,1),l1:ang(-50,170),l2:ang(-85,-8)})]},
+  'Butterfly stretch (secs)':{front:1,dur:1.4,f:[
+    P([100,110],-90,{a1:ik(96,116,1),a2:ik(104,116,-1),l1:ik(104,117,-1),l2:ik(96,117,1)}),
+    P([100,110],-90,{tl:.75,a1:ik(97,116,1),a2:ik(103,116,-1),l1:ik(104,117,-1),l2:ik(96,117,1)})]}
 };
 
 /* ---------- geometry ---------- */
@@ -250,7 +490,7 @@ function mixLimb(a,b,u){
   return u<.5?a:b;
 }
 function mixPose(a,b,u){
-  return {hip:[lerp(a.hip[0],b.hip[0],u),lerp(a.hip[1],b.hip[1],u)],t:lerpA(a.t,b.t,u),
+  return {tip:u<.5?a.tip:b.tip,hip:[lerp(a.hip[0],b.hip[0],u),lerp(a.hip[1],b.hip[1],u)],t:lerpA(a.t,b.t,u),
     hd:lerp(a.hd||0,b.hd||0,u),arch:lerp(a.arch||0,b.arch||0,u),tl:lerp(a.tl||1,b.tl||1,u),
     a1:mixLimb(a.a1,b.a1,u),a2:mixLimb(a.a2,b.a2,u),l1:mixLimb(a.l1,b.l1,u),l2:mixLimb(a.l2,b.l2,u)};
 }
@@ -286,13 +526,17 @@ function drawPose(svg,d,p){
   q.spine.setAttribute('d',`M${j.hip[0].toFixed(1)} ${j.hip[1].toFixed(1)}Q${(mx+nx*j.arch*2).toFixed(1)} ${(my+ny*j.arch*2).toFixed(1)} ${j.sh[0].toFixed(1)} ${j.sh[1].toFixed(1)}`);
   q.head.setAttribute('cx',j.head[0].toFixed(1));q.head.setAttribute('cy',j.head[1].toFixed(1));
   q.a1.setAttribute('points',pts([j.sh,j.e1,j.w1]));q.a2.setAttribute('points',pts([j.sh,j.e2,j.w2]));
-  const toe1=d.front?add(j.f1,[3,0]):add(j.f1,[DL.foot,0]),toe2=d.front?add(j.f2,[-3,0]):add(j.f2,[DL.foot,0]);
+  // tip: on the balls of the feet, toes pointing down (calf raises, landings, pogo hops)
+  const toe=f=>p.tip?add(f,[4,4.5]):add(f,[DL.foot,0]);
+  const toe1=d.front?add(j.f1,[3,0]):toe(j.f1),toe2=d.front?add(j.f2,[-3,0]):toe(j.f2);
   q.l1.setAttribute('points',pts([j.hip,j.k1,j.f1,toe1]));q.l2.setAttribute('points',pts([j.hip,j.k2,j.f2,toe2]));
   if(q.towel)q.towel.setAttribute('d',`M${j.w1[0].toFixed(1)} ${j.w1[1].toFixed(1)}L${j.w2[0].toFixed(1)} ${j.w2[1].toFixed(1)}`);
   if(q.bag){q.bag.setAttribute('x',(j.w1[0]-6).toFixed(1));q.bag.setAttribute('y',(j.w1[1]-1).toFixed(1))}
 }
+/* A move's animation: its own, or the one it shares with a close variation (MOVES[n].demo). */
+const demoOf=n=>DEMOS[n]||(typeof MOVES!=='undefined'&&MOVES[n]&&DEMOS[MOVES[n].demo])||null;
 function demoHTML(name){
-  const d=DEMOS[name];if(!d)return '';
+  const d=demoOf(name);if(!d)return '';
   const props=(d.props||[]).filter(p=>!['towel','bag'].includes(p)).map(propSVG).join('');
   return `<div class="demo" data-demo="${esc(name)}"><svg viewBox="0 0 200 132" role="img" aria-label="Animated demonstration: ${esc(dn(name))}">
     <path class="dfloor" d="M6 ${FLOOR}H194"/>${props}
@@ -311,7 +555,7 @@ function tickDemos(now){
   let live=0;
   els.forEach(svg=>{
     if(!svg.isConnected||svg.getClientRects().length===0)return;
-    const d=DEMOS[svg.parentNode.dataset.demo];if(!d)return;
+    const d=demoOf(svg.parentNode.dataset.demo);if(!d)return;
     if(!svg._parts){svg._parts={};svg.querySelectorAll('[data-p]').forEach(e=>svg._parts[e.dataset.p]=e);svg._t0=now}
     const t=reduceMotion.matches?(d.f.length>1?(d.dur||.7):0):(now-svg._t0)/1000;
     drawPose(svg,d,reduceMotion.matches&&d.f.length>1?d.f[Math.min(1,d.f.length-1)]:poseAt(d,t));

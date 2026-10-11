@@ -115,9 +115,13 @@ ACT.wJump=i=>{if(W.phase==='hold'||W.phase==='rest')clearInterval(W.tick);W.i=+i
 ACT.wClaim=()=>{closeWorkout(false);completeDay()};
 
 /* ---------- cool-down ----------
-   Three 60-second stretches after the last exercise, picked per day. Each one
+   Four stretches after the last exercise, matched to the muscles the day trained. Each one
    runs straight into the next. Finishing it marks today as cooled (bonus EXP). */
-function coolSet(){const r=rng(todayStr()+'|cool');return [...COOLDOWN].sort(()=>r()-.5).slice(0,3)}
+function coolSet(){
+  const q=todaysSplit().quests,lo=q.some(k=>['legs','agility','speed'].includes(k)),up=q.some(k=>['push','pull','core'].includes(k));
+  const r=rng(todayStr()+'|cool'),pick=(a,n)=>[...a].sort(()=>r()-.5).slice(0,n);
+  return lo&&up?[...pick(COOL_LOWER,2),...pick(COOL_UPPER,2)]:pick(up?COOL_UPPER:COOL_LOWER,4);
+}
 function goFinal(){
   if(!todayRec().cooled&&!W.coolSkip&&!todaysSplit().rest){W.phase='cool';W.ci=0;W.cool=coolSet()}
   else W.phase='final';
@@ -141,12 +145,12 @@ function timerRing(sec,label,sub,cls){
 function wRender(){
   const steps=W.steps,st=steps[W.i];
   let h=`<div class="w-top"><button class="icon-btn" data-act="wClose" aria-label="Pause workout and close">${ic('x')}</button>
-    <span class="w-pos"><span>${W.phase==='cool'||W.phase==='coolrun'?`Cool-down · ${W.ci+1} of 3`:W.phase==='final'?'All done':st&&st.warm?'Warm-up':`Exercise ${W.i+(steps[0]&&steps[0].warm?0:1)} of ${steps.filter(s=>!s.warm).length}`}</span><b id="wElapsed">${fmtElapsed(swElapsed())}</b></span><span style="width:44px"></span></div>
+    <span class="w-pos"><span>${W.phase==='cool'||W.phase==='coolrun'?`Cool-down · ${W.ci+1} of ${W.cool.length}`:W.phase==='final'?'All done':st&&st.warm?'Warm-up':`Exercise ${W.i+(steps[0]&&steps[0].warm?0:1)} of ${steps.filter(s=>!s.warm).length}`}</span><b id="wElapsed">${fmtElapsed(swElapsed())}</b></span><span style="width:44px"></span></div>
     <div class="w-prog">${steps.map((s,i)=>`<button class="${stepDone(s)?'d':''}${i===W.i?' c':''}" data-act="wJump" data-arg="${i}" aria-label="Go to ${s.warm?'warm-up':esc(dn(s.item.name))}"></button>`).join('')}</div>`;
 
   if(W.phase==='cool'||W.phase==='coolrun'){
     const name=W.cool[W.ci],run=W.phase==='coolrun';
-    h+=`<div class="w-body"><p class="overline">Cool-down · stretch ${W.ci+1} of 3</p><h2 class="w-name">${dn(name)}</h2>${demoHTML(name)}
+    h+=`<div class="w-body"><p class="overline">Cool-down · stretch ${W.ci+1} of ${W.cool.length}</p><h2 class="w-name">${dn(name)}</h2>${demoHTML(name)}
       ${run?timerRing(left(),'Breathe','Ease in. No bouncing.'):`<p class="muted" style="margin:4px 0 0">${stretchCue(name)}</p>`}</div>
       <div class="w-foot">${run?`<div class="row-btns" style="width:100%"><button class="btn ghost" data-act="coolSkip">Skip all</button><button class="btn" data-act="coolNextNow">Next stretch</button></div>`
         :`<button class="btn" data-act="coolStart">Start ${COOLDOWN_SECS}s stretch</button><button class="btn quiet" data-act="coolSkip">Skip cool-down</button>`}</div>`;

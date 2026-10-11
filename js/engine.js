@@ -116,7 +116,7 @@ function questReady(){
 
 function completeDay(){
   if(!questReady())return;
-  const rec=todayRec(),sp=todaysSplit(),w=weekNumber();
+  const rec=todayRec(),sp=todaysSplit(),w=weekNumber(),eff0=effLevel();
   rec.completed=true;rec.doneAt=Date.now();
   const mins=swFinish(rec);
   let gain=sp.rest?30:40+Math.floor(w/2);
@@ -149,16 +149,10 @@ function completeDay(){
   // clean days slowly lower the penalty level
   let penDown=false;
   if(S.penaltyLevel>0&&S.streak>=3&&S.streak%3===0){S.penaltyLevel--;penDown=true}
-  // ladder graduations
-  const ups=[];
-  sp.quests.forEach(k=>{
-    const L=LADDERS[k];
-    if(S.ladders[k].streak>=6&&S.ladders[k].step<L.steps.length-1&&w>=(S.ladders[k].step+1)*2){
-      S.ladders[k].step++;S.ladders[k].streak=0;ups.push(L.title+': '+dn(L.steps[S.ladders[k].step][0]));
-    }
-  });
   S.exp+=gain;rec.exp=gain;
   const up=syncLevel();
+  // a level-up can unlock harder moves (up to what the rank allows)
+  const ups=newMoves(eff0,effLevel()).map(n=>`${LADDERS[MOVES[n].a].title}: ${dn(n)}`);
   save();renderAll();
   showReward({gain,leveled:up>0,points:up*POINTS_PER_LEVEL,bonus,ups,penDown,mins,loot});
   announceUps(shUps.filter(u=>u.promo)); // promotions queue behind the reward
@@ -173,7 +167,7 @@ function showReward(r){
   if(r.mins)h+=`<div class="m-flag">Session time · ${r.mins} min</div>`;
   if(r.loot&&r.loot.length)h+=`<p class="overline">Items obtained</p>${lootHTML(r.loot)}`;
   if(r.penDown)h+=`<p class="m-text">Clean streak: penalty level down to ${S.penaltyLevel}.</p>`;
-  if(r.ups.length)h+=`<div class="m-list"><span>New skill unlocked</span>${r.ups.map(u=>`<b>${esc(u)}</b>`).join('')}</div>`;
+  if(r.ups.length)h+=`<div class="m-list"><span>New ${r.ups.length>1?'moves':'move'} unlocked</span>${r.ups.map(u=>`<b>${esc(u)}</b>`).join('')}</div>`;
   const nx=SPLIT[(dayIndex()+1)%7];
   h+=`<p class="m-text">Tomorrow: ${nx.name}, ${nx.type}.</p><button class="btn" data-act="closeModal">Continue</button>`;
   openModal(h,'sys','trophy');

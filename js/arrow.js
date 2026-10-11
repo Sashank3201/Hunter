@@ -149,7 +149,7 @@ function arExercise(low){
     [/plank|\babs\b|core|crunch|sit ?ups?|leg raise|hollow|dead bug/,'core'],[/burpees?|sprints?|high knees|fast feet/,'speed'],[/jumps?|hops?|crawl|shuffle/,'agility'],
     [/mobility|deep squat|cat cow|dislocates?|rotations?/,'mobility'],[/stretch|flexib|splits?|hamstring|pigeon|fold/,'flex']];
   const f=FAM.find(([re])=>re.test(low));
-  if(f){const k=f[1],i=Math.min(S.ladders[k].step,LADDERS[k].steps.length-1),s=LADDERS[k].steps[i];return {k,i,name:s[0],cue:s[2],current:true}}
+  if(f){const k=f[1],nm=(planToday().find(p=>p.a===k)||{}).n||chainMove(k,0)||LADDERS[k].steps[0][0];return {k,i:LADDERS[k].steps.findIndex(s=>s[0]===nm),name:nm,cue:(MOVES[nm]||{}).cue||'',current:true}}
   return best&&bs>=.5?best:null;
 }
 const AR_PAGES=[[/\bevents?\b|\bstory\b|chapters?/,'event','the story event'],[/armou?ry|weapons?/,'armory','the Armory'],[/shadows?|army/,'army','your shadow army'],[/history/,'history','History'],[/feats?|achievements?|badges?/,'feats','Feats'],
@@ -306,7 +306,8 @@ AH.ask_quest=c=>{
   if(notStarted())return {say:`Your journey starts ${fmtDate(S.startDate)}. Patience, Hunter.`,mood:'curious'};
   const sp=todaysSplit(),rec=todayRec(),items=buildQuestItems().filter(i=>!i.warm),ex=arExercise(c.low);
   const left=items.filter(i=>((rec.sets||{})[i.id]||[]).length<i.sets);
-  const it=ex&&items.find(i=>i.key===ex.k);
+  const inArea=ex?items.filter(i=>i.key===ex.k):[],it=ex&&(items.find(i=>i.name===ex.name)||(inArea.length===1?inArea[0]:null));
+  if(!it&&inArea.length>1)return {say:`Today's ${LADDERS[ex.k].title.toLowerCase()} block: ${inArea.map(i=>`${dn(i.name)} ${i.sets}×${i.amt}${i.timed?'s':''}`).join(', ')}.`,mood:'happy',chips:rec.completed?null:[chip('Start workout','arrowStart')]};
   if(it)return {say:`Today: ${it.sets} sets of ${it.amt}${it.timed?' seconds':''} ${dn(it.name).toLowerCase()}.${((rec.sets||{})[it.id]||[]).length?` You've done ${(rec.sets||{})[it.id].length} set${(rec.sets||{})[it.id].length>1?'s':''}.`:''}`,mood:'happy',chips:rec.completed?null:[chip('Start workout','arrowStart')]};
   const list=items.map(i=>`${dn(i.name)} ${i.sets}×${i.amt}${i.timed?'s':''}`).join(', ');
   return {say:`${sp.name}: ${sp.type}${sp.rest?' (recovery day)':''}. ${list}. ${rec.completed?'Already cleared. Show-off.':left.length<items.length?`${left.length} of ${items.length} moves left.`:'Not started yet.'}`,
@@ -368,8 +369,8 @@ AH.ask_week=()=>{
 /* ---- coaching ---- */
 AH.exercise_howto=c=>{
   const ex=arExercise(c.low);if(!ex)return {say:'Which exercise? Ask like "push-up form" or "how to do a squat".',mood:'curious'};
-  const L=LADDERS[ex.k],nx=L.steps[ex.i+1];
-  return {say:`${dn(ex.name)}: ${ex.cue}${ex.current?` That's your current ${L.title.toLowerCase()} step.`:''}${nx&&ex.current?` Next up: ${dn(nx[0]).toLowerCase()}.`:''}`,demo:DEMOS[ex.name]?ex.name:null,mood:'happy'};
+  const L=LADDERS[ex.k],M=MOVES[ex.name],nx=M&&CHAINS[M.a][M.c][1][M.i+1];
+  return {say:`${dn(ex.name)}: ${ex.cue}${ex.current?` That's on today's ${L.title.toLowerCase()} block.`:''}${nx&&ex.current?` Next in line: ${dn(nx[0]).toLowerCase()}, at level ${nx[1]}.`:''}`,demo:demoOf(ex.name)?ex.name:null,mood:'happy'};
 };
 AH.motivate=()=>{
   const sp=todaysSplit(),rec=todayRec(),n=buildQuestItems().filter(i=>!i.warm).length;
