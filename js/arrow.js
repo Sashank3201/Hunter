@@ -458,16 +458,84 @@ function arrowNudgeText(){
   return null;
 }
 let arNudgeT=0;
+/* Nothing covers the orb: no reward card, no ARISE, no raid, no open layer. */
+const arIdle=()=>revealIdle()&&!REVEALQ.length&&!document.body.classList.contains('locked');
+/* One line in the bubble beside the orb; tapping it opens the chat with that line. */
+function arBubble(say,ms){
+  const b=$('arrowNudge');
+  b.innerHTML=`<button class="an-say" data-act="arrowNudgeOpen">${esc(say)}</button><button class="an-x" data-act="arrowNudgeX" aria-label="Dismiss">${ic('x')}</button>`;
+  b.dataset.say=say;b.classList.toggle('raised',$('arrowFab').classList.contains('raised'));b.hidden=false;b.classList.remove('in');void b.offsetWidth;b.classList.add('in');
+  clearTimeout(arNudgeT);arNudgeT=setTimeout(()=>{b.hidden=true},ms);
+}
 function arrowNudge(){
-  const p=S.profile||{},fab=$('arrowFab'),b=$('arrowNudge');if(!fab||fab.hidden||p.arrowNudge===false)return;
-  if(!revealIdle()||REVEALQ.length||document.body.classList.contains('locked'))return; // never over a reward, modal or open layer
+  const p=S.profile||{},fab=$('arrowFab');if(!fab||fab.hidden||p.arrowNudge===false)return;
+  if(!arIdle())return; // never over a reward, modal or open layer
+  if(Date.now()-arReactAt<20000)return; // never talks over a big moment it just reacted to
   const M=arMem();if(Date.now()-(M.nudgeAt||0)<90*60000)return;
   const n=arrowNudgeText();if(!n)return;
   M.nudgeAt=Date.now();if(n.ev)M.evDay=todayStr();arMemSave(M);
-  b.innerHTML=`<button class="an-say" data-act="arrowNudgeOpen">${esc(n.say)}</button><button class="an-x" data-act="arrowNudgeX" aria-label="Dismiss">${ic('x')}</button>`;
-  b.dataset.say=n.say;b.classList.toggle('raised',fab.classList.contains('raised'));b.hidden=false;b.classList.remove('in');void b.offsetWidth;b.classList.add('in');
-  Bot.react(n.mood,3200);buzz('tap');clearTimeout(arNudgeT);arNudgeT=setTimeout(()=>{b.hidden=true},12000);
+  arBubble(n.say,12000);Bot.react(n.mood,3200);buzz('tap');
 }
+
+/* ---------- Arrow reacts to the big moments ----------
+   Arrow watches the numbers that only move at a big moment. When one moves, it reacts
+   with that moment's mood (two in turn for the biggest) once nothing covers it, and says
+   one line if nudges are on. These lines don't count against the nudge limit. A death
+   resets most numbers, so only a number going up is a moment. */
+function arSnap(){
+  const runs=S.events&&S.events.runs?S.events.runs:{};
+  return {rank:RANKS.indexOf(currentRank()),deaths:S.deaths,level:S.level,quest:S.totalQuests,sudden:S.suddenDone,pen:S.penaltyLevel,
+    gate:S.dungeons.filter(d=>d.ok).length,fail:S.dungeons.filter(d=>!d.ok).length,shadow:S.shadows.length,
+    feats:Object.keys(S.feats),weapons:Object.keys(S.weapons),chest:S.login&&S.login.last,
+    prs:Object.fromEntries(Object.entries(S.prs).map(([k,p])=>[k,p.best])),
+    raids:Object.fromEntries(Object.entries(runs).map(([n,R])=>[n,R.clears||0])),
+    chapters:Object.values(runs).reduce((a,R)=>a+(R.ch||[]).filter(Boolean).length,0)};
+}
+const arNew=(a,b)=>b.find(x=>!a.includes(x));
+const arUp=(a,b)=>Object.keys(b).find(k=>b[k]>(a[k]||0));
+const arPR=(a,b)=>Object.keys(b.prs).find(k=>a.prs[k]!==undefined&&b.prs[k]>a.prs[k]); // a first log is a baseline, not a record
+/* [moment, moods, did it happen, what Arrow says], most important first: when several land together, the first plays. */
+const AR_MOMENTS=[
+  ['death',['sad'],(a,b)=>b.deaths>a.deaths,()=>'You died. I\'m not crying. You\'re crying.'],
+  ['rank',['surprised','celebrate'],(a,b)=>b.rank>a.rank,()=>`${currentRank().r}-Rank?! Okay, Hunter. I need a minute.`],
+  ['raid',['surprised','celebrate'],(a,b)=>!!arUp(a.raids,b.raids),(a,b)=>{const R=S.events.runs[arUp(a.raids,b.raids)],ev=R&&evById(R.id);return `${ev?ev.raid.boss:'The boss'} is down. Tell me you saw that.`}],
+  ['gate',['excited'],(a,b)=>b.gate>a.gate,()=>'Gate cleared. Those monsters had no idea.'],
+  ['arise',['surprised','excited'],(a,b)=>b.shadow>a.shadow,()=>`${S.shadows[S.shadows.length-1].n} answered your call. ARISE never gets old.`],
+  ['level',['proud'],(a,b)=>b.level>a.level,()=>`Level ${S.level}. You're getting dangerous.`],
+  ['quest',['celebrate'],(a,b)=>b.quest>a.quest,()=>'Daily quest cleared. Penalty zone avoided. Proud of you. A little.'],
+  ['fail',['sad'],(a,b)=>b.fail>a.fail,()=>'That Gate won this round. Rest, then run it back.'],
+  ['sudden',['laughing'],(a,b)=>b.sudden>a.sudden,()=>'Sudden quest? Handled. Too easy.'],
+  ['feat',['happy'],(a,b)=>!!arNew(a.feats,b.feats),(a,b)=>{const f=FEATS.find(x=>x.id===arNew(a.feats,b.feats));return `${f?f.title:'New achievement'}. Show-off.`}],
+  ['weapon',['playful'],(a,b)=>!!arNew(a.weapons,b.weapons),(a,b)=>{const w=WEAPONS[arNew(a.weapons,b.weapons)];return `${w?w.name:'A new weapon'}? Try not to cut yourself.`}],
+  ['chapter',['happy'],(a,b)=>b.chapters>a.chapters,()=>'Chapter cleared. The story moves on.'],
+  ['pr',['proud'],(a,b)=>!!arPR(a,b),(a,b)=>`New record on ${arPR(a,b)}. Who even are you?`],
+  ['penalty',['scared'],(a,b)=>b.pen>a.pen,()=>`Penalty level ${S.penaltyLevel} of 5. I'd start running.`],
+  ['chest',['playful'],(a,b)=>!!b.chest&&b.chest!==a.chest,()=>'Free loot. The System spoils you.'],
+];
+let arWas=S.profile?arSnap():null,arPend=null,arChainT=0,arReactAt=0,arLast=''; // the first look happens before startup applies missed days
+function arrowWatch(){
+  if(!S.profile){arWas=null;return} // before the Awakening
+  const now=arSnap();
+  if(arWas){
+    const i=AR_MOMENTS.findIndex(m=>m[2](arWas,now));
+    if(i>=0&&(!arPend||i<=arPend.i)){const [k,moods,,say]=AR_MOMENTS[i];arPend={i,k,moods,say:say(arWas,now),at:Date.now()}}
+  }
+  arWas=now;
+  arrowReact();
+}
+/* Play the waiting moment where the bot can be seen: the orb, or the Diet card when the orb is off. */
+function arrowReact(){
+  const m=arPend;if(!m||window.__NO_REACT)return; // __NO_REACT: test hook
+  if(Date.now()-m.at>10*60000){arPend=null;return} // the moment has passed
+  if(!arIdle()||FL.open||BotGame.on)return;
+  const orb=!$('arrowFab').hidden;if(!orb&&$('diet').hidden)return;
+  arPend=null;arReactAt=Date.now();clearTimeout(arChainT);
+  Bot.react(m.moods[0],m.moods[1]?1600:3400);
+  if(m.moods[1])arChainT=setTimeout(()=>Bot.react(m.moods[1],3200),1500);
+  if(orb&&S.profile.arrowNudge!==false)arBubble(m.say,7000);
+  arLast=m.k;
+}
+setInterval(arrowWatch,1000);
 ACT.arrowOpen=()=>{$('arrowNudge').hidden=true;openBot(false)};
 ACT.arrowNudgeX=()=>{$('arrowNudge').hidden=true};
 ACT.arrowNudgeOpen=()=>{const say=$('arrowNudge').dataset.say;$('arrowNudge').hidden=true;const ds=dietState();if(say){flDay(ds).msgs.push({w:'bot',x:say,at:Date.now()});saveDietState(ds)}openBot(false)};
