@@ -64,6 +64,7 @@ const sleepFmt=h=>{const o=SLEEP_OPTS.find(o=>o[0]===h);return o?`${o[1]} h`:`${
 function sleepLog(h,date=todayStr()){
   S.sleep=S.sleep||{};S.sleep[date]=h<0?-1:Math.max(0,Math.min(16,Math.round(h*2)/2));
   Object.keys(S.sleep).sort().slice(0,-60).forEach(k=>delete S.sleep[k]);save();
+  if(h>=0)skinCheck(); // Night Sky counts logged nights
 }
 const sleepDays=n=>Array.from({length:n},(_,i)=>{const d=addDays(todayStr(),i-n+1);return {d,h:sleepOn(d)}});
 function sleepAvg(n){const a=sleepDays(n).filter(x=>x.h!==null);return a.length?Math.round(a.reduce((s,x)=>s+x.h,0)/a.length*10)/10:null}
@@ -100,7 +101,8 @@ function bodyLog(e){
   if(!x){x={d};S.body.push(x);S.body.sort((a,b)=>a.d.localeCompare(b.d))}
   Object.entries(e).forEach(([k,v])=>{if(v!==null&&v!==undefined&&v!==''&&!(typeof v==='number'&&isNaN(v)))x[k]=v});
   if(typeof e.kg==='number'&&!isNaN(e.kg)){const ds=dietState();ds.weight=e.kg;saveDietState(ds)}
-  S.body=S.body.slice(-104);save();return x;
+  S.body=S.body.slice(-104);save();skinCheck(); // Circuit counts check-ins
+  return x;
 }
 const bodyHas=k=>(S.body||[]).filter(b=>typeof b[k]==='number');
 const lastCheckin=()=>(S.body||[]).length?S.body[S.body.length-1].d:null;

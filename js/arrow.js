@@ -14,7 +14,7 @@ const ARROW_LABEL={log_food:'Log food',food_info:'Nutrition facts',undo:'Undo la
   exercise_howto:'Exercise form',motivate:'Motivation',recovery:'Rest and soreness',pain:'Pain or injury',coach_tip:'Training tips',open_tab:'Open a page',
   start_workout:'Start workout',open_license:'Hunter License',open_settings:'Settings',theme:'Theme',ask_event:'Story event',
   ask_advice:'Coach me',ask_progress:'Am I improving?',daily_plan:'Plan my day',nutrition_tip:'Diet advice',feeling_down:'Feeling low',more:'Tell me more',
-  fun_fact:'Fun fact',arrow_skin:'Arrow skins',about_me:'About me',log_body:'Log weight or waist',ask_body:'Body progress',ask_sleep:'My sleep'};
+  fun_fact:'Fun fact',arrow_skin:'Arrow\'s look',about_me:'About me',log_body:'Log weight or waist',ask_body:'Body progress',ask_sleep:'My sleep'};
 
 /* ---------- voice: a sassy friend ---------- */
 const SAY={
@@ -763,8 +763,26 @@ AH.more=c=>{
 /* ---------- Arrow's own look ---------- */
 const AR_SKIN_NAME=[[/\bink\b|default|normal|original|\bblack\b|plain|classic/,''],[/cartenon|stone|statue/,'stone'],[/\borcs?\b/,'orc'],[/giant/,'giant'],[/frost|\bice\b|snow/,'frost'],
   [/fang|wolf|beast|rakan/,'fang'],[/plague|insect|\bbug\b|queen/,'plague'],[/faceless|mask|mirror|yogumunt/,'faceless'],[/system|\bblue\b/,'system'],[/flame|fire|undying/,'flame'],
-  [/sovereign/,'sovereign'],[/monarch|purple|antares/,'monarch']];
-const arSkinName=k=>k?ARROW_SKINS[k].n:'Ink';
+  [/sovereign/,'sovereign'],[/monarch|purple|antares/,'monarch'],[/warp star/,'k_star'],[/mint/,'k_mint'],[/shadow puff/,'k_shadow'],[/sunset/,'c_sunset'],
+  [/thunder|storm/,'c_storm'],[/night sky/,'c_night'],[/neon/,'x_neon'],[/circuit/,'x_circuit'],[/glitch/,'x_glitch']];
+const arSkinName=k=>formSkinName(k);
+/* Arrow's bodies by name ("become kirby", "turn into a cloud", "back to your original body"). */
+const AR_FORM_NAME=[[/\bkirby\b|puff ?ball|pink (one|puff)/,'kirby'],[/\bcloud(ee|y|s)?\b/,'cloudee'],[/\bcyber\b|\bcubee?\b|\bsquare\b|\bbox\b/,'cyber'],
+  [/\borb\b|\bball\b|\bsphere\b|original (body|shape)|old (body|shape)|usual (body|shape)/,'orb']];
+const AR_FORM_SAY={orb:'Back to the orb. The classic never goes out of style.',kirby:'Kirby mode. Round, pink, and ready to inhale your excuses.',
+  cloudee:'Cloudee mode. Soft on the outside, still counting every rep.',cyber:'Cyber mode. Boxy, sharp, and running your quest on schedule.'};
+const arFormChips=()=>Object.keys(ARROW_FORMS).filter(f=>f!==arrowForm()).map(f=>chip(`Be ${ARROW_FORMS[f].n}`,'arrowBody',f));
+function arFormReply(c){
+  const low=c.low,hit=AR_FORM_NAME.find(([re])=>re.test(low)),f=hit?hit[1]:null,cur=arrowForm(),nm=ARROW_FORMS[cur].n;
+  if(!f){
+    if(!/\b(body|bodies|shape|shapes|avatar|avatars|sharir|shareer)\b/.test(low))return null;
+    return {say:`I can be the Orb, Kirby, Cloudee or Cyber. Right now I'm ${cur==='orb'?'the Orb':nm}. Each body keeps its own skin, and my evolution comes along. Say "become Kirby", or pick one in Profile → Arrow's body.`,mood:'playful',chips:arFormChips()};
+  }
+  if(f===cur)return {say:`I'm already ${f==='orb'?'the Orb':nm}. Want a different body?`,mood:'playful',chips:arFormChips()};
+  equipForm(f,true);
+  const sk=(S.profile||{}).arrowSkin;
+  return {say:AR_FORM_SAY[f]+(sk?` Still in ${ARROW_SKINS[sk].n}.`:''),mood:f==='cyber'?'proud':'happy',chips:arFormChips()};
+}
 /* Arrow's evolution pieces by name, and switching them in chat ("take off your horns", "base form"). */
 const AR_GEAR_NAME=[[/\bhorns?\b|kommulu|seeng/,'horns'],[/\bcrown\b|kireetam|mukut|taj\b/,'crown'],[/\baura\b/,'aura'],[/\bwings?\b|rekkalu|pankh/,'wings'],[/monarch eyes|\beyes?\b|kallu|aankh/,'eyes']];
 function arGearReply(c){
@@ -786,23 +804,28 @@ function arGearReply(c){
   return null;
 }
 AH.arrow_skin=c=>{
+  const hit=AR_SKIN_NAME.find(([re])=>re.test(c.low)),id=hit?hit[1]:null,p=S.profile||{},cur=p.arrowSkin&&skinOwned(p.arrowSkin)&&skinFits(p.arrowSkin)?p.arrowSkin:'';
+  if(!id){const fr=arFormReply(c);if(fr)return fr} // a body by name, unless a skin is named
   const gr=arGearReply(c);if(gr)return gr;
-  const hit=AR_SKIN_NAME.find(([re])=>re.test(c.low)),id=hit?hit[1]:null,p=S.profile||{},cur=p.arrowSkin&&S.skins.includes(p.arrowSkin)?p.arrowSkin:'';
-  const owned=S.skins.filter(k=>ARROW_SKINS[k]),asking=/\b(how|unlock|get|earn|where|kaise|ela|ekkada)\b/.test(c.low);
-  const wear=k=>chip(`Wear ${arSkinName(k)}`,'arrowWear',k);
+  const owned=Object.keys(ARROW_SKINS).filter(skinOwned),asking=/\b(how|unlock|get|earn|where|kaise|ela|ekkada)\b/.test(c.low);
+  const wear=k=>chip(`Wear ${arSkinName(k)}`,'arrowWear',k),fit=owned.filter(k=>k!==cur&&skinFits(k));
   if(id!==null){
-    if(id&&!S.skins.includes(id))return {say:`I don't have ${arSkinName(id)} yet. To unlock it: ${skinHow(id).todo.replace(/^./,m=>m.toLowerCase())}. The second you do, I'm wearing it.`,mood:'sad',chips:owned.filter(k=>k!==cur).slice(0,3).map(wear)};
+    if(id&&!skinOwned(id))return {say:`I don't have ${arSkinName(id)} yet. To unlock it: ${skinHow(id).todo.replace(/^./,m=>m.toLowerCase())}. The second you do, I'm wearing it.`,mood:'sad',chips:fit.slice(0,3).map(wear)};
     if(asking)return {say:`You already have ${arSkinName(id)}${id===cur?' and I\'m wearing it':''}.${id===cur?'':' Want me to put it on?'}`,mood:'happy',chips:id===cur?null:[wear(id)]};
     if(id===cur)return {say:`I'm already wearing ${arSkinName(id)}. Keep up.`,mood:'playful'};
-    equipSkin(id);return {say:id?`${arSkinName(id)} on. How do I look? Be nice.`:'Back in classic ink. Timeless.',mood:'proud'};
+    const was=arrowForm();equipSkin(id);
+    const moved=arrowForm()!==was?` I turned into ${ARROW_FORMS[arrowForm()].n} for it, since it's made for that body.`:'';
+    return {say:id?`${arSkinName(id)} on.${moved} How do I look? Be nice.`:arrowForm()==='orb'?'Back in classic ink. Timeless.':`Back to classic ${ARROW_FORMS[arrowForm()].n}. Timeless.`,mood:'proud'};
   }
-  const locked=Object.keys(ARROW_SKINS).filter(k=>!S.skins.includes(k)),nxt=locked.find(k=>ARROW_SKINS[k].how)||locked[0];
-  let say=`I'm wearing ${arSkinName(cur)}. ${owned.length?`You've unlocked ${owned.length} of ${Object.keys(ARROW_SKINS).length}: ${arList(owned.map(arSkinName))}.`:'You haven\'t unlocked any skins yet.'}`;
-  if(nxt)say+=` Closest one to earn: ${arSkinName(nxt)}. ${skinHow(nxt).todo}.`;
+  const prog=k=>SKIN_COUNT[ARROW_SKINS[k].how.k]()/ARROW_SKINS[k].how.n; // how far along a milestone skin is
+  const locked=Object.keys(ARROW_SKINS).filter(k=>!skinOwned(k)),near=locked.filter(k=>ARROW_SKINS[k].how&&skinFits(k)).sort((a,b)=>prog(b)-prog(a));
+  const nxt=near[0]||locked.find(k=>ARROW_SKINS[k].how)||locked[0],f=arrowForm();
+  let say=`I'm ${f==='orb'?'the Orb':ARROW_FORMS[f].n}, wearing ${arSkinName(cur)}. ${owned.length?`You've unlocked ${owned.length} of ${Object.keys(ARROW_SKINS).length} skins: ${arList(owned.map(k=>ARROW_SKINS[k].n))}.`:'You haven\'t unlocked any skins yet.'}`;
+  if(nxt)say+=` Closest one to earn: ${ARROW_SKINS[nxt].n}${ARROW_SKINS[nxt].form?` (for ${ARROW_FORMS[ARROW_SKINS[nxt].form].n})`:''}. ${skinHow(nxt).todo}.`;
   const gNext=Object.keys(ARROW_GEAR).find(k=>!gearUnlocked(k)),gOn=arrowGear();
   say+=` My form: ${gOn.length?arList(gOn.map(k=>ARROW_GEAR[k].n.toLowerCase())):'base'}${gNext?`, and I grow ${ARROW_GEAR[gNext].n.toLowerCase()} at ${ARROW_GEAR[gNext].rank}-Rank`:''}.`;
-  say+=' To see them all, tap your avatar at the top right of the main screen and scroll to Arrow skin, or just tell me "wear" and a name.';
-  return {say,mood:'happy',chips:[...owned.filter(k=>k!==cur).slice(0,2).map(wear),chip('Show all skins','arrowGo','skins')]};
+  say+=' I can change bodies too: Orb, Kirby, Cloudee or Cyber. To see everything, tap your avatar at the top right of the main screen and scroll to Arrow\'s body, or just tell me "wear" or "become" and a name.';
+  return {say,mood:'happy',chips:[...fit.slice(0,2).map(wear),chip('Show all skins','arrowGo','skins')]};
 };
 AH.about_me=c=>{
   const p=S.profile||{},ds=c.ds,st=Object.entries(S.stats).sort((a,b)=>b[1]-a[1]),H=arHabits(ds),usual=Object.entries(H).map(([m,u])=>`${m} is ${u.sig.replace(/\+/g,', ').toLowerCase()}`);
@@ -995,7 +1018,8 @@ ACT.arrowAsk=q=>flSend(q);
 ACT.arrowUsual=m=>flSend(`Usual ${m}`,false,'repeat_meal');
 ACT.arrowStart=()=>flSend('Start my workout',false,'start_workout');
 ACT.arrowGo=k=>arGo(k);
-ACT.arrowWear=k=>{const ds=dietState();equipSkin(k);flSay(ds,k?`${arSkinName(k)} on. How do I look?`:'Back in classic ink.');saveDietState(ds);renderBot();Bot.react('proud',2400)};
+ACT.arrowWear=k=>{const ds=dietState();equipSkin(k);flSay(ds,k?`${arSkinName(k)} on. How do I look?`:arrowForm()==='orb'?'Back in classic ink.':`Back to classic ${ARROW_FORMS[arrowForm()].n}.`);saveDietState(ds);renderBot();Bot.react('proud',2400)};
+ACT.arrowBody=f=>{const ds=dietState();equipForm(f,true);flSay(ds,AR_FORM_SAY[f]);saveDietState(ds);renderBot();Bot.react('happy',2400)};
 ACT.arrowAlloc=()=>{closeBot();ACT.allocate()};
 ACT.arrowGoal=g=>{const ds=dietState();ds.goal=g;const t=foodTargets(ds);flDay(ds).msgs.push({w:'bot',x:`Goal set to ${GOALS[g].n}: ${fmtK(t.kcal)} kcal and ${t.p} g protein a day.`,at:Date.now()});saveDietState(ds);renderBot();Bot.react('proud',2400)};
 ACT.arrowTheme=k=>flSend(k+' mode',false,'theme');

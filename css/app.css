@@ -1516,6 +1516,10 @@ details.acc .acc-body p{color:var(--ink-2);font-size:15px;padding:5px 0}
 .skin-opt.locked{opacity:.45}
 .skin-opt.locked .skin-svg{filter:grayscale(1)}
 .skin-opt .sk-lock{position:absolute;top:6px;right:6px;width:13px;height:13px}
+/* several skins unlocked at once */
+.skin-gets{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:12px 0}
+.skin-gets .skin-svg{width:52px;height:52px}
+.skin-gets-h{text-align:center}
 @media (prefers-reduced-motion:reduce){.evb-dot,.evb-pips i.boss.o,.ev-ch.ready .evc-ic,.ev-skin-get .skin-svg,.evs-tap{animation:none}}
 /* Body: weekly check-in, sleep and injury care (body.js) */
 .inj-btns{margin-top:8px}

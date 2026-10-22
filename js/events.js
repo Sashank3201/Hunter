@@ -72,16 +72,21 @@ function evGate(g){
 
 /* ---------- art ---------- */
 const evArt=(ev,cls='')=>`<svg class="ev-art ${cls}" viewBox="0 0 120 120" aria-hidden="true">${ev.art}</svg>`;
-/* The Arrow orb in a skin's colours: a ball with two tall eyes, wearing its evolution gear
-   (the Player's current pieces unless a list is given). With gear the view widens to fit it. */
+/* Arrow in a skin's colours, wearing its evolution gear (the Player's current pieces unless a list is
+   given). The orb is a ball with two tall eyes; another body (a body's own skin, else the given form,
+   else the current one) is its still frame. With gear the view widens to fit it. */
 let skinN=0;
-function skinSVG(id,cls='',gear){
-  const k=ARROW_SKINS[id],g=gear||(typeof S!=='undefined'&&S.profile?arrowGear():[]),eye=g.includes('eyes')?`fill="${MONARCH_EYES}"`:k?`fill="${k.eyes}"`:'class="skin-eye"';
-  const orb=`<circle cx="50" cy="50" r="44" ${k?`fill="${k.body}"`:'class="skin-ink"'}/><rect x="31" y="33" width="12" height="27" rx="6" ${eye}/><rect x="57" y="33" width="12" height="27" rx="6" ${eye}/>`;
+function skinSVG(id,cls='',gear,form){
+  const k=ARROW_SKINS[id],g=gear||(typeof S!=='undefined'&&S.profile?arrowGear():[]),f=(k&&k.form)||form||(typeof S!=='undefined'&&S.profile?arrowForm():'orb');
+  let orb,gearInk=k?k.body:null; // horns take the body colour
+  if(ARROW_FORM_DATA[f]){const own=ARROW_FORM_DATA[f].avatar.colors,z=44/40.67*100; // as big as the orb preview
+    gearInk=gearInk||own.body;orb=`<use href="#${formSymbol(f)}" x="${50-z/2}" y="${50-z/2}" width="${z}" height="${z}" style="fill:${k?k.body:own.body};--fe:${g.includes('eyes')?MONARCH_EYES:k?k.eyes:own.eyes}"/>`}
+  else{const eye=g.includes('eyes')?`fill="${MONARCH_EYES}"`:k?`fill="${k.eyes}"`:'class="skin-eye"';
+    orb=`<circle cx="50" cy="50" r="44" ${k?`fill="${k.body}"`:'class="skin-ink"'}/><rect x="31" y="33" width="12" height="27" rx="6" ${eye}/><rect x="57" y="33" width="12" height="27" rx="6" ${eye}/>`}
   if(!g.length)return `<svg class="skin-svg ${cls}" viewBox="0 0 100 100" aria-hidden="true">${orb}</svg>`;
   const n=++skinN,vb=g.includes('wings')?'-26 -26 152 152':'-12 -12 124 124';
   return `<svg class="skin-svg ${cls}" viewBox="${vb}" aria-hidden="true">${g.includes('aura')?`<defs><radialGradient id="ga${n}"><stop offset=".68" stop-color="#7d6cff" stop-opacity="0"/><stop offset=".76" stop-color="#7d6cff" stop-opacity=".6"/><stop offset=".9" stop-color="#4632aa" stop-opacity=".22"/><stop offset="1" stop-color="#4632aa" stop-opacity="0"/></radialGradient></defs><circle cx="50" cy="50" r="58" fill="url(#ga${n})"/>`:''}
-    ${arrowGearSVG(g,k?k.body:null,'back')}<g transform="translate(50 50) scale(.926) translate(-50 -50)">${orb}</g>${arrowGearSVG(g,k?k.body:null,'front')}</svg>`;
+    ${arrowGearSVG(g,gearInk,'back',f)}<g transform="translate(50 50) scale(.926) translate(-50 -50)">${orb}</g>${arrowGearSVG(g,gearInk,'front',f)}</svg>`;
 }
 
 /* ---------- banner (Status and Gates) ---------- */
@@ -274,29 +279,52 @@ function evExtract(ev){
   return {sh,again:false};
 }
 
-/* ---------- Arrow skins ---------- */
+/* ---------- Arrow's bodies and skins ---------- */
+/* The body Arrow is in (ARROW_FORMS); the orb unless the Player picked another. */
+const arrowForm=()=>{const f=S.profile&&S.profile.arrowForm;return ARROW_FORMS[f]?f:'orb'};
+/* A skin is owned once unlocked, or from the start if it comes with its body (free). */
+const skinOwned=id=>!!ARROW_SKINS[id]&&(!!ARROW_SKINS[id].free||S.skins.includes(id));
+/* A body's own skins fit only that body; story and milestone skins fit them all. */
+const skinFits=(id,f=arrowForm())=>!ARROW_SKINS[id].form||ARROW_SKINS[id].form===f;
+const formSkinName=(id,f=arrowForm())=>id?ARROW_SKINS[id].n:f==='orb'?'Ink':'Classic';
+/* Switch body. Each body remembers its own skin (S.profile.formSkins), so switching back restores it. */
+function equipForm(f,quiet){
+  if(!ARROW_FORMS[f])return;
+  const p=S.profile||{},cur=arrowForm(),mem=Object.assign({},p.formSkins,{[cur]:p.arrowSkin||null}),sk=mem[f];
+  S.profile=Object.assign(p,{arrowForm:f,formSkins:mem,arrowSkin:sk&&skinOwned(sk)&&skinFits(sk,f)?sk:null});save();Bot.reskin();
+  if(!quiet){toast(f===cur?`Arrow is already ${ARROW_FORMS[f].n}`:`Arrow is now ${ARROW_FORMS[f].n}`);buzz('done')}
+}
 function equipSkin(id){
-  if(id&&!S.skins.includes(id))return;
+  if(id&&!skinOwned(id))return;
+  if(id&&!skinFits(id))equipForm(ARROW_SKINS[id].form,true); // a body's own skin brings its body
   S.profile=Object.assign(S.profile||{},{arrowSkin:id||null});save();Bot.reskin();
-  toast(id?`Arrow is wearing ${ARROW_SKINS[id].n}`:'Arrow is back in ink');buzz('done');
+  toast(id?`Arrow is wearing ${ARROW_SKINS[id].n}`:arrowForm()==='orb'?'Arrow is back in ink':`Arrow is back in classic ${ARROW_FORMS[arrowForm()].n}`);buzz('done');
 }
 /* Milestone skins: the number each one counts, and how to earn a skin (todo) or why you have it (done). */
-const SKIN_COUNT={quests:()=>S.totalQuests,streak:()=>S.bestStreak,shadows:()=>S.shadows.length};
+const SKIN_COUNT={quests:()=>S.totalQuests,streak:()=>S.bestStreak,shadows:()=>S.shadows.length,level:()=>S.level,
+  sleep:()=>Object.values(S.sleep||{}).filter(h=>h>=0).length,body:()=>(S.body||[]).length};
 function skinHow(id){
   const k=ARROW_SKINS[id];if(!k)return {todo:'',done:''};
+  if(k.free)return {todo:'',done:`Comes with ${ARROW_FORMS[k.form].n}`};
   if(k.ev){const ev=evById(k.ev),nm=ev?ev.name:'its story event';return {todo:`Clear all five chapters of ${nm}`,done:`From ${nm}`}}
   const n=k.how.n,have=Math.min(n,SKIN_COUNT[k.how.k]());
   return {quests:{todo:`Clear ${n} daily quests (${have}/${n})`,done:`For clearing ${n} daily quests`},
     streak:{todo:`Reach a ${n}-day streak (best so far: ${have})`,done:`For a ${n}-day streak`},
-    shadows:{todo:`Command ${n} shadows (${have}/${n})`,done:`For commanding ${n} shadows`}}[k.how.k];
+    shadows:{todo:`Command ${n} shadows (${have}/${n})`,done:`For commanding ${n} shadows`},
+    level:{todo:`Reach Level ${n} (now ${have})`,done:`For reaching Level ${n}`},
+    sleep:{todo:`Log your sleep for ${n} nights (${have}/${n})`,done:`For logging ${n} nights of sleep`},
+    body:{todo:`Do ${n} body check-ins (${have}/${n})`,done:`For ${n} body check-ins`}}[k.how.k];
 }
 /* Unlock every milestone skin whose number has been reached (older saves get theirs on the next start). */
 function skinCheck(silent){
   const got=Object.keys(ARROW_SKINS).filter(id=>{const k=ARROW_SKINS[id];return k.how&&!S.skins.includes(id)&&SKIN_COUNT[k.how.k]()>=k.how.n});
   if(!got.length)return got;
   S.skins=[...S.skins,...got];save();
-  if(!silent)got.forEach(id=>reveal(`<div class="ev-skin-get">${skinSVG(id,'big')}<div><p class="overline">Arrow skin unlocked</p><p class="h2">${esc(ARROW_SKINS[id].n)}</p><p class="small muted">${esc(skinHow(id).done)}.</p></div></div>
-    <div class="m-btns"><button class="btn" data-act="skinWear" data-arg="${id}">Put it on Arrow</button><button class="btn ghost" data-act="closeModal">Later</button></div>`,'sys','user'));
+  if(silent)return got;
+  if(got.length===1){const id=got[0];reveal(`<div class="ev-skin-get">${skinSVG(id,'big')}<div><p class="overline">${ARROW_SKINS[id].form?`${esc(ARROW_FORMS[ARROW_SKINS[id].form].n)} skin unlocked`:'Arrow skin unlocked'}</p><p class="h2">${esc(ARROW_SKINS[id].n)}</p><p class="small muted">${esc(skinHow(id).done)}.</p></div></div>
+    <div class="m-btns"><button class="btn" data-act="skinWear" data-arg="${id}">Put it on Arrow</button><button class="btn ghost" data-act="closeModal">Later</button></div>`,'sys','user')}
+  else reveal(`<p class="overline skin-gets-h">${got.length} Arrow skins unlocked</p><div class="skin-gets">${got.map(id=>`<button class="skin-opt" data-act="skinWear" data-arg="${id}" aria-label="Put ${esc(ARROW_SKINS[id].n)} on Arrow. ${esc(skinHow(id).done)}">${skinSVG(id)}<span>${esc(ARROW_SKINS[id].n)}</span></button>`).join('')}</div>
+    <p class="small muted skin-gets-h">Tap one to put it on Arrow.</p><div class="m-btns"><button class="btn ghost" data-act="closeModal">Later</button></div>`,'sys','user');
   return got;
 }
 ACT.skinWear=id=>{closeModal();equipSkin(id)};
