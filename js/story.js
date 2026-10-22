@@ -405,7 +405,7 @@ const ARROW_SKINS={
   c_storm:{n:'Thundercloud',form:'cloudee',how:{k:'quests',n:50},body:'#56607a',eyes:'#ffe14a'},
   c_night:{n:'Night Sky',form:'cloudee',how:{k:'sleep',n:14},body:'#2f3d85',eyes:'#cfe0ff'},
   x_neon:{n:'Neon Grid',form:'cyber',free:true,body:'#19d3c5',eyes:'#06222b'},
-  x_circuit:{n:'Circuit',form:'cyber',how:{k:'body',n:4},body:'#2a5d6e',eyes:'#4dff9a'},
+  x_circuit:{n:'Circuit',form:'cyber',how:{k:'exps',n:7},body:'#2a5d6e',eyes:'#4dff9a'},
   x_glitch:{n:'Glitch',form:'cyber',how:{k:'level',n:15},body:'#7b2cff',eyes:'#2ef2ff'}
 };
 

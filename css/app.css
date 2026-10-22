@@ -1521,7 +1521,7 @@ details.acc .acc-body p{color:var(--ink-2);font-size:15px;padding:5px 0}
 .skin-gets .skin-svg{width:52px;height:52px}
 .skin-gets-h{text-align:center}
 @media (prefers-reduced-motion:reduce){.evb-dot,.evb-pips i.boss.o,.ev-ch.ready .evc-ic,.ev-skin-get .skin-svg,.evs-tap{animation:none}}
-/* Body: weekly check-in, sleep and injury care (body.js) */
+/* Body: weight trend, sleep and injury care (body.js) */
 .inj-btns{margin-top:8px}
 .inj-btns .btn{flex:1}
 .sl-pick{display:flex;flex-wrap:wrap;gap:6px}
@@ -1531,20 +1531,6 @@ details.acc .acc-body p{color:var(--ink-2);font-size:15px;padding:5px 0}
 .sl-col{fill:var(--ink)}
 .sl-none{stroke:var(--ink-3);stroke-width:1.5}
 .sl-goal{stroke:var(--red);stroke-width:1}
-.body-strip .cs-ic{animation:none}
-.body-form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.body-form label{display:flex;flex-direction:column;gap:4px}
-.body-form label>span,.bf-more summary{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
-.body-form input[type=number]{height:44px;padding:0 10px;background:var(--paper);border:0;box-shadow:inset 0 0 0 1.5px var(--ink);border-radius:0;font-size:16px;font-weight:600;width:100%;color:var(--ink)}
-.body-form input[type=number]:focus{outline:none;box-shadow:inset 0 0 0 2px var(--red)}
-.bf-more{grid-column:1/-1}
-.bf-more summary{cursor:pointer;padding:4px 0;text-decoration:underline;text-underline-offset:3px}
-.bf-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}
-.bf-fit{grid-column:1/-1}
-.body-form .msg-seg label>span{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
-.body-form .msg-seg label:has(input:checked)>span{color:var(--paper)}
-.bf-note{grid-column:1/-1;margin-top:-4px}
-.bf-foot{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .body-chart{margin:4px 0 6px}
 .body-verdict{font-size:15px;line-height:1.4}
 #progress .seg button{font-size:10.5px;letter-spacing:.03em;padding:0 2px} /* six tabs on a phone */

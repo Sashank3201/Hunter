@@ -518,7 +518,7 @@ AH.pain=c=>{
     mood:'scared',chips:[chip('Show my quest','arrowGo','quest')]};
 };
 
-/* ---- body check-ins and sleep (body.js) ---- */
+/* ---- weight, measurements and sleep (body.js) ---- */
 /* Weight, measurements and clothes fit from a message. Lengths come back in cm; a bare small number is inches. */
 function arBodyParse(low){
   const e={};let m=low.match(/(\d{2,3}(?:\.\d+)?)\s*(kgs?|kilo\w*|lbs?|pounds)\b/);
@@ -544,14 +544,13 @@ AH.log_body=c=>{
   if(e.waist!==undefined)bits.push(`waist ${fmtLen(e.waist)}${pw?` (${e.waist-pw.waist>=0?'+':'−'}${r1(Math.abs(fromCm(e.waist-pw.waist,u)))} ${u} since ${fmtDate(pw.d)})`:''}`);
   ['chest','arm','thigh'].forEach(k=>{if(e[k]!==undefined)bits.push(`${k} ${fmtLen(e[k])}`)});
   if(e.fit)bits.push(`clothes ${e.fit}`);
-  return {say:`Logged ${bodyList(bits)}.${e.kg!==undefined?' Your food targets now use this weight.':''} ${bodyVerdict()}`,chart:{kind:'body'},mood:'proud',chips:[chip('Open check-in','arrowGo','body')]};
+  return {say:`Logged ${bodyList(bits)}.${e.kg!==undefined?' Your food targets now use this weight.':''} ${bodyVerdict()}`,chart:{kind:'body'},mood:'proud',chips:[chip('See my trend','arrowGo','body')]};
 };
 AH.ask_body=c=>{
   if(/no (scale|weighing|machine)|without (a )?(scale|weighing|machine)|don'?t have (a )?(scale|weighing|machine)|machine ledu|machine nahi|no weighing/.test(c.low))
-    return {say:'No scale needed. Your waist is the better number anyway: a tailor\'s tape costs about ₹30, or wrap a string around your waist at the belly button, pinch the spot and measure it on a ruler (the long side of an A4 sheet is 29.7 cm). Measure once a week, same morning routine. Add how one pair of jeans fits, and weigh yourself whenever you pass a pharmacy or gym scale.',
-      mood:'happy',chips:[chip('Do my check-in','arrowGo','body')]};
-  if(!(S.body||[]).length)return {say:'No check-ins yet. Do your first one in Progress → Body: your waist, how your clothes fit, and your weight if you have a scale. One minute.',mood:'curious',chips:[chip('Do my check-in','arrowGo','body')]};
-  return {say:`${bodyVerdict()}${checkinDue()?' Your weekly check-in is due.':` Next check-in: ${fmtDate(addDays(lastCheckin(),7))}.`}`,chart:{kind:'body'},mood:'thinking',chips:[chip('Open check-in','arrowGo','body')]};
+    return {say:'No scale needed. Your waist is the better number anyway: a tailor\'s tape costs about ₹30, or wrap a string around your waist at the belly button, pinch the spot and measure it on a ruler (the long side of an A4 sheet is 29.7 cm). Whenever you measure, tell me the number, like "waist 81 cm", and weigh yourself whenever you pass a pharmacy or gym scale.',mood:'happy'};
+  if(!(S.body||[]).length)return {say:'Nothing logged yet. Tell me your weight or waist any time, like "I weigh 64 kg" or "waist 81 cm", and I\'ll track the trend. Your food targets follow your weight.',mood:'curious'};
+  return {say:bodyVerdict(),chart:{kind:'body'},mood:'thinking',chips:[chip('See my trend','arrowGo','body')]};
 };
 AH.ask_sleep=()=>{
   const D=sleepDays(7).filter(x=>x.h!==null),avg=sleepAvg(7),last=sleepLast(),pick=SLEEP_OPTS.map(([h,l])=>chip(`${l} h`,'arrowSleep',h));
@@ -699,7 +698,6 @@ function arInsights(c){
   if(sa!==null&&sn>=3&&sa<6.5)add(72,`You're sleeping ${sa} hours a night on average. That's where your gains leak: muscle is rebuilt in sleep. Same bedtime every night, phone away 30 minutes before.`);
   else if(sn===0&&dayDiff(S.startDate,today)>=7)add(30,'Log your sleep each morning (one tap on Status). Then I can tell you when to go easier.');
   const bv=(S.body||[]).length>=2?bodyVerdict():'';if(/too slow|fast|rim about|not shrinking|Drifting|growing faster/.test(bv))add(66,bv);
-  if(checkinDue()&&S.totalQuests>=1)add(42,'Your weekly body check-in is due. No scale needed: a tape or a string around your waist does the job.',chip('Do my check-in','arrowGo','body'));
   if(typeof evNow==='function'){const cur=evNow(),R=evRun(cur.n);if(!R.raid&&evRaidOpen(cur))add(35,`The ${cur.ev.raid.boss} raid is open. That weapon won't win itself.`,chip('Open the event','arrowGo','event'));
     else if(cur.ev.chapters.some((x,i)=>evChapter(cur,i)==='ready'))add(25,`A ${cur.ev.short} chapter is ready. A little story, then you sweat.`,chip('Open the event','arrowGo','event'))}
   return out.sort((a,b)=>b.p-a.p);
@@ -742,7 +740,6 @@ AH.daily_plan=c=>{
   steps.push(pl?`Food: ${fmtK(kl)} kcal and ${pl} g protein to go. Next up: ${mealNow()}.`:'Food: protein done. Eat to your calories and you\'re finished.');
   if(wl)steps.push(`Water: ${wl} more glass${wl>1?'es':''}.`);
   injuries().forEach(i=>steps.push(`Injury care: your ${INJURY_PARTS[i.part].n} rests until ${fmtDate(i.until)}, so ${pausedText(i.part)} are off.`));
-  if(checkinDue()&&S.totalQuests>=1){steps.push('Body: your weekly check-in is due. One minute, no scale needed.');chips.push(chip('Do my check-in','arrowGo','body'))}
   if(typeof expState==='function'){const st=expState();
     if(st==='back'){steps.push('Shadows: your expedition is back. Claim the loot.');chips.push(chip('Claim the loot','arrowExp'))}
     else if(expCanLaunch()&&h>=17)steps.push('Shadows: send them on an expedition tonight.')}
@@ -946,7 +943,7 @@ AH.start_workout=()=>{
   return {say:'Let\'s go. Don\'t make me watch you skip sets.',mood:'excited',act:()=>{closeBot();ACT.workout()}};
 };
 AH.open_license=()=>({say:'Here\'s your license. Try not to look too proud.',mood:'proud',act:()=>{closeBot();openCard()}});
-AH.open_settings=c=>/weight|waist|measure/.test(c.low)?{say:'Your weight lives in Progress → Body now, with the weekly check-in. Opening it.',mood:'happy',act:()=>arGo('body')}
+AH.open_settings=c=>/weight|waist|measure/.test(c.low)?{say:'Just tell me your weight any time, like "I weigh 64 kg", and your food targets follow it. Your trend is in Progress → Body. Opening it.',mood:'happy',act:()=>arGo('body')}
   :/height|\bage\b/.test(c.low)?{say:'Sure. Update your height, age, sex or goal here.',mood:'happy',act:()=>ACT.botSetup()}
   :{say:'Settings. Don\'t break anything.',mood:'happy',act:()=>{closeBot();openMenu()}};
 AH.theme=c=>{

@@ -37,16 +37,16 @@ It is a Progressive Web App (PWA): plain HTML, CSS and JavaScript with no build 
 | Cloudee | Thundercloud | Clear 50 daily quests |
 | Cloudee | Night Sky | Log your sleep for 14 nights |
 | Cyber | Neon Grid | Comes with Cyber |
-| Cyber | Circuit | Do 4 body check-ins |
+| Cyber | Circuit | Win 7 shadow expeditions |
 | Cyber | Glitch | Reach Level 15 |
 
 Pick a skin in **Profile → Arrow skin**, or tell Arrow "wear the Monarch skin". Asking for a body's own skin turns Arrow into that body.
-- **Body.** A weekly check-in that needs no scale: your waist (a tailor's tape, or a string and a ruler), how your clothes fit, and your weight whenever you can get to a scale. Trend charts, and food targets that follow your weight.
+- **Body.** Tell Arrow your weight or waist whenever you measure ("I weigh 64 kg", "waist 81 cm", "my belt feels looser"). Progress → Body shows the trend once there is one, and your food targets follow your weight. No scale needed: a tailor's tape, or a string and a ruler, works for the waist.
 - **Sleep and injuries.** One tap each morning logs your sleep. Tell Arrow "my knee hurts" and your quest pauses the moves that load it until it heals, with a daily check-in.
 - **Diet.** Daily calorie and protein targets, a food log with 200+ foods (lots of Indian staples), and voice input.
 - **Arrow.** A chat companion that understands English, Telugu and Hindi written in English letters. It logs food, coaches you from your own numbers ("give me advice", "am I improving?", "plan my day"), charts your five stats and where they go in four weeks of full quests ("what are my stats?"), answers training, diet and sleep questions, and follows up when you say "tell me more". Its language model runs on the phone, offline.
 - **Weekly report** with a grade, and a shareable Hunter License card.
-- **Hunter's Chronicle.** Each month becomes a chapter, written from what you actually did: quests, reps, levels, trials, records, shadows, Gates, expeditions, story chapters, body check-ins and sleep. On the first visit of a new month the System shows last month's chapter, with a card to share. Reopen any month from **Progress → History**, or ask Arrow "how was my month?".
+- **Hunter's Chronicle.** Each month becomes a chapter, written from what you actually did: quests, reps, levels, trials, records, shadows, Gates, expeditions, story chapters, weight and sleep. On the first visit of a new month the System shows last month's chapter, with a card to share. Reopen any month from **Progress → History**, or ask Arrow "how was my month?".
 
 The app has five tabs: Status, Quest, Gates, Progress and Diet. Profile and settings open from the button at the top.
 
@@ -115,7 +115,7 @@ All progress stays on your device, in the browser's local storage. Nothing is se
 
 | Key | What it holds |
 | --- | --- |
-| `hunter_system_v1` | Level, EXP, quests, records, shadows, weapons, body check-ins, sleep, injuries, settings |
+| `hunter_system_v1` | Level, EXP, quests, records, shadows, weapons, weight and measurements, sleep, injuries, settings |
 | `hunter_diet_v1` | Body details, diet type, food log and Arrow's chat |
 | `hunter_arrow_v1` | Arrow's memory and what it learned from you |
 
@@ -127,7 +127,7 @@ There is no build step: edit a file, save it, and refresh the page.
 
 - **Scripts load in order.** `index.html` loads the files in `js/` as classic scripts that share global variables, so the order matters. `js/data.js` comes first and `js/main.js` comes last. Only `js/world3d.js` is an ES module, loaded when a Gate opens.
 - **Adding a new file:** add it to `index.html`, and to the `ASSETS` list in `sw.js` so it works offline.
-- **Before every release:** bump the cache name in `sw.js` (`hunter-system-v26` → `hunter-system-v27`) so phones store the new files for offline use.
+- **Before every release:** bump the cache name in `sw.js` (`hunter-system-v27` → `hunter-system-v28`) so phones store the new files for offline use.
 - **Adding a story event:** add it to `STORY_EVENTS` in `js/story.js` (anywhere in the list), with its weapon in `WEAPONS`, its shadow in `SHADOW_BODY` and `SHADOW_SKILLS` (`js/data.js`), its skin in `ARROW_SKINS`, a silhouette look in `js/shadows.js` and a raid world in `js/world3d.js`. Weeks that have already started keep their event, so a new one never replaces a live one. Then retrain Arrow so it knows the new names.
 - **Changing a body:** the bodies come from avatar definitions in `tools/avatars/` (`*.avatar.json`). Run `node tools/avatars/convert.js` to rebuild `js/forms.js` from them. It keeps the expressions the animations use and measures where each head sits, so the gear lands on it.
 - **Test switches.** Set these in the browser console, or in a test before the page loads:
@@ -159,7 +159,7 @@ There is no build step: edit a file, save it, and refresh the page.
 | `js/nutrition.js`, `js/foods.js`, `js/foodlog.js`, `js/recipes.js` | Diet targets, food database, food log and recipes |
 | `js/arrow*.js`, `js/bot.js`, `js/botgame.js` | Arrow: brain, words, language model and the rest-timer mini game |
 | `js/report.js`, `js/card.js` | Weekly report and Hunter License card |
-| `js/body.js` | Body check-ins, sleep log and injury care |
+| `js/body.js` | Weight trend, sleep log and injury care |
 | `js/tree.js`, `js/expeditions.js`, `js/chronicle.js` | The skill tree, shadow expeditions and the monthly chronicle |
 | `js/awaken.js`, `js/menu.js`, `js/main.js` | First-run sign-up, the profile menu, start-up |
 | `js/forms.js` | Arrow's other bodies (generated by `tools/avatars/convert.js`) |
