@@ -97,7 +97,7 @@ function aRender(){
         <div class="a-dots" aria-hidden="true">${BRIEFING.map((_,i)=>`<i class="${i===A.brief?'on':''}"></i>`).join('')}</div></div>
       <div class="a-foot"><button class="btn" data-act="aBrief" data-arg="1">${last?(A.onlyBrief?'Done':'I understand'):'Next'}</button></div>`;
   }else if(s==='done'){
-    h=`<div class="a-main a-center"><div class="a-rank">${currentRank().r}</div>
+    h=`<div class="a-main a-center"><div class="a-rank" data-l="${currentRank().r.length}">${currentRank().r}</div>
       <p class="overline" style="margin-bottom:10px">Registration complete</p>
       <h1 class="a-title">Welcome, ${esc(A.name)}</h1>
       <p class="a-sub">${A.returning?'Your progress has been restored.':S.startDate>todayStr()?`Your first quest unlocks ${fmtDate(S.startDate)}.`:'Your first daily quest is ready.'}</p></div>

@@ -43,6 +43,7 @@ function fresh(){return {
   weaponEquipped:null,
   events:null,       // story events: {anchor, runs:{n:{id, ch:[dates], raid, clears}}, seen, mission}
   skins:[],          // Arrow skins unlocked in story events
+  gearSeen:[],       // Arrow's evolution pieces already announced (events.js)
   body:[],           // weekly check-ins: [{d, kg, waist, chest, arm, thigh, fit}] (body.js)
   sleep:{},          // date -> hours slept the night before
   injuries:[],       // [{part, since, until, sev, asked, healed}]: pause the areas they load

@@ -6,7 +6,10 @@ const RANKS=[
   {r:'C',name:'Iron Body',lv:8},
   {r:'B',name:'Elite',lv:12},
   {r:'A',name:'Monarch Candidate',lv:16},
-  {r:'S',name:'Shadow Monarch',lv:20}
+  {r:'S',name:'Shadow Monarch',lv:20},
+  // the Monarch's Path: past S, two trials at the edge of what a human body can do
+  {r:'SS',name:'Ruler',lv:25},
+  {r:'SSS',name:'Absolute Being',lv:30}
 ];
 const STATS=['Strength','Speed','Agility','Mobility','Flexibility'];
 
@@ -259,7 +262,14 @@ const RANK_TESTS={
   A:{level:16,week:20,gate:'Hall of Trials',line:'Few hunters reach this hall. Fewer leave it promoted.',
     tests:[['Diamond push-ups',15,'Diamond push-up'],['Archer table rows, each side',8,'Archer table row'],['Assisted pistols, each leg',5,'Assisted pistol (hold support)'],['L-sit',10,'L-sit on floor (secs)','hold']]},
   S:{level:20,week:24,gate:'The Monarch\'s Trial',line:'Everything you built, all at once.',
-    tests:[['Full push-ups',40,'Full push-up'],['Pistol squats, each leg',3,'Pistol squat'],['L-sit',20,'L-sit on floor (secs)','hold'],['Burpees in 60 seconds',20,'Full burpee',60]]}
+    tests:[['Full push-ups',40,'Full push-up'],['Pistol squats, each leg',3,'Pistol squat'],['L-sit',20,'L-sit on floor (secs)','hold'],['Burpees in 60 seconds',20,'Full burpee',60]]},
+  // the Monarch's Path: the S-rank Hunter keeps the rank and chases these. Level is the only gate.
+  SS:{level:25,week:24,exp:300,gate:'The Rulers\' Judgment',line:'The Rulers do not test hunters. They test what a human body can become.',
+    tests:[['Full push-ups',50,'Full push-up'],['Pistol squats, each leg',8,'Pistol squat'],['Wall handstand hold',60,'Wall handstand hold (secs)','hold'],
+      ['L-sit',30,'L-sit on floor (secs)','hold'],['Burpees in 60 seconds',25,'Full burpee',60]]},
+  SSS:{level:30,week:24,exp:500,gate:'Throne of the Absolute',line:'Beyond this trial there is no rank. Only what you are.',
+    tests:[['One-arm push-ups, each arm',5,'One-arm push-up'],['Wall handstand push-ups',8,'Wall handstand push-up'],['Pistol squats, each leg',15,'Pistol squat'],
+      ['Dragon flags',8,'Dragon flag'],['L-sit',45,'L-sit on floor (secs)','hold'],['Burpees in 60 seconds',30,'Full burpee',60]]}
 };
 const TRIAL_REST=90, TRIAL_EXP=150;
 

@@ -398,3 +398,14 @@ const ARROW_SKINS={
   flame:{n:'Undying Flame',how:{k:'streak',n:14},body:'#c2451e',eyes:'#ffe08a'},
   sovereign:{n:'Shadow Sovereign',how:{k:'shadows',n:10},body:'#46407a',eyes:'#b3a6ff'}
 };
+
+/* Arrow evolves with the Player's rank. Each piece unlocks at its rank, sits on top of any skin, and is
+   on until the Player switches it off (S.profile.arrowGear). Drawn by arrowGearSVG in bot.js. */
+const ARROW_GEAR={
+  horns:{n:'Horns',rank:'C',got:'Arrow grew horns.'},
+  crown:{n:'Crown',rank:'A',got:'Arrow wears a crown now.'},
+  aura:{n:'Shadow aura',rank:'S',got:'A shadow aura burns around Arrow.'},
+  wings:{n:'Shadow wings',rank:'SS',got:'Arrow grew shadow wings.'},
+  eyes:{n:'Monarch eyes',rank:'SSS',got:'Arrow\'s eyes burn with the Monarch\'s light.'}
+};
+const MONARCH_EYES='#a58bff';

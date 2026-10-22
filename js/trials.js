@@ -22,10 +22,10 @@ function trialCardHTML(where){
       <p class="s">Move ${Math.min(run.i+1,t.tests.length)} of ${t.tests.length} · ${2-run.tries} attempt${run.tries?'':'s'} left</p>
       <button class="btn block" data-act="trialResume">Return to the trial</button></div></div>`}
   const nx=nextRank();
-  if(!nx)return where==='gates'?`<div class="trial-card done"><div class="tc-seal">S</div><div class="grow"><p class="overline">Hunter Association</p><p class="h2">All trials passed</p><p class="s">You are a verified S-Rank hunter.</p></div></div>`:'';
-  const st=trialStatus(nx.r);
-  return `<div class="trial-card${st.ready?' ready':''}"><div class="tc-seal">${nx.r}</div><div class="grow">
-    <p class="overline">Hunter Association · ${nx.r}-Rank trial</p><p class="h2">${st.t.gate}</p><p class="s tc-line">“${st.t.line}”</p>
+  if(!nx)return where==='gates'?`<div class="trial-card done"><div class="tc-seal" data-l="${currentRank().r.length}">${currentRank().r}</div><div class="grow"><p class="overline">The Monarch's Path</p><p class="h2">All trials passed</p><p class="s">You are a verified ${currentRank().r}-Rank: ${esc(currentRank().name)}. There is nothing left to test but yourself.</p></div></div>`:'';
+  const st=trialStatus(nx.r),beyond=RANKS.indexOf(nx)>RANKS.findIndex(x=>x.r==='S');
+  return `<div class="trial-card${st.ready?' ready':''}${beyond?' beyond':''}"><div class="tc-seal" data-l="${nx.r.length}">${nx.r}</div><div class="grow">
+    <p class="overline">${beyond?'The Monarch\'s Path':'Hunter Association'} · ${nx.r}-Rank trial</p><p class="h2">${st.t.gate}</p><p class="s tc-line">“${st.t.line}”</p>
     <ul class="req">
       <li><i class="chk${st.lvOk?' on':''}">${ic('check')}</i><span>Reach level ${st.t.level}</span><em>you're ${S.level}</em></li>
       <li><i class="chk${st.wkOk?' on':''}">${ic('check')}</i><span>Train until week ${st.t.week}</span><em>week ${weekNumber()}</em></li>
@@ -51,7 +51,7 @@ function trialOpen(r){
   const L=$('trial');L.hidden=false;document.body.classList.add('locked');
   L.className='layer t-opening';
   L.innerHTML=`<div class="t-seal-big"><svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="94"/><circle cx="100" cy="100" r="80" class="d"/></svg>
-    <span class="tsb-r">${r}</span><span class="tsb-t">Re-assessment</span></div><p class="portal-t">Hunter Association</p>`;
+    <span class="tsb-r" data-l="${r.length}">${r}</span><span class="tsb-t">Re-assessment</span></div><p class="portal-t">${GRADES.includes(r)?'Hunter Association':'The Monarch\'s Path'}</p>`;
   buzz('alarm');
   setTimeout(()=>{L.className='layer';tRender()},1900);
 }
@@ -90,8 +90,8 @@ ACT.tForfeitOk=()=>{closeModal();trialFail(true)};
 function trialPass(){
   const r=tRun().r,rk=RANKS.find(x=>x.r===r),from=currentRank().r,eff0=effLevel();
   S.rankTestsPassed=[...new Set([...S.rankTestsPassed,r])];delete S.rankFails[r];S.trialRun=null;
-  const exp=TRIAL_EXP;S.exp+=exp;
-  const loot=[`+${exp} EXP`,grantItem('key',1,r),grantItem('box')];
+  const exp=RANK_TESTS[r].exp||TRIAL_EXP;S.exp+=exp;
+  const loot=[`+${exp} EXP`,grantItem('key',1,GRADES.includes(r)?r:'S'),grantItem('box')];
   const firstTitle=!S.titles.includes(rk.name);if(firstTitle)S.titles=[...S.titles,rk.name];
   const ups=[];armyTrain(100,ups);const shLv=announceUps(ups);
   const up=syncLevel();save();
@@ -99,7 +99,7 @@ function trialPass(){
   const L=$('trial');L.className='layer t-rankup';
   L.innerHTML=`<div class="rankup">
     <div class="ru-rays">${Array.from({length:16},(_,i)=>`<i style="--a:${i*22.5}deg"></i>`).join('')}</div>
-    <div class="ru-stage"><span class="ru-old">${from}</span><span class="ru-new">${r}</span><span class="ru-ring"></span><span class="ru-ring two"></span></div>
+    <div class="ru-stage" data-l="${Math.max(from.length,r.length)}"><span class="ru-old">${from}</span><span class="ru-new">${r}</span><span class="ru-ring"></span><span class="ru-ring two"></span></div>
     <p class="ru-word">Rank up</p>
     <p class="ru-name">${r}-Rank · ${rk.name}</p>
     <div class="ru-body"><p class="m-text">The Hunter Association has re-assessed you. You are now officially <b>${r}-Rank</b>.${up?` <b>Level ${S.level}!</b>`:''}</p>

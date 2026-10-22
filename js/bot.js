@@ -40,18 +40,32 @@ const BOT_LOOPS={
 /* How high the body is in a loop frame, for the ground shadow: -22% up -> smaller shadow. */
 const botLift=f=>{const m=/translate\([^,]+,\s*(-?[\d.]+)%/.exec(f.transform);return m?Math.max(0,-parseFloat(m[1])):0};
 const BOT_FX={z:['z','z','Z'],z1:['z'],dots:['','',''],q:['?'],ex:['!'],wave:['',''],ha:['ha','ha'],spark:['','','',''],spark1:['',''],sweat:['']};
+/* Evolution gear (ARROW_GEAR in story.js), drawn in the face's own 0-100 box where the orb is
+   centred at 50,50 with radius 40.75. 'back' sits behind the orb (wings), 'front' on it (horns, crown). */
+const GEAR_WING='M12 48C2 34-12 28-24 32c6 5 8 12 6 20 6-4 12-3 15 2 3-3 9-3 13 2z';
+function arrowGearSVG(gear,body,layer){
+  if(layer==='back')return gear.includes('wings')?`<g class="g-wing"><path d="${GEAR_WING}"/><path d="${GEAR_WING}" transform="translate(100 0) scale(-1 1)"/></g>`:'';
+  return (gear.includes('horns')?`<g ${body?`fill="${body}"`:'class="g-ink"'}><path d="M18 27Q6 13 8-6Q20 8 31 17z"/><path d="M82 27Q94 13 92-6Q80 8 69 17z"/></g>`:'')
+    +(gear.includes('crown')?`<path class="g-crown" d="M36 14 34-4 43 4 50-9 57 4 66-4 64 14z"/><circle cx="50" cy="6" r="2.4" fill="#d7261e"/>`:'');
+}
 const Bot=(()=>{
-  let api=null,host=null,face=null,loopEl=null,poseEl=null,tapEl=null,fxEl=null,ground=null;
-  let cur=null,mood='idle',timer=0,theme='',skin='',loopA=null,groundA=null,body='';
+  let api=null,host=null,face=null,loopEl=null,poseEl=null,tapEl=null,fxEl=null,ground=null,backEl=null,frontEl=null;
+  let cur=null,mood='idle',timer=0,theme='',skin='',gear='',loopA=null,groundA=null,body='';
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const dark=()=>{const t=document.documentElement.dataset.theme;return t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches)};
   /* The Arrow skin the Player wears (story event reward), if they own it. */
   const skinNow=()=>{const id=typeof S!=='undefined'&&S.profile&&S.profile.arrowSkin;return id&&ARROW_SKINS[id]&&(S.skins||[]).includes(id)?id:''};
+  /* The evolution pieces Arrow has on (events.js), as a list. */
+  const gearNow=()=>typeof arrowGear==='function'&&typeof S!=='undefined'?arrowGear():[];
   function el(tag,cls,parent){const e=document.createElement(tag);e.className=cls;if(parent)parent.appendChild(e);return e}
   /* Ink orb with paper eyes; inverted on the night theme so it never disappears. A skin replaces both colours. */
   function build(){
     const d=dark(),sk=skinNow(),colors=sk?{body:ARROW_SKINS[sk].body,eyes:ARROW_SKINS[sk].eyes}:d?{body:'#ECE7DD',eyes:'#121110'}:{body:'#121110',eyes:'#FFFFFF'};
-    theme=d?'dark':'light';skin=sk;
+    const g=gearNow();if(g.includes('eyes'))colors.eyes=MONARCH_EYES;
+    theme=d?'dark':'light';skin=sk;gear=g.join();
+    backEl.innerHTML=g.includes('wings')?`<svg viewBox="0 0 100 100">${arrowGearSVG(g,colors.body,'back')}</svg>`:'';
+    frontEl.innerHTML=g.some(k=>k==='horns'||k==='crown')?`<svg viewBox="0 0 100 100">${arrowGearSVG(g,colors.body,'front')}</svg>`:'';
+    host.classList.toggle('aura',g.includes('aura'));host.classList.toggle('geared',g.some(k=>k==='horns'||k==='crown'||k==='wings')); // a little smaller so the gear fits
     if(api){api.destroy();api=null}
     const data=Object.assign({},BOT_DATA,{avatar:Object.assign({},BOT_DATA.avatar,{colors})});
     api=AvatarRuntime.create(data,face,{animation:cur||mood,autoplay:true,size:'100%'});
@@ -61,11 +75,12 @@ const Bot=(()=>{
     if(!host){
       host=el('span','bot-host');host.setAttribute('aria-hidden','true');
       ground=el('i','bot-ground',host);
-      const fl=el('span','bot-float',host);poseEl=el('span','bot-pose',fl);loopEl=el('span','bot-loop',poseEl);tapEl=el('span','bot-tap',loopEl);face=el('span','bot-face',tapEl);
+      const fl=el('span','bot-float',host);poseEl=el('span','bot-pose',fl);loopEl=el('span','bot-loop',poseEl);tapEl=el('span','bot-tap',loopEl);
+      el('span','bot-aura',tapEl);backEl=el('span','bot-gear',tapEl);face=el('span','bot-face',tapEl);frontEl=el('span','bot-gear',tapEl); // aura and wings behind, horns and crown in front
       fxEl=el('span','bot-fx',fl);
       setBody(cur||mood);
     }
-    if(!api||theme!==(dark()?'dark':'light')||skin!==skinNow())build();
+    if(!api||theme!==(dark()?'dark':'light')||skin!==skinNow()||gear!==gearNow().join())build();
   }
   /* Blend from the current body position into the new mood's loop. */
   function setBody(name){
@@ -109,7 +124,7 @@ const Bot=(()=>{
     pause(){if(api&&api.playing)api.pause();if(loopA)loopA.pause();if(groundA)groundA.pause();if(host)host.classList.add('still')},
     resume(){ensure();if(api&&!api.playing)api.play(cur);if(loopA&&loopA.playState==='paused')loopA.play();if(groundA&&groundA.playState==='paused')groundA.play();host.classList.remove('still')},
     retheme(){if(api&&theme!==(dark()?'dark':'light'))build()},
-    reskin(){if(api&&skin!==skinNow())build()}
+    reskin(){if(api&&(skin!==skinNow()||gear!==gearNow().join()))build()}
   };
   return api_;
 })();
