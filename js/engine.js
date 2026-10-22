@@ -34,7 +34,7 @@ function die(away){
   f.deaths=S.deaths;f.titles=Array.from(new Set([...S.titles,keptTitle]));f.bestStreak=S.bestStreak;
   f.profile=S.profile;f.log=S.log;f.prs=S.prs;f.passes=S.passes;f.totalReps=S.totalReps;
   // achievements, shadows and gate history are records too; items are lost
-  ['feats','shadows','dungeons','titleEquipped','suddenDone','weekSnaps','reportSeen','events','skins'].forEach(k=>f[k]=S[k]);
+  ['feats','shadows','dungeons','titleEquipped','suddenDone','weekSnaps','reportSeen','events','skins','body','sleep','injuries'].forEach(k=>f[k]=S[k]);
   f.log[todayStr()]=Object.assign(f.log[todayStr()]||{done:[]},{died:true});
   S=f;save();
   openModal(`<div class="m-stamp">You have died</div>
@@ -132,7 +132,8 @@ function completeDay(){
   const loot=[];
   // stat gain: each trained stat grows
   const gained={};
-  sp.quests.forEach(k=>{const st=LADDERS[k].stat;gained[st]=(gained[st]||0)+1;S.ladders[k].streak++});
+  const trained=[...new Set(buildQuestItems().filter(i=>!i.warm).map(i=>i.key))]; // areas resting for an injury don't grow
+  trained.forEach(k=>{const st=LADDERS[k].stat;gained[st]=(gained[st]||0)+1;if(sp.quests.includes(k))S.ladders[k].streak++});
   Object.keys(gained).forEach(st=>{S.stats[st]+=gained[st]*0.22*armyMult('stat:'+st)});
   STATS.forEach(st=>{S.stats[st]+=0.08*armyMult('stat:'+st)});
   // weekly goal: 5 training days in a week boosts every stat

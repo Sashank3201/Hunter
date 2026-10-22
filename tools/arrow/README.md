@@ -1,6 +1,6 @@
 # Arrow's language model
 
-Arrow decides what a message means (one of 60 intents) with a small neural network that runs inside the app, offline.
+Arrow decides what a message means (one of 63 intents) with a small neural network that runs inside the app, offline.
 
 The model has four stages:
 
@@ -46,11 +46,11 @@ On the phone, Arrow also learns from the Player. When the Player taps "Not what 
 | Skip-grams | on |
 | Epochs | 10 |
 | Seed | 7 |
-| Training examples | 56,354 |
-| Intents | 60 |
-| File size | 874 KB |
+| Training examples | 58,753 |
+| Intents | 63 |
+| File size | 875 KB |
 
-The nine newest intents are `ask_advice`, `ask_progress`, `daily_plan`, `nutrition_tip`, `feeling_down`, `more`, `fun_fact`, `arrow_skin` and `about_me`. Their test lines in `realworld.tsv` were written before their templates.
+The newest intents are `ask_advice`, `ask_progress`, `daily_plan`, `nutrition_tip`, `feeling_down`, `more`, `fun_fact`, `arrow_skin`, `about_me`, `log_body`, `ask_body` and `ask_sleep`. Their test lines in `realworld.tsv` were written before their templates. Telling Arrow how you slept ("slept 5 hours") stays under `recovery`, which logs it, and "my knee is better now" stays under `pain`, which clears the injury.
 
 The blind test is split into two halves of 200 messages:
 
@@ -59,11 +59,11 @@ The blind test is split into two halves of 200 messages:
 
 | Test | Accuracy |
 | --- | --- |
-| Blind test half (honest) | **97.0%** |
+| Blind test half (honest) | **96.5%** |
 | Blind dev half | 99.0% |
-| Hand-written set | 99.5% |
+| Hand-written set | 99.2% |
 
-On the blind test half, Arrow answers directly 87% of the time (confidence ≥ 0.42), and those answers are 98.9% right. For the rest it shows "did you mean" chips.
+On the blind test half, Arrow answers directly 90% of the time (confidence ≥ 0.42), and those answers are 99.4% right. For the rest it shows "did you mean" chips.
 
 Adding intents costs a little accuracy on everyday chats about the old ones. On the natural validation set (held-out collected chats, three seeds each), the 51-intent model averaged 91.7%. The 60-intent model averaged 89.0% at D=32 and 90.2% at D=48, which is why D went up. Some of the remaining misses land in a new intent that still answers well, for example "white rice for fat loss, good or bad?" now gets the rice tip instead of the nutrition facts.
 

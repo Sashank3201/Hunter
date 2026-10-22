@@ -58,6 +58,7 @@ const evMission=()=>evState().mission;
    times the move's multiplier. Timed steps are holds, or seconds of work for moving drills. */
 const EV_WORK=/fast feet|high knees|sprint|crawl|crab walk|joint flow/i;
 function evWave([k,m,story],boss){
+  const pz=pausedAreas();if(pz.has(k))k=['core','mobility','flex','push','pull'].find(a=>!pz.has(a))||k; // injury care (body.js)
   const t=targetFor(k),kind=t.timed?(EV_WORK.test(t.name)?'time':'hold'):0;
   return Object.assign(WV(dn(t.name),Math.max(t.timed?10:3,Math.round(t.target*m)),t.name,kind,boss,/each side/.test(t.name)),{story});
 }

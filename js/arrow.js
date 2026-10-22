@@ -14,7 +14,7 @@ const ARROW_LABEL={log_food:'Log food',food_info:'Nutrition facts',undo:'Undo la
   exercise_howto:'Exercise form',motivate:'Motivation',recovery:'Rest and soreness',pain:'Pain or injury',coach_tip:'Training tips',open_tab:'Open a page',
   start_workout:'Start workout',open_license:'Hunter License',open_settings:'Settings',theme:'Theme',ask_event:'Story event',
   ask_advice:'Coach me',ask_progress:'Am I improving?',daily_plan:'Plan my day',nutrition_tip:'Diet advice',feeling_down:'Feeling low',more:'Tell me more',
-  fun_fact:'Fun fact',arrow_skin:'Arrow skins',about_me:'About me'};
+  fun_fact:'Fun fact',arrow_skin:'Arrow skins',about_me:'About me',log_body:'Log weight or waist',ask_body:'Body progress',ask_sleep:'My sleep'};
 
 /* ---------- voice: a sassy friend ---------- */
 const SAY={
@@ -91,7 +91,8 @@ function arRules(low){
     [/\b(calories|protein|macros)\b.*\b(in|of)\b/,'food_info'],[/\bwhat should i eat\b|\bhungry\b/,'suggest_meal'],[/\bstreak\b/,'ask_streak'],[/\b(summary|so far|how am i doing)\b/,'summary'],
     [/\bstart\b.*\bworkout\b/,'start_workout'],[/\b(dark|light|night) mode\b/,'theme'],[/\b(event|chapter|story)\b/,'ask_event'],
     [/\b(advice|what should i improve|coach me)\b/,'ask_advice'],[/\bplan my day\b|what should i do today/,'daily_plan'],[/\bskins?\b/,'arrow_skin'],
-    [/\b(fun )?fact\b/,'fun_fact'],[/^(more|tell me more|another one|why)\b/,'more']];
+    [/\b(fun )?fact\b/,'fun_fact'],[/^(more|tell me more|another one|why)\b/,'more'],[/\b(i weigh|my weight is|waist)\b/,'log_body'],
+    [/\bsleep (graph|chart|this week|average)\b/,'ask_sleep'],[/\bslept\b/,'recovery'],[/\b(hurts?|pain|injur\w*|sprain\w*)\b/,'pain']];
   const m=R.find(([re])=>re.test(low));return m?m[1]:'log_food';
 }
 function arrowClassify(ds,text){
@@ -157,13 +158,13 @@ function arExercise(low){
   if(f){const k=f[1],nm=(planToday().find(p=>p.a===k)||{}).n||chainMove(k,0)||LADDERS[k].steps[0][0];return {k,i:LADDERS[k].steps.findIndex(s=>s[0]===nm),name:nm,cue:(MOVES[nm]||{}).cue||'',current:true}}
   return best&&bs>=.5?best:null;
 }
-const AR_PAGES=[[/\bskins?\b/,'skins','your Arrow skins'],[/\bevents?\b|\bstory\b|chapters?/,'event','the story event'],[/armou?ry|weapons?/,'armory','the Armory'],[/shadows?|army/,'army','your shadow army'],[/history/,'history','History'],[/feats?|achievements?|badges?/,'feats','Feats'],
+const AR_PAGES=[[/\bskins?\b/,'skins','your Arrow skins'],[/\bbody\b|check ?-?in|measurements?|\bweight\b/,'body','your Body page'],[/\bevents?\b|\bstory\b|chapters?/,'event','the story event'],[/armou?ry|weapons?/,'armory','the Armory'],[/shadows?|army/,'army','your shadow army'],[/history/,'history','History'],[/feats?|achievements?|badges?/,'feats','Feats'],
   [/\bplan\b/,'plan','your Plan'],[/skills?/,'skills','Skills'],[/grocery|shopping/,'grocery','your grocery list'],[/report/,'report','the weekly report'],[/gates?|dungeons?/,'gates','Gates'],
   [/quests?/,'quest','the Quest tab'],[/progress/,'progress','Progress'],[/diet|nutrition|food|recipes?/,'diet','Diet'],[/status|home|main/,'status','Status']];
 function arGo(k){
   closeBot();
   if(['status','quest','gates','progress','diet'].includes(k))showTab(k);
-  else if(['history','feats','plan','skills','army'].includes(k))ACT.goProg(k);
+  else if(['history','feats','plan','skills','army','body'].includes(k))ACT.goProg(k);
   else if(k==='armory'){showTab('gates');setTimeout(()=>{const a=document.querySelector('.armory');if(a)a.scrollIntoView({behavior:'smooth',block:'center'})},350)}
   else if(k==='grocery')ACT.grocery();else if(k==='report')ACT.report();else if(k==='event')openEvent();
   else if(k==='skins'){openMenu();setTimeout(()=>{const s=document.querySelector('.skin-wrap');if(s)s.scrollIntoView({behavior:'smooth',block:'center'})},300)}
@@ -238,7 +239,9 @@ AH.correction=c=>{
   return {say:`Updated ${res.f.n.toLowerCase()}: ${fmtK(res.f.k)} kcal and ${Math.round(res.f.p)} g protein per ${flUnitWord(res.f)}.${res.fixed?` Fixed ${res.fixed} entr${res.fixed>1?'ies':'y'} from today. ${arSumLine(ds)}`:''} I\'ll remember that.`,mood:'proud'};
 };
 AH.summary=c=>({say:flSummary(c.ds),mood:'happy',work:'working'});
-AH.targets=c=>{const T=c.T;return {say:`Your ${GOALS[c.ds.goal||'bulk'].n.toLowerCase()} targets: ${fmtK(T.kcal)} kcal, ${T.p} g protein, ${T.c} g carbs, ${T.f} g fat, ${T.fb} g fiber, sugar under ${T.s} g and ${T.water} glasses of water a day.${c.ds.body?'':' Set your height and age (tap the person icon) so I can make these exact.'}`,mood:'proud'}};
+AH.targets=c=>{
+  const e=arBodyParse(c.low);if(e.kg!==undefined){c.ds.weight=e.kg;bodyLog({kg:e.kg})} // "I weigh 68 kg, what's my protein?"
+  const T=e.kg!==undefined?foodTargets(c.ds):c.T;return {say:`${e.kg!==undefined?`Logged ${e.kg} kg. `:''}Your ${GOALS[c.ds.goal||'bulk'].n.toLowerCase()} targets: ${fmtK(T.kcal)} kcal, ${T.p} g protein, ${T.c} g carbs, ${T.f} g fat, ${T.fb} g fiber, sugar under ${T.s} g and ${T.water} glasses of water a day.${c.ds.body?'':' Set your height and age (tap the person icon) so I can make these exact.'}`,mood:'proud'}};
 AH.set_goal=c=>{
   const l=c.low,g=/cut|lose|loss|fat|shred|lean down|taggali|kam|ghata/.test(l)&&!/gain/.test(l)?'cut':/bulk|gain|perugali|badhana|badha|muscle|bigger|mass/.test(l)?'bulk':/maint|same weight|recomp/.test(l)?'maintain':null;
   if(!g)return {say:'Which goal? Pick one.',mood:'curious',chips:Object.entries(GOALS).map(([k,v])=>chip(v.n,'arrowGoal',k))};
@@ -308,7 +311,7 @@ AH.how_are_you=()=>{
   return {say:why?`${arPick(['Great, actually.','Thriving.','Pretty good.'])}${why} How about you?`:arSay('howAreYou'),mood:'playful'};
 };
 AH.who_are_you=()=>({say:arSay('whoAreYou'),mood:'proud'});
-AH.help=()=>({say:'Here\'s what I can do: log food ("rendu idlis tinna", "2 rotis and dal"), tell you calories ("protein in paneer?"), suggest meals ("what should I eat?"), cook from your kitchen ("I have eggs and rice"), repeat meals ("same as yesterday"), answer Hunter questions ("what\'s my streak?", "who\'s my strongest shadow?"), coach you from your own numbers ("give me advice", "am I improving?", "plan my day"), answer diet questions ("is creatine safe?"), teach form ("push-up form"), change my look ("wear the Monarch skin"), and run the app ("start my workout", "open Gates", "dark mode"). Say "tell me more" after any tip. Got something wrong? Tap "not what I meant" and I learn.',mood:'curious',
+AH.help=()=>({say:'Here\'s what I can do: log food ("rendu idlis tinna", "2 rotis and dal"), tell you calories ("protein in paneer?"), suggest meals ("what should I eat?"), cook from your kitchen ("I have eggs and rice"), repeat meals ("same as yesterday"), answer Hunter questions ("what\'s my streak?", "who\'s my strongest shadow?"), coach you from your own numbers ("give me advice", "am I improving?", "plan my day"), answer diet questions ("is creatine safe?"), track your body without a scale ("waist 81 cm", "I weigh 64 kg"), your sleep ("slept 6 hours") and injuries ("my knee hurts"), teach form ("push-up form"), change my look ("wear the Monarch skin"), and run the app ("start my workout", "open Gates", "dark mode"). Say "tell me more" after any tip. Got something wrong? Tap "not what I meant" and I learn.',mood:'curious',
   chips:[chip('Give me advice','arrowAsk','give me advice'),chip('Plan my day','arrowAsk','plan my day'),chip('Fun fact','arrowAsk','tell me a fun fact')]});
 AH.joke=c=>({say:arFresh(c.ds,'joke',SAY.jokes),mood:'laughing',chips:[chip('Another one','arrowAsk','another one')]});
 AH.laugh=()=>({say:arSay('laugh'),mood:'laughing'});
@@ -450,7 +453,75 @@ AH.motivate=()=>{
   const past=S.totalReps>=200?` You've already done ${fmtK(S.totalReps)} reps since ${fmtDate(S.startDate)}. That person doesn't quit.`:'';
   return {say:arSay('motivate')+tail+(S.streak?` Your streak is ${S.streak} days. Protect it.`:past),mood:'excited',chips:rec.completed||sp.rest?null:[chip('Start workout','arrowStart')]};
 };
-AH.pain=()=>({say:arSay('pain'),mood:'scared'});
+/* Pain: remember where, pause the moves that load it (body.js), and check in daily. */
+const arCap=s=>s[0].toUpperCase()+s.slice(1);
+const AR_BETTER=/\b(better|healed|fine now|ok now|okay now|no (more )?pain|doesn'?t hurt|not hurting|recovered|gone|theek ho|thik ho|bagundi|taggindi|tagindi)\b/;
+const AR_SEVERE=/sharp|swollen|swelling|\bpop(ped)?\b|twist|sprain|\btear\b|torn|can'?t (walk|move|bend|lift|put weight)|numb|tingl|vaach|sooj|bruise/;
+const AR_DOCTOR=/numb|tingl|can'?t (walk|move|put weight)|\bpop(ped)?\b|swollen|swelling|deform|\bfell\b|accident|vaach|sooj/;
+AH.pain=c=>{
+  if(/\bchest\b|chhati|seena|chaathi/.test(c.low)&&/breath|sweat|\barm\b|jaw|pressure|tight|dizzy|faint/.test(c.low))
+    return {say:'Chest pain with breathlessness, sweating, dizziness, or pain spreading to your arm or jaw can be an emergency. Stop now and call 112 (or your local emergency number), or get to a hospital. Don\'t wait on it.',mood:'scared',chips:[]};
+  const part=injuryPart(c.low);
+  if(part&&AR_BETTER.test(c.low)){const was=injuries().some(x=>x.part===part);if(was)injuryAnswer(part,'better');
+    return {say:was?`Love that. ${arCap(INJURY_PARTS[part].n)} moves are back in your quest. Start one step easier for the first session and stop if it twinges.`:`Good to hear your ${INJURY_PARTS[part].n} is fine.`,mood:'happy'}}
+  if(!part)return {say:arSay('pain')+' Tell me where it hurts (knee, back, shoulder, wrist...) and I\'ll pause the moves that load it.',mood:'scared'};
+  const sev=AR_SEVERE.test(c.low)?2:1,i=injuryAdd(part,sev),P=INJURY_PARTS[part];
+  return {say:`Noted: your ${P.n}. I've paused ${pausedText(part)} until ${fmtDate(i.until)}, so your quest skips ${P.pause.length>1?'them':'it'}, and I'll check on it every day. ${AR_DOCTOR.test(c.low)?'Numbness, a pop, swelling, or not being able to put weight on it means see a doctor or physio soon.':sev>1?'If it\'s still sharp or swollen in a couple of days, get it checked.':'Rest it, move gently, and stop anything that makes it hurt.'}`,
+    mood:'scared',chips:[chip('Show my quest','arrowGo','quest')]};
+};
+
+/* ---- body check-ins and sleep (body.js) ---- */
+/* Weight, measurements and clothes fit from a message. Lengths come back in cm; a bare small number is inches. */
+function arBodyParse(low){
+  const e={};let m=low.match(/(\d{2,3}(?:\.\d+)?)\s*(kgs?|kilo\w*|lbs?|pounds)\b/);
+  if(m)e.kg=r1(/lb|pound/.test(m[2])?+m[1]*.4536:+m[1]);
+  else if((m=low.match(/\bweigh\w*\D{0,12}?(\d{2,3}(?:\.\d+)?)/)))e.kg=+m[1];
+  [['waist','waist|kamar|nadumu|belly',60],['chest','chest|chhati|chaathi',60],['arm','\\barms?\\b|bicep',20],['thigh','thigh|jaangh',35]].forEach(([k,re,inMax])=>{
+    const mm=low.match(new RegExp('(?:'+re+')\\D{0,14}?(\\d{1,3}(?:\\.\\d+)?)\\s*(cm|centimet\\w*|in\\b|inch\\w*|")?'));
+    if(mm){const v=+mm[1],inch=mm[2]?!/cm|centi/.test(mm[2]):v<inMax;e[k]=r1(inch?v*2.54:v);if(inch)e.inch=true}});
+  const f=low.match(/looser|loose|dheel\w*|tighter|tight|\btang\b|same/);
+  if(f&&/belt|jeans|pant|cloth|shirt|\bfit|notch/.test(low))e.fit=/loose|dheel/.test(f[0])?'looser':/tight|tang/.test(f[0])?'tighter':'same';
+  m=low.match(/\b(lost|dropped|gained|put on)\s*(\d+(?:\.\d+)?)\s*(kgs?|kilo\w*)/);
+  if(m&&e.kg===undefined){const l=bodyHas('kg').pop();if(l)e.kg=r1(l.kg+(/lost|dropped/.test(m[1])?-1:1)*+m[2])}
+  return e;
+}
+AH.log_body=c=>{
+  const e=arBodyParse(c.low);
+  if(!Object.keys(e).length)return {say:'What did you measure? Tell me like "waist 81 cm", "I weigh 64.5 kg" or "my belt feels looser". No scale is fine: your waist tells me more anyway.',mood:'curious',chips:[chip('Open check-in','arrowGo','body')]};
+  if(e.inch){delete e.inch;if(lenUnit()!=='in')S.profile=Object.assign(S.profile||{},{lenUnit:'in'})} // measures in inches: show inches
+  const before=k=>bodyHas(k).filter(b=>b.d<todayStr()).pop(),pk=before('kg'),pw=before('waist'),u=lenUnit(),bits=[];
+  if(e.kg!==undefined)c.ds.weight=e.kg; // the open chat saves this diet state last
+  bodyLog(e);
+  if(e.kg!==undefined)bits.push(`${e.kg} kg${pk?` (${e.kg-pk.kg>=0?'+':''}${r1(e.kg-pk.kg)} since ${fmtDate(pk.d)})`:''}`);
+  if(e.waist!==undefined)bits.push(`waist ${fmtLen(e.waist)}${pw?` (${e.waist-pw.waist>=0?'+':'−'}${r1(Math.abs(fromCm(e.waist-pw.waist,u)))} ${u} since ${fmtDate(pw.d)})`:''}`);
+  ['chest','arm','thigh'].forEach(k=>{if(e[k]!==undefined)bits.push(`${k} ${fmtLen(e[k])}`)});
+  if(e.fit)bits.push(`clothes ${e.fit}`);
+  return {say:`Logged ${bodyList(bits)}.${e.kg!==undefined?' Your food targets now use this weight.':''} ${bodyVerdict()}`,chart:{kind:'body'},mood:'proud',chips:[chip('Open check-in','arrowGo','body')]};
+};
+AH.ask_body=c=>{
+  if(/no (scale|weighing|machine)|without (a )?(scale|weighing|machine)|don'?t have (a )?(scale|weighing|machine)|machine ledu|machine nahi|no weighing/.test(c.low))
+    return {say:'No scale needed. Your waist is the better number anyway: a tailor\'s tape costs about ₹30, or wrap a string around your waist at the belly button, pinch the spot and measure it on a ruler (the long side of an A4 sheet is 29.7 cm). Measure once a week, same morning routine. Add how one pair of jeans fits, and weigh yourself whenever you pass a pharmacy or gym scale.',
+      mood:'happy',chips:[chip('Do my check-in','arrowGo','body')]};
+  if(!(S.body||[]).length)return {say:'No check-ins yet. Do your first one in Progress → Body: your waist, how your clothes fit, and your weight if you have a scale. One minute.',mood:'curious',chips:[chip('Do my check-in','arrowGo','body')]};
+  return {say:`${bodyVerdict()}${checkinDue()?' Your weekly check-in is due.':` Next check-in: ${fmtDate(addDays(lastCheckin(),7))}.`}`,chart:{kind:'body'},mood:'thinking',chips:[chip('Open check-in','arrowGo','body')]};
+};
+AH.ask_sleep=()=>{
+  const D=sleepDays(7).filter(x=>x.h!==null),avg=sleepAvg(7),last=sleepLast(),pick=SLEEP_OPTS.map(([h,l])=>chip(`${l} h`,'arrowSleep',h));
+  if(!D.length)return {say:'No sleep logged yet. Tell me "slept 7 hours", or tap the sleep card on Status each morning, and I\'ll track it. How long did you sleep last night?',mood:'curious',chips:pick};
+  const short=D.filter(x=>x.h<6).length;
+  return {say:`Last 7 nights: ${avg} h on average, logged on ${D.length} of 7.${last!==null?` Last night: ${sleepFmt(last)}.`:''} ${avg<6.5?`That's short of the 7 to 9 hours your muscles need${short?`, with ${short} night${short>1?'s':''} under 6`:''}. Same bedtime every night, phone away 30 minutes before.`:avg<7?'Close. Thirty minutes earlier to bed gets you there.':'That\'s the sweet spot. Keep it.'}`,
+    chart:{kind:'sleep'},mood:avg<6.5?'drowsy':'proud',chips:last===null?pick:null};
+};
+/* "Slept 5 hours", "barely slept": log it and say what it means for today. */
+function arSleepReply(c){
+  if(!/slept|sleep|soya|soyi|nidra|neend|padukun/.test(c.low))return null;
+  const hrs=sleepParse(c.low),sp=todaysSplit();
+  if(hrs===null)return /\b(log|track|record)\b|badly|\bbad\b|poorly|barely|didn'?t sleep|no sleep|sarigga|raaledu|achhi nahi|poori nahi/.test(c.low)
+    ?{say:'How long did you sleep last night? Roughly is fine.',mood:'curious',chips:SLEEP_OPTS.map(([h,l])=>chip(`${l} h`,'arrowSleep',h))}:null;
+  sleepLog(hrs);const avg=sleepAvg(7);
+  return {say:`Logged ${hrs} h of sleep. ${hrs<6?'Short night: train lighter today. Do the warm-up, then stop each set a rep or two early, and aim for 7 to 9 hours tonight.':hrs<7?'A bit short. Train as normal but skip anything extra, and get to bed earlier tonight.':'Solid. Train as normal.'}${avg!==null?` This week: ${avg} h a night on average.`:''}${hrs<6&&!sp.rest&&!todayRec().completed&&!passUsedThisWeek()?' If you feel wrecked, your Rest Pass is there this week.':''}`,
+    mood:hrs<6?'drowsy':'happy',chips:[chip('My sleep this week','arrowAsk','how did i sleep this week')]};
+}
 /* ---------- what Arrow knows: training, food and rest ----------
    Each tip: id, category, what it answers, the answer, and a deeper follow-up for "tell me more".
    Answers read the Player's own numbers (c.T targets, c.ds diet, S progress) where they matter. */
@@ -536,10 +607,11 @@ AH.nutrition_tip=c=>{
   return {say:`Keep it simple: protein at every meal (${c.T.p} g a day for you), half your plate vegetables, water all day, treats after real food. Ask me something specific: whey, creatine, rice, sugar, cheat meals, eating late.`,mood:'thinking'};
 };
 AH.recovery=c=>{
+  const sl=arSleepReply(c);if(sl)return sl; // "slept 5 hours": logged first
   const t=arTip(c,'rest'),sp=todaysSplit();
   if(t&&t.cat==='rest'&&t.id!=='sore')return arTipReply(c,t);
-  const sleep=/sleep|slept|nidra|neend/.test(c.low);
-  return {say:`${sleep?'Short sleep hurts recovery more than skipping a set. Train lighter today and get 7 to 9 hours tonight.':'Soreness is normal and it fades. Move gently, drink water, eat your protein and sleep 7 to 9 hours.'} Today is ${sp.rest?'a recovery day, perfect timing':`${sp.type}: do the warm-up, then decide. If it's sharp pain rather than soreness, stop`}.${passUsedThisWeek()?'':' You also have a Rest Pass this week if you truly need the day.'}`,mood:'thinking',ctx:{tip:'sore',seen:['sore']}};
+  const sleep=/sleep|slept|nidra|neend/.test(c.low),last=sleepLast();
+  return {say:`${last!==null&&last<6?`You logged ${sleepFmt(last)} of sleep last night, so go lighter today. `:''}${sleep?'Short sleep hurts recovery more than skipping a set. Train lighter today and get 7 to 9 hours tonight.':'Soreness is normal and it fades. Move gently, drink water, eat your protein and sleep 7 to 9 hours.'} Today is ${sp.rest?'a recovery day, perfect timing':`${sp.type}: do the warm-up, then decide. If it's sharp pain rather than soreness, stop`}.${passUsedThisWeek()?'':' You also have a Rest Pass this week if you truly need the day.'}`,mood:'thinking',ctx:{tip:'sore',seen:['sore']}};
 };
 
 /* ---------- your numbers, read like a coach ---------- */
@@ -574,6 +646,12 @@ function arInsights(c){
   if(done.length>=4&&done.filter(([,r])=>r.cooled).length/done.length<.5)add(50,'You skip the cool-down most days. It\'s four stretches and it\'s where Flexibility grows.');
   const ss=Object.entries(S.stats).sort((a,b)=>a[1]-b[1]);if(ss[ss.length-1][1]-ss[0][1]>=4)add(45,`${ss[0][0]} is your weakest stat (${Math.round(ss[0][1])} against ${Math.round(ss[ss.length-1][1])} ${ss[ss.length-1][0]}). Give its block your full effort, and put your next stat points there.`);
   if(!ds.body)add(40,'Tell me your height, age and sex so your food targets are exact, not guesses.',chip('Set my targets','botSetup'));
+  injuries().forEach(i=>add(88,`Your ${INJURY_PARTS[i.part].n} is resting until ${fmtDate(i.until)}: ${pausedText(i.part)} are off. Don't train through pain, and tell me when it feels better.`));
+  const sa=sleepAvg(7),sn=sleepDays(7).filter(x=>x.h!==null).length;
+  if(sa!==null&&sn>=3&&sa<6.5)add(72,`You're sleeping ${sa} hours a night on average. That's where your gains leak: muscle is rebuilt in sleep. Same bedtime every night, phone away 30 minutes before.`);
+  else if(sn===0&&dayDiff(S.startDate,today)>=7)add(30,'Log your sleep each morning (one tap on Status). Then I can tell you when to go easier.');
+  const bv=(S.body||[]).length>=2?bodyVerdict():'';if(/too slow|fast|rim about|not shrinking|Drifting|growing faster/.test(bv))add(66,bv);
+  if(checkinDue()&&S.totalQuests>=1)add(42,'Your weekly body check-in is due. No scale needed: a tape or a string around your waist does the job.',chip('Do my check-in','arrowGo','body'));
   if(typeof evNow==='function'){const cur=evNow(),R=evRun(cur.n);if(!R.raid&&evRaidOpen(cur))add(35,`The ${cur.ev.raid.boss} raid is open. That weapon won't win itself.`,chip('Open the event','arrowGo','event'));
     else if(cur.ev.chapters.some((x,i)=>evChapter(cur,i)==='ready'))add(25,`A ${cur.ev.short} chapter is ready. A little story, then you sweat.`,chip('Open the event','arrowGo','event'))}
   return out.sort((a,b)=>b.p-a.p);
@@ -615,7 +693,10 @@ AH.daily_plan=c=>{
   const kl=Math.max(0,T.kcal-t.k),pl=Math.max(0,Math.round(T.p-t.p)),wl=Math.max(0,T.water-day.water);
   steps.push(pl?`Food: ${fmtK(kl)} kcal and ${pl} g protein to go. Next up: ${mealNow()}.`:'Food: protein done. Eat to your calories and you\'re finished.');
   if(wl)steps.push(`Water: ${wl} more glass${wl>1?'es':''}.`);
-  steps.push(h>=21?'Sleep: lights out soon. 7 to 9 hours is part of the plan.':'Sleep: aim for 7 to 9 hours tonight.');
+  injuries().forEach(i=>steps.push(`Injury care: your ${INJURY_PARTS[i.part].n} rests until ${fmtDate(i.until)}, so ${pausedText(i.part)} are off.`));
+  if(checkinDue()&&S.totalQuests>=1){steps.push('Body: your weekly check-in is due. One minute, no scale needed.');chips.push(chip('Do my check-in','arrowGo','body'))}
+  const ls=sleepLast();
+  steps.push(`${ls!==null?`Sleep: last night ${sleepFmt(ls)}${ls<6?', so go lighter today':''}. `:'Sleep: '}${h>=21?'Lights out soon. 7 to 9 hours is part of the plan.':'Aim for 7 to 9 hours tonight.'}`);
   chips.push(chip('What should I eat?','arrowAsk','what should i eat'));
   return {say:`Today's plan${arName()?', '+arName():''}: ${steps.map((s,i)=>`${i+1}) ${s}`).join(' ')}`,mood:'curious',chips:chips.slice(0,3)};
 };
@@ -703,6 +784,10 @@ AH.about_me=c=>{
     `Best streak: ${S.bestStreak} day${S.bestStreak===1?'':'s'}. Strongest stat: ${st[0][0]}. Weakest: ${st[st.length-1][0]}.`];
   if(usual.length)bits.push(`Your usual ${arList(usual.slice(0,2))}.`);
   const L=arMem().mem.length;if(L)bits.push(`I've learned ${L} of your phrasings.`);
+  const lk=bodyHas('kg').pop(),lw=bodyHas('waist').pop(),sa=sleepAvg(7);
+  if(lk||lw)bits.push(`Last measured: ${[lk?`${lk.kg} kg (${fmtDate(lk.d)})`:'',lw?`waist ${fmtLen(lw.waist)} (${fmtDate(lw.d)})`:''].filter(Boolean).join(', ')}.`);
+  if(sa!==null)bits.push(`You sleep about ${sa} hours a night.`);
+  if(injuries().length)bits.push(`Resting: your ${bodyList(injuries().map(i=>INJURY_PARTS[i.part].n))}.`);
   bits.push('All of it stays on this phone.');
   return {say:bits.join(' '),mood:'proud'};
 };
@@ -717,7 +802,9 @@ AH.start_workout=()=>{
   return {say:'Let\'s go. Don\'t make me watch you skip sets.',mood:'excited',act:()=>{closeBot();ACT.workout()}};
 };
 AH.open_license=()=>({say:'Here\'s your license. Try not to look too proud.',mood:'proud',act:()=>{closeBot();openCard()}});
-AH.open_settings=()=>({say:'Settings. Don\'t break anything.',mood:'happy',act:()=>{closeBot();openMenu()}});
+AH.open_settings=c=>/weight|waist|measure/.test(c.low)?{say:'Your weight lives in Progress → Body now, with the weekly check-in. Opening it.',mood:'happy',act:()=>arGo('body')}
+  :/height|\bage\b/.test(c.low)?{say:'Sure. Update your height, age, sex or goal here.',mood:'happy',act:()=>ACT.botSetup()}
+  :{say:'Settings. Don\'t break anything.',mood:'happy',act:()=>{closeBot();openMenu()}};
 AH.theme=c=>{
   const l=c.low,k=/\b(dark|night|black)\b|too bright/.test(l)?'dark':/\b(light|white|day)\b|too dark/.test(l)?'light':/auto|system|phone/.test(l)?'auto':null;
   if(!k)return {say:'Dark, light or follow your phone?',mood:'curious',chips:[['Dark','dark'],['Light','light'],['Auto','auto']].map(([a,b])=>chip(a,'arrowTheme',b))};
@@ -770,6 +857,8 @@ function arrowNudgeText(){
   const ds=dietState(),day=flDay(ds),T=foodTargets(ds),t=flTotals(day),h=flHour(),rec=todayRec(),sp=todaysSplit(),has=m=>day.items.some(i=>i.meal===m);
   if(notStarted())return null;
   if(h>=18&&!rec.completed&&!sp.rest)return {say:'Your daily quest is still open. Penalty zone is real, Hunter.',mood:'suspicious'};
+  const inj=injuries().find(i=>i.asked!==todayStr()&&i.nudged!==todayStr()&&i.since<todayStr());
+  if(inj)return {say:`How's your ${INJURY_PARTS[inj.part].n} today?`,mood:'curious',chips:injuryChips(inj.part),inj:inj.part};
   const ev=evNudge();if(ev)return ev; // the story event, at most once a day
   if(h>=10&&h<15&&!day.items.length)return {say:'No breakfast logged. Did you eat, or are we photosynthesizing now?',mood:'curious'};
   if(h>=15&&h<20&&!has('lunch')&&day.items.length<3)return {say:'Lunch? Hello? Log it or I\'ll assume you ate air.',mood:'curious'};
@@ -782,10 +871,10 @@ let arNudgeT=0;
 /* Nothing covers the orb: no reward card, no ARISE, no raid, no open layer. */
 const arIdle=()=>revealIdle()&&!REVEALQ.length&&!document.body.classList.contains('locked');
 /* One line in the bubble beside the orb; tapping it opens the chat with that line. */
-function arBubble(say,ms){
+function arBubble(say,ms,chips){
   const b=$('arrowNudge');
   b.innerHTML=`<button class="an-say" data-act="arrowNudgeOpen">${esc(say)}</button><button class="an-x" data-act="arrowNudgeX" aria-label="Dismiss">${ic('x')}</button>`;
-  b.dataset.say=say;b.classList.toggle('raised',$('arrowFab').classList.contains('raised'));b.hidden=false;b.classList.remove('in');void b.offsetWidth;b.classList.add('in');
+  b.dataset.say=say;b.dataset.chips=chips?JSON.stringify(chips):''; // the chat opens with these answers readyb.classList.toggle('raised',$('arrowFab').classList.contains('raised'));b.hidden=false;b.classList.remove('in');void b.offsetWidth;b.classList.add('in');
   clearTimeout(arNudgeT);arNudgeT=setTimeout(()=>{b.hidden=true},ms);
 }
 function arrowNudge(){
@@ -795,7 +884,8 @@ function arrowNudge(){
   const M=arMem();if(Date.now()-(M.nudgeAt||0)<90*60000)return;
   const n=arrowNudgeText();if(!n)return;
   M.nudgeAt=Date.now();if(n.ev)M.evDay=todayStr();arMemSave(M);
-  arBubble(n.say,12000);Bot.react(n.mood,3200);buzz('tap');
+  if(n.inj){const i=injuries().find(x=>x.part===n.inj);if(i){i.nudged=todayStr();save()}} // one injury nudge a day
+  arBubble(n.say,12000,n.chips);Bot.react(n.mood,3200);buzz('tap');
 }
 
 /* ---------- Arrow reacts to the big moments ----------
@@ -859,7 +949,14 @@ function arrowReact(){
 setInterval(arrowWatch,1000);
 ACT.arrowOpen=()=>{$('arrowNudge').hidden=true;openBot(false)};
 ACT.arrowNudgeX=()=>{$('arrowNudge').hidden=true};
-ACT.arrowNudgeOpen=()=>{const say=$('arrowNudge').dataset.say;$('arrowNudge').hidden=true;const ds=dietState();if(say){flDay(ds).msgs.push({w:'bot',x:say,at:Date.now()});saveDietState(ds)}openBot(false)};
+ACT.arrowNudgeOpen=()=>{const b=$('arrowNudge'),say=b.dataset.say,chips=b.dataset.chips?JSON.parse(b.dataset.chips):null;b.hidden=true;const ds=dietState();
+  if(say){flDay(ds).msgs.push({w:'bot',x:say,at:Date.now(),chips});saveDietState(ds)}openBot(false)};
+/* Injury check-in and sleep answers from chat chips. */
+ACT.arrowInjury=a=>{const [p,h]=a.split(':'),ds=dietState(),i=injuryAnswer(p,h),n=INJURY_PARTS[p].n;
+  flSay(ds,!i?`Your ${n} isn't on my injury list anymore. Good.`:h==='better'?`Love that. ${arCap(n)} moves are back. Start one step easier and stop if it twinges.`
+    :h==='same'?`Okay, resting your ${n} until ${fmtDate(i.until)}. Gentle movement only.`:`Resting your ${n} until ${fmtDate(i.until)}. If it keeps getting worse, or it's swollen, see a doctor or physio.`);
+  saveDietState(ds);renderBot();Bot.react(h==='better'?'happy':'thinking',2200);renderAll()};
+ACT.arrowSleep=h=>{const ds=dietState();sleepLog(+h);flSay(ds,`Logged ${sleepFmt(+h)} of sleep.${+h<6?' Short night: train a little lighter today.':' Nice.'}`);saveDietState(ds);renderBot();Bot.react(+h<6?'drowsy':'happy',2200);renderAll()};
 /* chips inside the chat */
 ACT.arrowPick=intent=>{const ds=dietState(),last=ds.arrowLast;if(!last||!last.text)return;arrowLearn(ds,last.text,intent);flSend(last.text,true,intent,'learned')};
 ACT.arrowWrong=()=>{const ds=dietState(),last=ds.arrowLast;if(!last)return;

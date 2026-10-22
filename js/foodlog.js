@@ -323,7 +323,7 @@ function openBot(withMic){
 }
 function closeBot(){
   FL.open=false;clearTimeout(FL.idleT);if(FL.mic)try{FL.mic.abort()}catch(e){}
-  $('botLayer').hidden=true;document.body.classList.remove('locked');renderDiet();arrowHome();
+  $('botLayer').hidden=true;document.body.classList.remove('locked');renderAll(); // Arrow can change any tab (sleep, injuries, skins)
 }
 function flSay(ds,text,items,kind){const day=flDay(ds);day.msgs.push({w:'bot',x:text,at:Date.now(),items:items||null,kind:kind||null});}
 function renderBot(){
@@ -341,7 +341,7 @@ function renderBot(){
     return `<div class="msg bot${form?' wide':''}"><p>${esc(m.x)}</p>${its.length?`<ul class="msg-items">${its.map((i,ii)=>`${multi&&(!ii||its[ii-1].meal!==i.meal)?`<li class="mh">${MEAL_NAME[i.meal]||''}</li>`:''}<li><span>${esc(i.q)}</span><em>${i.est?'~':''}${fmtK(i.k)} kcal · ${Math.round(i.p)} g P</em><button data-act="flDel" data-arg="${i.id}" aria-label="Remove ${esc(i.q)}">${ic('x')}</button></li>`).join('')}</ul>`:''}
       ${m.recipes&&m.recipes.length?`<div class="msg-recs">${m.recipes.map(id=>RECIPE_BY_ID[id]).filter(Boolean).map(r=>`<button data-act="recipe" data-arg="${r.id}"><span>${esc(r.n)}</span><em>${r.p} g protein · ${r.kcal} kcal</em>${ic('right')}</button>`).join('')}</div>`:''}
       ${m.demo&&demoOf(m.demo)?`<div class="msg-demo">${demoHTML(m.demo)}</div>`:''}
-      ${m.chart&&m.chart.rows?`<div class="msg-chart">${arChartHTML(m.chart)}</div>`:''}
+      ${m.chart?(h=>h?`<div class="msg-chart">${h}</div>`:'')(m.chart.rows?arChartHTML(m.chart):m.chart.kind==='sleep'?sleepChartHTML(14):m.chart.kind==='body'?bodyChartHTML():''):''}
       ${m.chips&&m.chips.length&&live?`<div class="msg-chips">${m.chips.map(c=>`<button class="fchip" data-act="${c.a}" data-arg="${esc(c.arg||'')}">${esc(c.l)}</button>`).join('')}</div>`:''}
       ${live&&m.intent&&m.src&&!m.chips?`<button class="msg-wrong" data-act="arrowWrong">Not what I meant</button>`:''}
       ${m.kind==='setup'&&mi===day.msgs.length-1?setupForm(ds):''}${m.kind==='teach'&&mi===day.msgs.length-1&&ds.pending?teachForm(ds):''}</div>`}).join('');
