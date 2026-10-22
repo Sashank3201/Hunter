@@ -43,6 +43,9 @@ function fresh(){return {
   weaponEquipped:null,
   events:null,       // story events: {anchor, runs:{n:{id, ch:[dates], raid, clears}}, seen, mission}
   skins:[],          // Arrow skins unlocked in story events
+  body:[],           // weekly check-ins: [{d, kg, waist, chest, arm, thigh, fit}] (body.js)
+  sleep:{},          // date -> hours slept the night before
+  injuries:[],       // [{part, since, until, sev, asked, healed}]: pause the areas they load
   profile:null       // {name, haptics, theme, remindAt} once awakened
 }}
 
@@ -188,16 +191,19 @@ function restFor(it){
 }
 
 function buildQuestItems(){
-  const sp=todaysSplit();
+  const sp=todaysSplit(),paused=pausedAreas(); // an injury rests the areas it would load (body.js)
   const items=[];
-  if(!sp.rest)WARMUP.forEach((w,i)=>items.push({id:'w'+i,name:w[0],amt:w[1]+' '+w[2],warm:true}));
-  planToday().forEach(p=>{
+  if(!sp.rest)WARMUP.forEach((w,i)=>items.push({id:'w'+i,name:i===0&&paused.has('legs')?'March in place':w[0],amt:w[1]+' '+w[2],warm:true}));
+  const add=(p,care)=>{
     const L=LADDERS[p.a],M=MOVES[p.n]||{};
-    const sets=sp.rest?1:(sp.boss||inJobPhase()?4:3);
-    const t=moveGoal(p.n),tg=sp.boss?Math.round(t*1.25):t;
+    const sets=care?2:sp.rest?1:(sp.boss||inJobPhase()?4:3);
+    const t=moveGoal(p.n),tg=sp.boss&&!care?Math.round(t*1.25):t;
     items.push({id:p.id,key:p.a,name:p.n,sets,amt:tg,timed:isTimed(p.n),stat:L.stat,family:L.title,cue:M.cue||'',block:p.b,orig:p.orig,
-      fresh:!S.prs[p.n],note:(sp.boss&&L.stat==='Strength')?'Last set to your limit':''});
-  });
+      fresh:!S.prs[p.n],care,note:care?'Injury care: gentle, no pain':(sp.boss&&L.stat==='Strength')?'Last set to your limit':''});
+  };
+  planToday().forEach(p=>{if(!paused.has(p.a))add(p)});
+  // every area today is resting: a gentle mobility and stretching session instead
+  if(paused.size&&!items.some(i=>!i.warm))['mobility','flex'].filter(a=>!paused.has(a)).forEach((a,b)=>pickMoves(a,2,90+b).forEach(n=>add({id:moveId(n),a,n,b:9+b},true)));
   return items;
 }
 

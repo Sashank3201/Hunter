@@ -68,7 +68,8 @@ module.exports=function generate(app,seed=7){
     K:()=>`${10*(5+Math.floor(R()*70))} ${pick(['kcal','calories','cal','kcals','cals'])}`,P:()=>`${2+Math.floor(R()*38)}${pick([' g',' grams','g'])} protein`,
     X:()=>pick(exercises),T:()=>pick(PAGES),SH:()=>pick(shadows),I:()=>pick(ingredients),IS:()=>ings(lang),ST:()=>pick(STATW),D:()=>pick(DRINK[lang]),
     G:()=>pick(GOALW),MV:()=>pick(MOVIES),BP:()=>pick(BODYP),U:()=>pick(UNKNOWN),R:()=>pick(['e','d','c','b','a','s']),B:()=>pick(BODY[lang]),
-    EV:()=>pick(events),BOSS:()=>pick(bosses),SK:()=>pick(skins)}[k]||(()=>{throw new Error('slot '+k)}))();
+    EV:()=>pick(events),BOSS:()=>pick(bosses),SK:()=>pick(skins),
+    W:()=>String(42+Math.floor(R()*60))+(chance(.3)?'.'+Math.floor(R()*10):''),L:()=>String(chance(.5)?26+Math.floor(R()*20):60+Math.floor(R()*50))}[k]||(()=>{throw new Error('slot '+k)}))();
   const expand=(t,lang)=>{
     let s=t;
     for(let g=0;g<5&&/\[[^\[\]]*\]/.test(s);g++)s=s.replace(/\[([^\[\]]*)\]/g,(_,x)=>chance(.5)?x:'');

@@ -77,6 +77,7 @@ function renderStatus(){
   ${chestReady()?`<button class="chest-strip" data-act="chest"><span class="cs-ic">${ic('box')}</span><span class="grow"><b>Daily supply ready</b><span>Day ${chestDay().day} of 7 · ${rewardLabel(LOGIN_REWARDS[chestDay().day-1])}</span></span><span class="overline">Open →</span></button>`:''}
   ${S.elixirActive?`<div class="card" style="border-top:1px solid var(--hair);padding:12px var(--gut)"><p class="overline" style="color:var(--red)">${ic('elixir')} Elixir active · next quest gives 1.5× EXP</p></div>`:''}
   ${eventBannerHTML()}`;
+  h+=bodyStatusHTML(); // injuries, last night's sleep, the weekly check-in (body.js)
   const sq=suddenActive();
   if(sq)h+=`<div class="card bad"><div class="card-head"><span class="h3">Sudden quest</span><span class="pill bad">${Math.max(1,Math.ceil((sq.deadline-Date.now())/60000))} min left</span></div>
     <p class="h2" style="margin-bottom:6px">${sq.task}</p><p class="muted small">+${SUDDEN_EXP} EXP. No penalty if you miss it.</p>
@@ -128,6 +129,7 @@ function renderQuest(){
   if(notStarted())h+=`<div class="card state-card"><div class="state-ic">${ic('calendar')}</div><div><p class="h3">Quest locked until ${fmtDate(S.startDate)}</p><p class="muted small">Look through today's moves so you're ready.</p><button class="btn sm" data-act="startToday">Start today instead</button></div></div>`;
   else if(rec.completed)h+=`<div class="card ${rec.rested?'':'good'} state-card"><div class="state-ic">${ic(rec.rested?'moon':'check')}</div><div><p class="h3">${rec.rested?'Rest Pass active':'Quest cleared'}</p><p class="muted small">${rec.rested?'No training today. Recover well.':`+${rec.exp||0} EXP${rec.duration?` · ${rec.duration} min trained`:''}. See you tomorrow.`}</p></div></div>`;
   else h+=timerCardHTML();
+  if(!rec.completed&&!notStarted())h+=bodyQuestHTML(); // injury care and a short-night note (body.js)
 
   if(penDue){
     const left=S.penaltyReps-S.penaltyProgress;
@@ -177,11 +179,12 @@ ACT.ease=id=>{if(swapMove(id)){buzz('tap');renderAll()}};
 
 /* ---------- PROGRESS ---------- */
 function renderProgress(){
-  const tabs=[['skills','Skills'],['plan','Plan'],['history','History'],['army','Shadows'],['feats','Feats']];
+  const tabs=[['skills','Skills'],['plan','Plan'],['body','Body'],['history','History'],['army','Shadows'],['feats','Feats']];
   let h=`<div class="page-head"><h1 class="h1">Progress</h1></div>
     <div class="seg" role="tablist">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${progTab===k}" data-act="prog" data-arg="${k}">${l}</button>`).join('')}</div><div id="progBody">`;
-  h+=progTab==='skills'?skillsHTML():progTab==='plan'?planHTML():progTab==='army'?armyHTML():progTab==='feats'?featsHTML():historyHTML();
+  h+=progTab==='skills'?skillsHTML():progTab==='plan'?planHTML():progTab==='army'?armyHTML():progTab==='feats'?featsHTML():progTab==='body'?bodyHTML():historyHTML();
   $('progress').innerHTML=h+'</div>';
+  if(progTab==='body')bindBody();
 }
 ACT.prog=k=>{progTab=k;renderProgress();animateIn($('progBody'))};
 
