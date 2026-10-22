@@ -16,7 +16,7 @@ It is a Progressive Web App (PWA): plain HTML, CSS and JavaScript with no build 
 - **Story events.** Eight Solo Leveling arcs take turns, one a week: five daily chapters, then a 3D boss raid that drops a weapon and a shadow.
 - **Arrow skins.** Eleven looks for Arrow. Each event's fifth chapter gives one, and three more come from milestones (quests cleared, best streak, shadows commanded). Pick one in **Profile → Arrow skin**, or tell Arrow "wear the Monarch skin".
 - **Diet.** Daily calorie and protein targets, a food log with 200+ foods (lots of Indian staples), and voice input.
-- **Arrow.** A chat companion that understands English, Telugu and Hindi written in English letters. It logs food, coaches you from your own numbers ("give me advice", "am I improving?", "plan my day"), answers training, diet and sleep questions, and follows up when you say "tell me more". Its language model runs on the phone, offline.
+- **Arrow.** A chat companion that understands English, Telugu and Hindi written in English letters. It logs food, coaches you from your own numbers ("give me advice", "am I improving?", "plan my day"), charts your five stats and where they go in four weeks of full quests ("what are my stats?"), answers training, diet and sleep questions, and follows up when you say "tell me more". Its language model runs on the phone, offline.
 - **Weekly report** with a grade, and a shareable Hunter License card.
 
 The app has five tabs: Status, Quest, Gates, Progress and Diet. Profile and settings open from the button at the top.
@@ -98,7 +98,7 @@ There is no build step: edit a file, save it, and refresh the page.
 
 - **Scripts load in order.** `index.html` loads the files in `js/` as classic scripts that share global variables, so the order matters. `js/data.js` comes first and `js/main.js` comes last. Only `js/world3d.js` is an ES module, loaded when a Gate opens.
 - **Adding a new file:** add it to `index.html`, and to the `ASSETS` list in `sw.js` so it works offline.
-- **Before every release:** bump the cache name in `sw.js` (`hunter-system-v21` → `hunter-system-v22`) so phones store the new files for offline use.
+- **Before every release:** bump the cache name in `sw.js` (`hunter-system-v22` → `hunter-system-v23`) so phones store the new files for offline use.
 - **Adding a story event:** add it to `STORY_EVENTS` in `js/story.js` (anywhere in the list), with its weapon in `WEAPONS`, its shadow in `SHADOW_BODY` and `SHADOW_SKILLS` (`js/data.js`), its skin in `ARROW_SKINS`, a silhouette look in `js/shadows.js` and a raid world in `js/world3d.js`. Weeks that have already started keep their event, so a new one never replaces a live one. Then retrain Arrow so it knows the new names.
 - **Test switches.** Set these in the browser console, or in a test before the page loads:
 
