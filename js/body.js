@@ -1,7 +1,6 @@
-/* Hunter System: body. A weekly check-in that works without a scale (a tape measure, or a string
-   and a ruler, plus how your clothes fit; weight whenever you can get to a scale), a one-tap sleep
-   log, and injury care: an injury pauses the training areas it would load until it heals, and
-   Arrow checks in on it every day.
+/* Hunter System: body. Weight and measurements told to Arrow ("I weigh 64 kg", "waist 81 cm"),
+   with their trend; a one-tap sleep log; and injury care: an injury pauses the training areas it
+   would load until it heals, and Arrow checks in on it every day.
    State: S.body [{d, kg, waist, chest, arm, thigh, fit}] (lengths in cm), S.sleep {date: hours, -1 = skipped},
    S.injuries [{part, since, until, sev, asked, healed}]. */
 const bodyList=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
@@ -90,24 +89,21 @@ const sleepPickHTML=()=>`<div class="sl-pick" role="group" aria-label="Hours sle
 ACT.sleepPick=h=>{sleepLog(+h);toast(+h<6?`Logged ${sleepFmt(+h)}. Short night: train a little lighter today.`:`Logged ${sleepFmt(+h)}. Nice.`);buzz('tap');renderAll()};
 ACT.sleepSkip=()=>{sleepLog(-1);renderAll()};
 
-/* ---------- body check-ins ---------- */
+/* ---------- weight and measurements ---------- */
 const BODY_FIELDS=[['waist','Waist'],['chest','Chest'],['arm','Arm'],['thigh','Thigh']];
 const lenUnit=()=>(S.profile&&S.profile.lenUnit)||'cm';
 const toCm=(v,u)=>u==='in'?v*2.54:v,fromCm=(v,u)=>u==='in'?v/2.54:v,r1=v=>Math.round(v*10)/10;
 const fmtLen=(cm,u=lenUnit())=>`${r1(fromCm(cm,u))} ${u}`;
-/* Merge values into today's check-in. A weight also becomes the diet's weight, so food targets follow it. */
+/* Merge values into today's entry. A weight also becomes the diet's weight, so food targets follow it. */
 function bodyLog(e){
   S.body=S.body||[];const d=todayStr();let x=S.body.find(b=>b.d===d);
   if(!x){x={d};S.body.push(x);S.body.sort((a,b)=>a.d.localeCompare(b.d))}
   Object.entries(e).forEach(([k,v])=>{if(v!==null&&v!==undefined&&v!==''&&!(typeof v==='number'&&isNaN(v)))x[k]=v});
   if(typeof e.kg==='number'&&!isNaN(e.kg)){const ds=dietState();ds.weight=e.kg;saveDietState(ds)}
-  S.body=S.body.slice(-104);save();skinCheck(); // Circuit counts check-ins
-  return x;
+  S.body=S.body.slice(-104);save();return x;
 }
 const bodyHas=k=>(S.body||[]).filter(b=>typeof b[k]==='number');
-const lastCheckin=()=>(S.body||[]).length?S.body[S.body.length-1].d:null;
-const checkinDue=()=>{const l=lastCheckin();return !l||dayDiff(l,todayStr())>=7};
-/* Change in one measure over the check-ins of the last n days: {from, to, weeks}. */
+/* Change in one measure over the entries of the last n days: {from, to, weeks}. */
 function bodyChange(k,days=42){
   const a=bodyHas(k).filter(b=>b.d>=addDays(todayStr(),-days));if(a.length<2)return null;
   const f=a[0],l=a[a.length-1];return {from:f[k],to:l[k],d:l[k]-f[k],weeks:Math.max(1,dayDiff(f.d,l.d)/7)};
@@ -124,7 +120,7 @@ function bodyVerdict(){
     out.push(goal==='cut'?(w.d<-.4?'It is shrinking, so you are losing fat.':'Not shrinking yet. Give it two more weeks, or trim 200 kcal.')
       :w.d>1.5?'It is growing faster than it should on a lean bulk. Trim the extras.':'Holding steady while you train, which is what you want.')}
   if(!kg&&!w&&fits.length)out.push(`Clothes feel ${fits[fits.length-1].fit} this week.${fits[fits.length-1].fit==='looser'?(goal==='cut'?' That is fat loss.':' Make sure you are eating enough.'):fits[fits.length-1].fit==='tighter'?(goal==='bulk'?' Around the arms and chest is good, around the waist means slow down.':' Watch the portions.'):''}`);
-  if(!out.length)out.push((S.body||[]).length?'One check-in so far. Log again next week and I will tell you the trend.':'No check-ins yet. Do your first one: it takes a minute and needs no scale.');
+  if(!out.length)out.push((S.body||[]).length?'One entry so far. Tell me again in a week and I will show you the trend.':'Nothing logged yet. Tell Arrow your weight or waist any time.');
   return out.join(' ');
 }
 /* One row per measure, each on its own scale (they are different units). Hover a point for its value. */
@@ -141,34 +137,18 @@ function bodyChartHTML(){
       <text class="sc-v" x="${W-46}" y="${b-8}" text-anchor="end">${r1(last.v)}</text><text class="sc-ax" x="${W}" y="${b-9}" text-anchor="end">${ch===null?r.unit:`${ch>=0?'+':'−'}${r1(Math.abs(ch))} ${r.unit}`}</text>
       ${r.pts.map((p,j)=>`<circle class="sc-hit" cx="${P[j][0].toFixed(1)}" cy="${P[j][1].toFixed(1)}" r="11" data-tip="${r.l} · ${fmtDate(p.d)}: ${r1(p.v)} ${r.unit}"/>`).join('')}`}).join('');
   const ax=top+rows.length*RH+12;
-  return `<svg class="sc" viewBox="0 0 ${W} ${H}" role="img" aria-label="Body check-ins: ${rows.map(r=>`${r.l} ${r1(r.pts[r.pts.length-1].v)} ${r.unit}`).join(', ')}">${body}
+  return `<svg class="sc" viewBox="0 0 ${W} ${H}" role="img" aria-label="Weight and measurements: ${rows.map(r=>`${r.l} ${r1(r.pts[r.pts.length-1].v)} ${r.unit}`).join(', ')}">${body}
     <text class="sc-ax" x="${L}" y="${ax}">${fmtDate(d0).slice(4)}</text><text class="sc-ax" x="${W-R}" y="${ax}" text-anchor="end">Today</text></svg>`;
 }
 
 /* ---------- the Body page (Progress tab) ---------- */
 function bodyHTML(){
-  const u=lenUnit(),T=lastCheckin(),today=(S.body||[]).find(b=>b.d===todayStr())||{},val=k=>typeof today[k]==='number'?r1(k==='kg'?today[k]:fromCm(today[k],u)):'';
   const avg=sleepAvg(7),inj=injuryCardHTML(false),past=(S.injuries||[]).filter(i=>i.healed||i.until<todayStr()).slice(-4).reverse();
-  let h=`<div class="sec-label"><span class="overline">Weekly check-in</span><span class="small">${!T?'Do your first one':checkinDue()?'Due now':`Next one ${fmtDate(addDays(T,7))}`}</span></div>
-    <div class="card"><form id="bodyForm" class="body-form">
-      <label><span>Weight (kg)</span><input id="bfKg" type="number" inputmode="decimal" step="0.1" min="25" max="250" value="${val('kg')}" placeholder="Optional"></label>
-      <label><span>Waist (${u})</span><input id="bfWaist" type="number" inputmode="decimal" step="0.1" min="10" max="250" value="${val('waist')}" placeholder="${u==='cm'?'e.g. 80':'e.g. 32'}"></label>
-      <details class="bf-more"${val('chest')||val('arm')||val('thigh')?' open':''}><summary>More measurements</summary><div class="bf-grid">
-        ${BODY_FIELDS.slice(1).map(([k,l])=>`<label><span>${l} (${u})</span><input id="bf${k}" type="number" inputmode="decimal" step="0.1" min="5" max="250" value="${val(k)}"></label>`).join('')}</div></details>
-      <div class="msg-seg bf-fit" role="radiogroup" aria-label="How your clothes fit">${[['looser','Looser'],['same','Same'],['tighter','Tighter']].map(([k,l])=>`<label><input type="radio" name="bfFit" value="${k}" ${today.fit===k?'checked':''}><span>${l}</span></label>`).join('')}</div>
-      <p class="muted small bf-note">Clothes fit: your usual belt or jeans, compared with last week.</p>
-      <div class="bf-foot"><span class="seg mini" role="radiogroup" aria-label="Length unit">${['cm','in'].map(k=>`<button type="button" role="radio" aria-checked="${u===k}" data-act="bodyUnit" data-arg="${k}">${k}</button>`).join('')}</span>
-        <button class="btn sm" type="submit">${T===todayStr()?'Update check-in':'Save check-in'}</button></div></form></div>`;
-  const chart=bodyChartHTML();
-  h+=`<div class="sec-label"><span class="overline">Trend</span><span class="small">${(S.body||[]).length} check-in${(S.body||[]).length===1?'':'s'}</span></div>
-    <div class="card">${chart?`<div class="body-chart">${chart}</div>`:''}<p class="body-verdict">${esc(bodyVerdict())}</p></div>`;
-  h+=`<div class="sec-label"><span class="overline">No scale? No problem</span></div><div class="card tight"><ul class="list">
-    ${[['ruler','Get a tailor\'s tape','About ₹30 at any stationery or cloth shop. Waist is the best single number: it shows fat going up or down even when the scale would lie.'],
-      ['ruler','Or use a string','Wrap a string or a charger cable around your waist at the belly button, pinch the spot, and measure it against a ruler. The long side of an A4 sheet is 29.7 cm.'],
-      ['timer','Same time, same way','Morning, after the toilet, before food. Tape snug, not tight, breathe out normally.'],
-      ['shield','Your clothes are a scale too','Pick one belt or pair of jeans and note each week whether it feels looser, the same or tighter.'],
-      ['scale','Weigh when you can','Pharmacies, gyms and clinics often have a scale. Log it that day, and your food targets update to match.']]
-      .map(([i,t,s])=>`<li class="lrow"><span class="lead">${ic(i)}</span><div class="grow"><p class="t">${t}</p><p class="s">${s}</p></div></li>`).join('')}</ul></div>`;
+  let h='';
+  const chart=bodyChartHTML(); // only once Arrow has been told a weight or measurement
+  if(chart)h+=`<div class="sec-label"><span class="overline">Weight and waist</span><span class="small">${(S.body||[]).length} logged</span></div>
+    <div class="card"><div class="body-chart">${chart}</div><p class="body-verdict">${esc(bodyVerdict())}</p>
+      <p class="muted small" style="margin-top:8px">Tell Arrow a new number any time, like "I weigh 64 kg" or "waist 81 cm".</p></div>`;
   h+=`<div class="sec-label"><span class="overline">Sleep</span><span class="small">${avg!==null?`${avg} h a night this week`:'Not logged yet'}</span></div>
     <div class="card"><p class="overline">Last night</p>${sleepPickHTML()}<div class="body-chart">${sleepChartHTML(14)}</div>
       <p class="muted small" style="margin-top:8px">${avg===null?'Log each morning. Arrow uses it to tell you when to go easier.':avg<6.5?'Under 6.5 hours on average. Sleep is when muscle gets rebuilt: aim for 7 to 9.':'Good. Muscle gets rebuilt while you sleep.'}</p></div>`;
@@ -178,15 +158,6 @@ function bodyHTML(){
     ${past.length?`<div class="card tight"><ul class="list plain">${past.map(i=>`<li class="lrow"><span class="lead">${ic('check')}</span><div class="grow"><p class="t">${esc(INJURY_PARTS[i.part].n[0].toUpperCase()+INJURY_PARTS[i.part].n.slice(1))}</p><p class="s">${fmtDate(i.since)} to ${fmtDate(i.healed||i.until)}</p></div></li>`).join('')}</ul></div>`:''}`;
   return h;
 }
-function bindBody(){
-  const f=$('bodyForm');if(!f)return;
-  f.addEventListener('submit',e=>{e.preventDefault();const u=lenUnit(),num=id=>{const el=$(id);return el&&el.value!==''?parseFloat(el.value):null},fit=f.querySelector('input[name=bfFit]:checked');
-    const e2={kg:num('bfKg'),fit:fit?fit.value:null};[['waist','bfWaist'],['chest','bfchest'],['arm','bfarm'],['thigh','bfthigh']].forEach(([k,id])=>{const v=num(id);if(v!==null)e2[k]=r1(toCm(v,u))});
-    if(e2.kg===null&&!e2.fit&&!['waist','chest','arm','thigh'].some(k=>e2[k]!==undefined)){toast('Fill in at least one thing: your waist, weight, or how your clothes fit');return}
-    bodyLog(e2);buzz('done');toast('Check-in saved');renderAll()});
-}
-ACT.bodyUnit=k=>{S.profile=Object.assign(S.profile||{},{lenUnit:k});save();renderProgress()};
-
 /* ---------- Status and Quest cards ---------- */
 function bodyStatusHTML(){
   if(!S.profile||notStarted())return '';
@@ -194,7 +165,6 @@ function bodyStatusHTML(){
   const asked=(S.sleep||{})[todayStr()]!==undefined;
   if(!asked&&new Date().getHours()<14)h+=`<div class="card sl-card"><div class="card-head"><span class="h3">How did you sleep?</span><button class="btn sm quiet" data-act="sleepSkip">Skip</button></div>
     <p class="muted small" style="margin-bottom:10px">Hours last night. One tap.</p>${sleepPickHTML()}</div>`;
-  if(checkinDue()&&S.totalQuests>=1)h+=`<button class="chest-strip body-strip" data-act="goProg" data-arg="body"><span class="cs-ic">${ic('ruler')}</span><span class="grow"><b>Weekly body check-in</b><span>1 minute, no scale needed</span></span>${ic('right')}</button>`;
   return h;
 }
 function bodyQuestHTML(){

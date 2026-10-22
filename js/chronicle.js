@@ -1,6 +1,6 @@
 /* Hunter System: the Hunter's Chronicle.
    Each month becomes a chapter, written from what the Player actually did: quests, reps, levels,
-   rank trials, records, shadows, Gates, expeditions, story chapters, body check-ins and sleep.
+   rank trials, records, shadows, Gates, expeditions, story chapters, weight and sleep.
    On the first visit of a new month the System presents last month's chapter once; any month can
    be reopened from Progress → History. Level and rank changes come from a snapshot taken at the
    start of each month (S.monthSnaps); a month without one just leaves them out. */

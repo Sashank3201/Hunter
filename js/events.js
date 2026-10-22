@@ -302,7 +302,7 @@ function equipSkin(id){
 }
 /* Milestone skins: the number each one counts, and how to earn a skin (todo) or why you have it (done). */
 const SKIN_COUNT={quests:()=>S.totalQuests,streak:()=>S.bestStreak,shadows:()=>S.shadows.length,level:()=>S.level,
-  sleep:()=>Object.values(S.sleep||{}).filter(h=>h>=0).length,body:()=>(S.body||[]).length};
+  sleep:()=>Object.values(S.sleep||{}).filter(h=>h>=0).length,exps:()=>S.expeditions.filter(x=>x.ok).length};
 function skinHow(id){
   const k=ARROW_SKINS[id];if(!k)return {todo:'',done:''};
   if(k.free)return {todo:'',done:`Comes with ${ARROW_FORMS[k.form].n}`};
@@ -313,7 +313,7 @@ function skinHow(id){
     shadows:{todo:`Command ${n} shadows (${have}/${n})`,done:`For commanding ${n} shadows`},
     level:{todo:`Reach Level ${n} (now ${have})`,done:`For reaching Level ${n}`},
     sleep:{todo:`Log your sleep for ${n} nights (${have}/${n})`,done:`For logging ${n} nights of sleep`},
-    body:{todo:`Do ${n} body check-ins (${have}/${n})`,done:`For ${n} body check-ins`}}[k.how.k];
+    exps:{todo:`Win ${n} shadow expeditions (${have}/${n})`,done:`For winning ${n} shadow expeditions`}}[k.how.k];
 }
 /* Unlock every milestone skin whose number has been reached (older saves get theirs on the next start). */
 function skinCheck(silent){

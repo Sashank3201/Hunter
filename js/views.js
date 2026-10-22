@@ -78,7 +78,7 @@ function renderStatus(){
   ${expStripHTML()}
   ${S.elixirActive?`<div class="card" style="border-top:1px solid var(--hair);padding:12px var(--gut)"><p class="overline" style="color:var(--red)">${ic('elixir')} Elixir active · next quest gives 1.5× EXP</p></div>`:''}
   ${eventBannerHTML()}`;
-  h+=bodyStatusHTML(); // injuries, last night's sleep, the weekly check-in (body.js)
+  h+=bodyStatusHTML(); // injuries and last night's sleep (body.js)
   const sq=suddenActive();
   if(sq)h+=`<div class="card bad"><div class="card-head"><span class="h3">Sudden quest</span><span class="pill bad">${Math.max(1,Math.ceil((sq.deadline-Date.now())/60000))} min left</span></div>
     <p class="h2" style="margin-bottom:6px">${sq.task}</p><p class="muted small">+${SUDDEN_EXP} EXP. No penalty if you miss it.</p>
@@ -187,7 +187,6 @@ function renderProgress(){
     <div class="seg" role="tablist">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${progTab===k}" data-act="prog" data-arg="${k}">${l}</button>`).join('')}</div><div id="progBody">`;
   h+=progTab==='skills'?skillsHTML():progTab==='plan'?planHTML():progTab==='army'?armyHTML():progTab==='feats'?featsHTML():progTab==='body'?bodyHTML():historyHTML();
   $('progress').innerHTML=h+'</div>';
-  if(progTab==='body')bindBody();
 }
 ACT.prog=k=>{progTab=k;renderProgress();animateIn($('progBody'))};
 
