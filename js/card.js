@@ -5,7 +5,7 @@
 /* ---------- assessment ----------
    Power blends everything the Player has actually done. The official rank comes
    only from rank tests; the assessed class is what the numbers say. */
-const RANK_POWER={E:0,D:600,C:1500,B:3000,A:5000,S:8000};
+const RANK_POWER={E:0,D:600,C:1500,B:3000,A:5000,S:8000,SS:12000,SSS:17000};
 const POWER_CLASSES=[[1200,'E'],[3500,'D'],[7000,'C'],[12000,'B'],[20000,'A'],[32000,'S'],[Infinity,'National']];
 function hunterPower(){
   const statSum=STATS.reduce((a,x)=>a+S.stats[x],0);
@@ -84,11 +84,12 @@ async function drawCard(canvas){
   ctx.fillStyle=C.red;ctx.fillRect(bx+22,by+22,bs,bs);
   ctx.fillStyle=C.ink;ctx.fillRect(bx,by,bs,bs);
   const photo=await loadImg(hunterPhoto()).catch(()=>null);
+  const rf=[1,1,1.6,2.2][rk.r.length]; // SS and SSS shrink to fit the stamp
   if(photo){drawCover(ctx,photo,bx,by,bs,bs);ctx.strokeStyle=C.ink;ctx.lineWidth=6;ctx.strokeRect(bx+3,by+3,bs-6,bs-6)}
-  else{ctx.fillStyle=C.paper;ctx.textAlign='center';ctx.font=F.d(900,380);ctx.fillText(rk.r,bx+bs/2,by+bs-34);ctx.textAlign='left'}
+  else{ctx.fillStyle=C.paper;ctx.textAlign='center';ctx.font=F.d(900,380/rf);ctx.fillText(rk.r,bx+bs/2,rf>1?by+bs/2+134/rf:by+bs-34);ctx.textAlign='left'}
   if(photo){const rb=124,rx=bx+bs-rb+34,ry=by+bs-rb+34;
     ctx.fillStyle=C.paper;ctx.fillRect(rx-6,ry-6,rb+12,rb+12);ctx.fillStyle=C.ink;ctx.fillRect(rx,ry,rb,rb);
-    ctx.fillStyle=C.paper;ctx.textAlign='center';ctx.font=F.d(900,140);ctx.fillText(rk.r,rx+rb/2,ry+rb-14);ctx.textAlign='left'}
+    ctx.fillStyle=C.paper;ctx.textAlign='center';ctx.font=F.d(900,140/rf);ctx.fillText(rk.r,rx+rb/2,rf>1?ry+rb/2+50/rf:ry+rb-14);ctx.textAlign='left'}
   ctx.fillStyle=C.ink2;ctx.font=F.m(20);spaced(ctx,photo?'HOLDER · OFFICIAL RANK':'OFFICIAL RANK',bx,by+bs+64,3);
 
   // identity column

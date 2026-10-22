@@ -12,7 +12,7 @@ function afterReveals(fn){REVEALQ.push(fn);if(revealIdle())nextReveal()}
 function nextReveal(){const n=REVEALQ.shift();if(!n)return;if(typeof n==='function')n();else openModal(...n)}
 
 /* ---------- inventory ---------- */
-function rankGrade(){return currentRank().r}
+function rankGrade(){const r=currentRank().r;return GRADES.includes(r)?r:'S'} // Gates and keys stop at S
 function keyCount(){return GRADES.reduce((a,g)=>a+S.inv.keys[g],0)}
 function itemCount(){return keyCount()+S.inv.box+S.inv.potion+S.inv.elixir+S.inv.holy}
 /* Add items. kind: 'key' (with grade) | 'box' | 'potion' | 'elixir' | 'holy'. Returns a label for reward lists. */

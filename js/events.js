@@ -72,11 +72,16 @@ function evGate(g){
 
 /* ---------- art ---------- */
 const evArt=(ev,cls='')=>`<svg class="ev-art ${cls}" viewBox="0 0 120 120" aria-hidden="true">${ev.art}</svg>`;
-/* The Arrow orb in a skin's colours: a ball with two tall eyes. */
-function skinSVG(id,cls=''){
-  const k=ARROW_SKINS[id];
-  return `<svg class="skin-svg ${cls}" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" ${k?`fill="${k.body}"`:'class="skin-ink"'}/>
-    <rect x="31" y="33" width="12" height="27" rx="6" ${k?`fill="${k.eyes}"`:'class="skin-eye"'}/><rect x="57" y="33" width="12" height="27" rx="6" ${k?`fill="${k.eyes}"`:'class="skin-eye"'}/></svg>`;
+/* The Arrow orb in a skin's colours: a ball with two tall eyes, wearing its evolution gear
+   (the Player's current pieces unless a list is given). With gear the view widens to fit it. */
+let skinN=0;
+function skinSVG(id,cls='',gear){
+  const k=ARROW_SKINS[id],g=gear||(typeof S!=='undefined'&&S.profile?arrowGear():[]),eye=g.includes('eyes')?`fill="${MONARCH_EYES}"`:k?`fill="${k.eyes}"`:'class="skin-eye"';
+  const orb=`<circle cx="50" cy="50" r="44" ${k?`fill="${k.body}"`:'class="skin-ink"'}/><rect x="31" y="33" width="12" height="27" rx="6" ${eye}/><rect x="57" y="33" width="12" height="27" rx="6" ${eye}/>`;
+  if(!g.length)return `<svg class="skin-svg ${cls}" viewBox="0 0 100 100" aria-hidden="true">${orb}</svg>`;
+  const n=++skinN,vb=g.includes('wings')?'-26 -26 152 152':'-12 -12 124 124';
+  return `<svg class="skin-svg ${cls}" viewBox="${vb}" aria-hidden="true">${g.includes('aura')?`<defs><radialGradient id="ga${n}"><stop offset=".68" stop-color="#7d6cff" stop-opacity="0"/><stop offset=".76" stop-color="#7d6cff" stop-opacity=".6"/><stop offset=".9" stop-color="#4632aa" stop-opacity=".22"/><stop offset="1" stop-color="#4632aa" stop-opacity="0"/></radialGradient></defs><circle cx="50" cy="50" r="58" fill="url(#ga${n})"/>`:''}
+    ${arrowGearSVG(g,k?k.body:null,'back')}<g transform="translate(50 50) scale(.926) translate(-50 -50)">${orb}</g>${arrowGearSVG(g,k?k.body:null,'front')}</svg>`;
 }
 
 /* ---------- banner (Status and Gates) ---------- */
@@ -295,6 +300,31 @@ function skinCheck(silent){
   return got;
 }
 ACT.skinWear=id=>{closeModal();equipSkin(id)};
+
+/* ---------- Arrow's evolution ---------- */
+const rankAt=r=>RANKS.findIndex(x=>x.r===r);
+const gearUnlocked=k=>rankAt(currentRank().r)>=rankAt(ARROW_GEAR[k].rank);
+/* The pieces Arrow wears: unlocked, and not switched off. */
+function arrowGear(){const g=(S.profile&&S.profile.arrowGear)||{};return Object.keys(ARROW_GEAR).filter(k=>gearUnlocked(k)&&g[k]!==false)}
+function setGear(keys,on){
+  const g=Object.assign({},(S.profile||{}).arrowGear);[].concat(keys).forEach(k=>{g[k]=!!on});
+  S.profile=Object.assign(S.profile||{},{arrowGear:g});save();Bot.reskin();
+}
+/* Announce each piece once, the first time its rank is reached (older saves on their next start). */
+function gearCheck(silent){
+  S.gearSeen=S.gearSeen||[];const got=Object.keys(ARROW_GEAR).filter(k=>gearUnlocked(k)&&!S.gearSeen.includes(k));
+  if(!got.length)return got;
+  S.gearSeen=[...S.gearSeen,...got];save();Bot.reskin();
+  if(!silent)reveal(`<div class="ev-skin-get">${skinSVG((S.profile||{}).arrowSkin,'big')}<div><p class="overline">Arrow evolved</p><p class="h2">${got.map(k=>esc(ARROW_GEAR[k].n)).join(' + ')}</p>
+      <p class="small muted">${got.map(k=>esc(ARROW_GEAR[k].got)).join(' ')} Switch it off any time in Profile → Arrow form.</p></div></div>
+    <div class="m-btns"><button class="btn" data-act="closeModal">Love it</button><button class="btn ghost" data-act="gearHide" data-arg="${got.join(',')}">Hide ${got.length>1?'them':'it'}</button></div>`,'sys','zap');
+  return got;
+}
+const gearRefresh=()=>{const L=$('menu');if(L&&!L.hidden){const y=L.scrollTop;openMenu();L.scrollTop=y}};
+ACT.gearHide=a=>{closeModal();setGear(a.split(','),false);toast('Hidden. Switch it back on in Profile → Arrow form.')};
+ACT.gearToggle=k=>{const on=arrowGear().includes(k);setGear(k,!on);buzz('tap');gearRefresh()};
+ACT.gearAll=on=>{setGear(Object.keys(ARROW_GEAR).filter(gearUnlocked),on==='1');buzz('tap');gearRefresh()};
+ACT.gearLocked=k=>{toast(`Locked. Arrow grows its ${ARROW_GEAR[k].n.toLowerCase()} at ${ARROW_GEAR[k].rank}-Rank.`);buzz('tap')};
 ACT.skinLocked=id=>{toast(`Locked. ${skinHow(id).todo}.`);buzz('tap')};
 
 /* ---------- Arrow's event nudge: at most once a day ---------- */

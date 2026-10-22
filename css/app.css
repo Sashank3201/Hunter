@@ -1544,3 +1544,33 @@ details.acc .acc-body p{color:var(--ink-2);font-size:15px;padding:5px 0}
 .body-chart{margin:4px 0 6px}
 .body-verdict{font-size:15px;line-height:1.4}
 #progress .seg button{font-size:10.5px;letter-spacing:.03em;padding:0 2px} /* six tabs on a phone */
+/* Arrow's evolution: gear around the orb (bot.js) and the Arrow form picker (menu.js) */
+.bot-gear{position:absolute;inset:0;display:block;pointer-events:none}
+.bot-gear svg{width:100%;height:100%;overflow:visible}
+.g-ink{fill:var(--ink)}
+.g-crown{fill:#d9a830;stroke:#8a6410;stroke-width:1.2;stroke-linejoin:round}
+.g-wing path{fill:#2a2540;stroke:#7d6cff;stroke-width:1.4;stroke-linejoin:round}
+.bot-aura{position:absolute;inset:-14%;display:none;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle closest-side,rgba(125,108,255,0) 60%,rgba(125,108,255,.6) 66%,rgba(70,50,170,.25) 82%,rgba(70,50,170,0) 100%);animation:auraPulse 2.8s ease-in-out infinite}
+.bot-aura::before{content:"";position:absolute;inset:8%;border-radius:50%;filter:blur(2px);animation:auraSpin 7s linear infinite;
+  background:conic-gradient(from 0deg,transparent,rgba(125,108,255,.55) 8%,transparent 22%,rgba(30,22,70,.5) 40%,transparent 55%,rgba(125,108,255,.45) 70%,transparent 86%);
+  -webkit-mask:radial-gradient(circle closest-side,transparent 70%,#000 76%,transparent 100%);mask:radial-gradient(circle closest-side,transparent 70%,#000 76%,transparent 100%)}
+.bot-host.aura .bot-aura{display:block}
+@keyframes auraPulse{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.06);opacity:1}}
+@keyframes auraSpin{to{transform:rotate(360deg)}}
+.skin-svg{overflow:visible}
+.gear-pick{display:flex;flex-wrap:wrap;gap:6px;padding:4px var(--gut) 14px}
+.gear-pick .fchip{display:inline-flex;align-items:center;gap:6px}
+.gear-pick .fchip[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.gear-pick .fchip em{font-style:normal;opacity:.6}
+.gear-pick .fchip.locked{opacity:.45}
+.gear-pick .fchip .ic{width:12px;height:12px}
+/* two- and three-letter ranks (SS, SSS) */
+.tc-seal[data-l="2"]{font-size:30px}.tc-seal[data-l="3"]{font-size:22px}
+.ru-stage[data-l="2"] .ru-old,.ru-stage[data-l="2"] .ru-new{font-size:150px}.ru-stage[data-l="3"] .ru-old,.ru-stage[data-l="3"] .ru-new{font-size:108px}
+.a-rank[data-l="2"]{font-size:84px}.a-rank[data-l="3"]{font-size:60px}
+.tsb-r[data-l="2"]{font-size:100px}.tsb-r[data-l="3"]{font-size:72px}
+.trial-card.beyond .tc-seal{background:#2a2540;color:#ECE7DD}
+.trial-card.beyond .tc-seal::after{border-color:#7d6cff}
+@media (prefers-reduced-motion:reduce){.bot-aura,.bot-aura::before{animation:none}}
+.bot-host.geared .bot-float{transform:translateY(6%) scale(.84)}

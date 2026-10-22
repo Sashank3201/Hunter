@@ -349,12 +349,16 @@ AH.ask_shadows=c=>{
   return {say:`${S.shadows.length} shadow${S.shadows.length>1?'s':''}. Strongest: ${best.n} (Lv ${best.lvl}, CP ${fmtK(shadowStats(best).cp)}). Captain: ${cap?cap.n:'none'}${vice?`, vice-captain: ${vice.n}`:''}.`,mood:'proud',chips:[chip('Open army','arrowGo','army')]};
 };
 AH.ask_next_rank=()=>{
-  const nr=nextRank();if(!nr)return {say:'You\'re S-Rank. The Shadow Monarch. There\'s nothing above you but your ego.',mood:'proud'};
-  const st=trialStatus(nr.r),bits=[];
+  const nr=nextRank(),cr=currentRank();
+  if(!nr)return {say:`You're ${cr.r}-Rank: ${cr.name}. There is no rank above you. From here the only rival is your own record book.`,mood:'proud'};
+  if(S.trialRun)return {say:`Your ${S.trialRun.r}-Rank trial is in progress. Go finish it.`,mood:'excited',chips:[chip('Open Gates','arrowGo','gates')]};
+  const beyond=rankAt(nr.r)>rankAt('S'),st=trialStatus(nr.r),bits=[],moves=a=>a.map(m=>`${/^[A-Z][a-z]/.test(m[0])?m[0][0].toLowerCase()+m[0].slice(1):m[0]}: ${moveTarget(m).replace(', one set','')}`).join('; ');
+  if(beyond&&st.ready)return {say:`The Monarch's Path is open: the ${nr.r}-Rank trial, ${st.t.gate}. ${arCap(moves(st.t.tests))}. That's near the limit of what a human body can do. Warm up properly, and fail without shame: you can retry in 7 days.`,mood:'excited',chips:[chip('Open Gates','arrowGo','gates')]};
   if(!st.lvOk)bits.push(`reach level ${st.t.level} (you're ${S.level})`);if(!st.wkOk)bits.push(`get to week ${st.t.week} (you're in week ${weekNumber()})`);
   if(st.retry)bits.push(`wait until ${fmtDate(st.retry)} after the last attempt`);
+  if(!st.ready&&!bits.length)bits.push('finish the Gate you are in');
   return st.ready?{say:`The ${nr.r}-Rank trial is open. Clear it in Gates to become ${nr.r}-Rank (${nr.name}). Warm up first.`,mood:'excited',chips:[chip('Open Gates','arrowGo','gates')]}
-    :{say:`Next: ${nr.r}-Rank (${nr.name}). To unlock the trial: ${arList(bits)}.`,mood:'curious'};
+    :{say:`${beyond?'The Monarch\'s Path. ':''}Next: ${nr.r}-Rank (${nr.name}). To unlock the trial: ${arList(bits)}.${beyond?` It tests the edge of human ability. ${arCap(moves(st.t.tests.slice(0,3)))}, and more.`:''}`,mood:'curious'};
 };
 /* ---- stats: where they are and where they're going ---- */
 const AR_STAT_HOW={Strength:'push, pull, legs and core blocks',Speed:'speed blocks and sudden quests',Agility:'jump and footwork blocks',
@@ -761,7 +765,28 @@ const AR_SKIN_NAME=[[/\bink\b|default|normal|original|\bblack\b|plain|classic/,'
   [/fang|wolf|beast|rakan/,'fang'],[/plague|insect|\bbug\b|queen/,'plague'],[/faceless|mask|mirror|yogumunt/,'faceless'],[/system|\bblue\b/,'system'],[/flame|fire|undying/,'flame'],
   [/sovereign/,'sovereign'],[/monarch|purple|antares/,'monarch']];
 const arSkinName=k=>k?ARROW_SKINS[k].n:'Ink';
+/* Arrow's evolution pieces by name, and switching them in chat ("take off your horns", "base form"). */
+const AR_GEAR_NAME=[[/\bhorns?\b|kommulu|seeng/,'horns'],[/\bcrown\b|kireetam|mukut|taj\b/,'crown'],[/\baura\b/,'aura'],[/\bwings?\b|rekkalu|pankh/,'wings'],[/monarch eyes|\beyes?\b|kallu|aankh/,'eyes']];
+function arGearReply(c){
+  const low=c.low,gearList=Object.keys(ARROW_GEAR),un=gearList.filter(gearUnlocked),nm=k=>ARROW_GEAR[k].n.toLowerCase();
+  const off=/take (it |them )?off|remove|hide|without|\bno\b|turn off|switch off|lose the|teeseyi|teesey|hatao|nikal|utaro/.test(low);
+  if(/base (form|version|look)|original form|plain|no (gear|accessories)|back to (normal|basic)/.test(low)){setGear(un,false);return {say:un.length?'Back to my base form. Humble, but still adorable.':'I\'m already in my base form. Rank up and I\'ll start evolving.',mood:'shy'}}
+  if(/full form|evolved form|all (of it|gear|pieces)|everything on|final form/.test(low)){if(!un.length)return {say:'No evolutions yet. I grow horns at C-Rank.',mood:'curious'};setGear(un,true);return {say:`Full form: ${arList(un.map(nm))}. Fear me.`,mood:'proud'}}
+  const named=AR_GEAR_NAME.filter(([re])=>re.test(low)).map(x=>x[1]);
+  if(named.length&&/\b(how|when|unlock|get|evolve|kab|eppudu)\b/.test(low)&&!/\b(take|wear|put|show|hide|remove)\b/.test(low))
+    return {say:named.map(k=>gearUnlocked(k)?`My ${nm(k)} ${k==='eyes'||k==='horns'||k==='wings'?'are':'is'} unlocked (${ARROW_GEAR[k].rank}-Rank).`:`I get my ${nm(k)} at ${ARROW_GEAR[k].rank}-Rank.`).join(' '),mood:'curious'};
+  if(named.length){
+    const locked=named.filter(k=>!gearUnlocked(k)),ok=named.filter(gearUnlocked);
+    if(ok.length)setGear(ok,!off);
+    const a=ok.length?(off?`Took off my ${arList(ok.map(nm))}.`:`${arCap(arList(ok.map(nm)))} on. How do I look?`):'',b=locked.length?` ${arCap(arList(locked.map(nm)))}: not yet. That unlocks at ${arList(locked.map(k=>ARROW_GEAR[k].rank+'-Rank'))}.`:'';
+    return {say:(a+b).trim(),mood:ok.length?(off?'shy':'proud'):'sad'};
+  }
+  if(/\b(evolve|evolution|forms?|grow up|grown)\b/.test(low))
+    return {say:`I evolve with your rank: ${gearList.map(k=>`${nm(k)} at ${ARROW_GEAR[k].rank}-Rank${gearUnlocked(k)?(arrowGear().includes(k)?' (on)':' (off)'):''}`).join(', ')}. Switch them in Profile → Arrow form, or just tell me.`,mood:'proud',chips:[chip('Show my forms','arrowGo','skins')]};
+  return null;
+}
 AH.arrow_skin=c=>{
+  const gr=arGearReply(c);if(gr)return gr;
   const hit=AR_SKIN_NAME.find(([re])=>re.test(c.low)),id=hit?hit[1]:null,p=S.profile||{},cur=p.arrowSkin&&S.skins.includes(p.arrowSkin)?p.arrowSkin:'';
   const owned=S.skins.filter(k=>ARROW_SKINS[k]),asking=/\b(how|unlock|get|earn|where|kaise|ela|ekkada)\b/.test(c.low);
   const wear=k=>chip(`Wear ${arSkinName(k)}`,'arrowWear',k);
@@ -774,6 +799,8 @@ AH.arrow_skin=c=>{
   const locked=Object.keys(ARROW_SKINS).filter(k=>!S.skins.includes(k)),nxt=locked.find(k=>ARROW_SKINS[k].how)||locked[0];
   let say=`I'm wearing ${arSkinName(cur)}. ${owned.length?`You've unlocked ${owned.length} of ${Object.keys(ARROW_SKINS).length}: ${arList(owned.map(arSkinName))}.`:'You haven\'t unlocked any skins yet.'}`;
   if(nxt)say+=` Closest one to earn: ${arSkinName(nxt)}. ${skinHow(nxt).todo}.`;
+  const gNext=Object.keys(ARROW_GEAR).find(k=>!gearUnlocked(k)),gOn=arrowGear();
+  say+=` My form: ${gOn.length?arList(gOn.map(k=>ARROW_GEAR[k].n.toLowerCase())):'base'}${gNext?`, and I grow ${ARROW_GEAR[gNext].n.toLowerCase()} at ${ARROW_GEAR[gNext].rank}-Rank`:''}.`;
   say+=' To see them all, tap your avatar at the top right of the main screen and scroll to Arrow skin, or just tell me "wear" and a name.';
   return {say,mood:'happy',chips:[...owned.filter(k=>k!==cur).slice(0,2).map(wear),chip('Show all skins','arrowGo','skins')]};
 };

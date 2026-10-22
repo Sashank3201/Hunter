@@ -11,9 +11,11 @@ It is a Progressive Web App (PWA): plain HTML, CSS and JavaScript with no build 
 - **Daily quests.** A rank-based program of 150+ calisthenics moves in blocks (push, pull, legs, core, plyometrics, speed, mobility, flexibility). New moves unlock as you level up, and every target grows a little past your last session.
 - **Workout runner.** Warm-up, set timers, rest timers, a matched cool-down and animated form demos for every move.
 - **Ranks and trials.** Pass a rank trial to move up from E to S. The next rank's moves stay locked until you pass it.
+- **The Monarch's Path.** S-Rank isn't the end. You keep your rank and chase **SS (Ruler)** and **SSS (Absolute Being)**: trials near the limit of human bodyweight strength, like 50 push-ups in one set, one-arm push-ups, wall handstand push-ups and 15 pistol squats a leg.
 - **Gates.** Dungeon raids, with optional 3D worlds (three.js), bosses and loot.
 - **Shadows, weapons, chests and achievements.**
 - **Story events.** Eight Solo Leveling arcs take turns, one a week: five daily chapters, then a 3D boss raid that drops a weapon and a shadow.
+- **Arrow evolves.** It grows horns at C-Rank, a crown at A, a shadow aura at S, shadow wings at SS and Monarch eyes at SSS, on top of any skin. Switch any piece off in **Profile → Arrow form**, or tell Arrow "take off your horns" or "base form".
 - **Arrow skins.** Eleven looks for Arrow. Each event's fifth chapter gives one, and three more come from milestones (quests cleared, best streak, shadows commanded). Pick one in **Profile → Arrow skin**, or tell Arrow "wear the Monarch skin".
 - **Body.** A weekly check-in that needs no scale: your waist (a tailor's tape, or a string and a ruler), how your clothes fit, and your weight whenever you can get to a scale. Trend charts, and food targets that follow your weight.
 - **Sleep and injuries.** One tap each morning logs your sleep. Tell Arrow "my knee hurts" and your quest pauses the moves that load it until it heals, with a daily check-in.
@@ -100,7 +102,7 @@ There is no build step: edit a file, save it, and refresh the page.
 
 - **Scripts load in order.** `index.html` loads the files in `js/` as classic scripts that share global variables, so the order matters. `js/data.js` comes first and `js/main.js` comes last. Only `js/world3d.js` is an ES module, loaded when a Gate opens.
 - **Adding a new file:** add it to `index.html`, and to the `ASSETS` list in `sw.js` so it works offline.
-- **Before every release:** bump the cache name in `sw.js` (`hunter-system-v23` → `hunter-system-v24`) so phones store the new files for offline use.
+- **Before every release:** bump the cache name in `sw.js` (`hunter-system-v24` → `hunter-system-v25`) so phones store the new files for offline use.
 - **Adding a story event:** add it to `STORY_EVENTS` in `js/story.js` (anywhere in the list), with its weapon in `WEAPONS`, its shadow in `SHADOW_BODY` and `SHADOW_SKILLS` (`js/data.js`), its skin in `ARROW_SKINS`, a silhouette look in `js/shadows.js` and a raid world in `js/world3d.js`. Weeks that have already started keep their event, so a new one never replaces a live one. Then retrain Arrow so it knows the new names.
 - **Test switches.** Set these in the browser console, or in a test before the page loads:
 
