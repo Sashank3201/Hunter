@@ -353,8 +353,58 @@ AH.ask_next_rank=()=>{
   return st.ready?{say:`The ${nr.r}-Rank trial is open. Clear it in Gates to become ${nr.r}-Rank (${nr.name}). Warm up first.`,mood:'excited',chips:[chip('Open Gates','arrowGo','gates')]}
     :{say:`Next: ${nr.r}-Rank (${nr.name}). To unlock the trial: ${arList(bits)}.`,mood:'curious'};
 };
-AH.ask_stats=()=>{const st=Object.entries(S.stats).sort((a,b)=>b[1]-a[1]);return {say:`${st.map(([k,v])=>`${k} ${v}`).join(', ')}. Highest: ${st[0][0]}.${S.statPoints?` You have ${S.statPoints} unspent point${S.statPoints>1?'s':''}.`:''}`,
-  mood:'proud',chips:S.statPoints?[chip('Spend points','arrowAlloc')]:null}};
+/* ---- stats: where they are and where they're going ---- */
+const AR_STAT_HOW={Strength:'push, pull, legs and core blocks',Speed:'speed blocks and sudden quests',Agility:'jump and footwork blocks',
+  Mobility:'mobility blocks and every cool-down',Flexibility:'stretch blocks and every cool-down'};
+/* The split for day i (0 = Sunday), job program included. */
+function arSplitDay(i){const b=SPLIT[i];return !inJobPhase()||b.rest?b:Object.assign({},b,{quests:JOBS[S.job.path].days[i]})}
+/* What one week of every quest and cool-down adds to each stat, bonuses included (the same rules as engine.js). */
+function arWeekGain(){
+  const g=Object.fromEntries(STATS.map(s=>[s,0]));
+  for(let i=0;i<7;i++){const sp=arSplitDay(i);
+    sp.quests.forEach(k=>{const st=LADDERS[k].stat;g[st]+=.22*armyMult('stat:'+st)});
+    STATS.forEach(st=>{g[st]+=.08*armyMult('stat:'+st)});
+    if(!sp.rest){g.Flexibility+=.2;g.Mobility+=.2}}
+  STATS.forEach(st=>{g[st]+=.6}); // the 5-day weekly goal
+  return g;
+}
+const AR_WEEKS=4;
+/* Chart data, kept in the message: day offsets of the weekly snapshots and today, each stat's history, and its value after AR_WEEKS more weeks. */
+function arStatChart(){
+  const today=todayStr(),snaps=Object.keys(S.weekSnaps||{}).filter(d=>d<today).sort().slice(-8),days=[...snaps,today],g=arWeekGain(),r1=v=>Math.round(v*10)/10;
+  return {d:days,t:days.map(d=>dayDiff(days[0],d)),w:AR_WEEKS,rows:STATS.map(k=>({k,h:[...snaps.map(d=>r1(S.weekSnaps[d][k]||0)),r1(S.stats[k])],p:r1(S.stats[k]+g[k]*AR_WEEKS)}))};
+}
+AH.ask_stats=()=>{
+  const g=arWeekGain(),st=[...STATS].sort((a,b)=>S.stats[b]-S.stats[a]),lo=st[st.length-1],v=k=>Math.floor(S.stats[k]),c=arStatChart();
+  const boosts=STATS.filter(k=>armyMult('stat:'+k)>1).map(k=>`${k} +${Math.round((armyMult('stat:'+k)-1)*100)}%`);
+  const past=c.d.length>2?STATS.map(k=>[k,S.stats[k]-c.rows.find(r=>r.k===k).h[0]]).filter(([,d])=>d>=.5):[];
+  const say=[`${STATS.map(k=>`${k} ${v(k)}`).join(', ')}. Highest: ${st[0]}. Lowest: ${lo}.${past.length?` Since ${fmtDate(c.d[0])} you've gained ${arList(past.map(([k,d])=>`${Math.floor(d)} ${k}`))}.`:''}`,
+    `Clear every quest for ${AR_WEEKS} weeks and you reach about ${arList(c.rows.map(r=>`${r.k} ${Math.floor(r.p)}`))} (the dashed red line).`,
+    `How each one grows, per week of full quests: ${STATS.map(k=>`${k} +${(Math.round(g[k]*10)/10)} from ${AR_STAT_HOW[k]}`).join('; ')}. Every quest adds a little to all five, a 5-day week adds 0.6 to each, and every level gives 3 points to place anywhere.`,
+    `Your move: ${lo} is behind, so give its blocks full effort${lo==='Flexibility'||lo==='Mobility'?' and never skip the cool-down':''}${S.statPoints?`, and put your ${S.statPoints} unspent point${S.statPoints>1?'s':''} there`:''}.${boosts.length?` Your shadows and weapon boost ${arList(boosts)}.`:''}`];
+  return {say:say.join('\n\n'),chart:c,mood:'proud',chips:S.statPoints?[chip('Spend points','arrowAlloc')]:[chip('Am I improving?','arrowAsk','am i improving')]};
+};
+/* Small multiples: one row per stat on one shared scale, so rows compare honestly.
+   Solid ink is the weekly snapshots and today; dashed red is AR_WEEKS more weeks of every quest. */
+function arChartHTML(c){
+  const W=300,L=60,R=40,PW=W-L-R,RH=34,top=2,H=top+c.rows.length*RH+18,now=c.t[c.t.length-1],end=now+c.w*7;
+  const x=t=>L+t/end*PW,all=c.rows.flatMap(r=>[...r.h,r.p]),lo=Math.floor(Math.min(...all)),hi=Math.ceil(Math.max(...all))||1;
+  const y=(i,v)=>top+i*RH+6+(1-(v-lo)/Math.max(1,hi-lo))*(RH-14),f=v=>Math.floor(v),day=d=>{const t=new Date(d+'T00:00:00Z');return t.getUTCDate()+' '+MON[t.getUTCMonth()]};
+  const rows=c.rows.map((r,i)=>{const b=top+(i+1)*RH-2,pts=r.h.map((v,j)=>[x(c.t[j]),y(i,v)]),[nx,ny]=pts[pts.length-1],px=x(end),py=y(i,r.p);
+    const tip=(j,v)=>`<circle class="sc-hit" cx="${pts[j][0].toFixed(1)}" cy="${pts[j][1].toFixed(1)}" r="11" data-tip="${r.k} · ${j===pts.length-1?'today':day(c.d[j])}: ${f(v)}"/>`;
+    return `<line class="sc-grid" x1="${L}" x2="${W-R}" y1="${b}" y2="${b}"/>
+      <text class="sc-k" x="0" y="${b-9}">${r.k.slice(0,3).toUpperCase()}</text><text class="sc-v" x="${L-8}" y="${b-8}" text-anchor="end">${f(r.h[r.h.length-1])}</text>
+      ${pts.length>1?`<polyline class="sc-hist" points="${pts.map(p=>p.map(n=>n.toFixed(1)).join(',')).join(' ')}"/>`:''}
+      <line class="sc-proj" x1="${nx.toFixed(1)}" y1="${ny.toFixed(1)}" x2="${px.toFixed(1)}" y2="${py.toFixed(1)}"/>
+      <circle class="sc-dot" cx="${nx.toFixed(1)}" cy="${ny.toFixed(1)}" r="4"/><circle class="sc-dot p" cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="4"/>
+      <text class="sc-v p" x="${W}" y="${b-8}" text-anchor="end">${f(r.p)}</text>
+      ${r.h.map((v,j)=>tip(j,v)).join('')}<circle class="sc-hit" cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="11" data-tip="${r.k} · in ${c.w} weeks: about ${f(r.p)}"/>`}).join('');
+  const ax=top+c.rows.length*RH+12,gap=x(now)-L; // no first date when it would collide with "Today"
+  return `<svg class="sc" viewBox="0 0 ${W} ${H}" role="img" aria-label="Stats now and in ${c.w} weeks: ${c.rows.map(r=>`${r.k} ${f(r.h[r.h.length-1])} to about ${f(r.p)}`).join(', ')}">${rows}
+    ${gap>=56?`<text class="sc-ax" x="${L}" y="${ax}">${day(c.d[0])}</text>`:''}<text class="sc-ax" x="${gap<24?L:x(now)}" y="${ax}" text-anchor="${gap<24?'start':'middle'}">Today</text>
+    <text class="sc-ax" x="${W-R}" y="${ax}" text-anchor="end">+${c.w} wk</text></svg>
+    <div class="sc-key"><span><i class="k-hist"></i>So far</span><span><i class="k-proj"></i>${c.w} weeks of every quest</span></div>`;
+}
 AH.ask_items=()=>{
   const inv=S.inv,keys=Object.entries(inv.keys).filter(([,n])=>n).map(([r,n])=>`${n} ${r}-key${n>1?'s':''}`),bits=[];
   if(keys.length)bits.push(arList(keys));if(inv.box)bits.push(`${inv.box} box${inv.box>1?'es':''}`);if(inv.potion)bits.push(`${inv.potion} healing potion${inv.potion>1?'s':''}`);
@@ -549,7 +599,7 @@ AH.ask_progress=c=>{
   if(prs.length){const b=prs.sort((a,b)=>b[1].date.localeCompare(a[1].date))[0];bits.push(`${prs.length} new record${prs.length>1?'s':''} this month, the latest ${dn(b[0]).toLowerCase()} at ${b[1].best}.`)}
   const up=now.reps>then.reps*1.05||prs.length>=2,down=then.n&&now.n<then.n-1;
   bits.push(up?'Verdict: you are getting stronger. The numbers don\'t lie.':down?'Verdict: you slipped a little this week. One good week fixes it.':wks<2?'Verdict: too early to tell. Give me two weeks of data.':'Verdict: steady. Steady is how strong people are built.');
-  return {say:bits.join(' '),mood:up?'proud':down?'thinking':'happy',chips:[chip('How do I improve?','arrowAsk','give me advice')]};
+  return {say:bits.join(' '),chart:arStatChart(),mood:up?'proud':down?'thinking':'happy',chips:[chip('How do I improve?','arrowAsk','give me advice'),chip('Explain my stats','arrowAsk','what are my stats')]};
 };
 AH.daily_plan=c=>{
   if(notStarted())return {say:`Your journey starts ${fmtDate(S.startDate)}. Today's plan: rest, eat well and get excited.`,mood:'curious'};
