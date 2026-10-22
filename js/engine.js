@@ -34,7 +34,7 @@ function die(away){
   f.deaths=S.deaths;f.titles=Array.from(new Set([...S.titles,keptTitle]));f.bestStreak=S.bestStreak;
   f.profile=S.profile;f.log=S.log;f.prs=S.prs;f.passes=S.passes;f.totalReps=S.totalReps;
   // achievements, shadows and gate history are records too; items are lost
-  ['feats','shadows','dungeons','titleEquipped','suddenDone','weekSnaps','reportSeen','events','skins','body','sleep','injuries'].forEach(k=>f[k]=S[k]);
+  ['feats','shadows','dungeons','titleEquipped','suddenDone','weekSnaps','reportSeen','events','skins','body','sleep','injuries','expedition','expeditions','monthSnaps','chronicleSeen'].forEach(k=>f[k]=S[k]);
   f.log[todayStr()]=Object.assign(f.log[todayStr()]||{done:[]},{died:true});
   S=f;save();
   openModal(`<div class="m-stamp">You have died</div>
@@ -94,6 +94,7 @@ function logSet(item,reps){
       S.prs[item.name]={best:reps,date:todayStr(),timed:!!item.timed};
     }
   }
+  if(pr&&perk('record')){S.exp+=25;syncLevel();toast('Record Breaker · +25 EXP')} // skill tree
   save();
   if(pr)extractShadow(item.name,reps,item.timed); // a beaten record extracts (or strengthens) a shadow
   else if(!item.warm)trainShadow(item.name,reps,item.timed); // every set trains that move's shadow
@@ -137,19 +138,21 @@ function completeDay(){
   Object.keys(gained).forEach(st=>{S.stats[st]+=gained[st]*0.22*armyMult('stat:'+st)});
   STATS.forEach(st=>{S.stats[st]+=0.08*armyMult('stat:'+st)});
   // weekly goal: 5 training days in a week boosts every stat
-  if(!sp.rest&&trainedInWeek(mondayOf(todayStr()))===5){STATS.forEach(st=>{S.stats[st]+=0.6});gain+=40;bonus.push('Weekly goal hit: all stats boosted, +40 EXP');loot.push(grantItem('key'))}
+  if(!sp.rest&&trainedInWeek(mondayOf(todayStr()))===5){const surge=perk('surge'); // Weekly Surge (tree.js)
+    STATS.forEach(st=>{S.stats[st]+=surge?.9:.6});gain+=surge?60:40;bonus.push(`Weekly goal hit: all stats boosted, +${surge?60:40} EXP${surge?' (Weekly Surge)':''}`);loot.push(grantItem('key'))}
   if(sp.boss)loot.push(grantItem('box'));
   if(rec.cooled){gain+=COOLDOWN_EXP;S.stats.Flexibility+=.2;S.stats.Mobility+=.2;bonus.push(`Cool-down: +${COOLDOWN_EXP} EXP, +0.2 FLX and MOB`)}
   const kinds=['expAll',...(sp.quests.includes('push')?['expPush']:[]),...(sp.boss?['expBoss']:[])];
-  const pct=kinds.reduce((a,k)=>a+armyBonus(k),0),wPct=kinds.reduce((a,k)=>a+weaponBonus(k),0);
-  if(pct){const extra=Math.round(gain*pct/100),wx=Math.min(extra,Math.round(gain*wPct/100)),sx=extra-wx;gain+=extra;
-    if(sx>0)bonus.push(`Shadow army skills: +${sx} EXP`);if(wx>0)bonus.push(`${weaponOf(equippedWeapon()).name}: +${wx} EXP`)}
+  const pct=kinds.reduce((a,k)=>a+armyBonus(k),0),wPct=kinds.reduce((a,k)=>a+weaponBonus(k),0),tPct=kinds.reduce((a,k)=>a+treeBonus(k),0);
+  if(pct){const extra=Math.round(gain*pct/100),wx=Math.min(extra,Math.round(gain*wPct/100)),tx=Math.min(extra-wx,Math.round(gain*tPct/100)),sx=extra-wx-tx;gain+=extra;
+    if(sx>0)bonus.push(`Shadow army skills: +${sx} EXP`);if(wx>0)bonus.push(`${weaponOf(equippedWeapon()).name}: +${wx} EXP`);if(tx>0)bonus.push(`Skill tree: +${tx} EXP`)}
   const shUps=[];armyTrain(sp.rest?5:10,shUps);
   const shLv=shUps.filter(u=>!u.promo).map(u=>`${u.sh.n} Lv ${u.sh.lvl}`);if(shLv.length)bonus.push(`Shadows leveled: ${shLv.join(', ')}`);
   if(S.elixirActive){const extra=Math.round(gain*.5);gain+=extra;S.elixirActive=false;bonus.push(`Elixir of Growth: +${extra} EXP`)}
   // clean days slowly lower the penalty level
   let penDown=false;
-  if(S.penaltyLevel>0&&S.streak>=3&&S.streak%3===0){S.penaltyLevel--;penDown=true}
+  const mend=perk('mend')?2:3; // Fast Recovery (tree.js)
+  if(S.penaltyLevel>0&&S.streak>=mend&&S.streak%mend===0){S.penaltyLevel--;penDown=true}
   S.exp+=gain;rec.exp=gain;
   const up=syncLevel();
   // a level-up can unlock harder moves (up to what the rank allows)
@@ -163,7 +166,7 @@ function completeDay(){
 function showReward(r){
   let h=`<div class="m-stamp">Quest complete</div>
     <div class="m-big"><span class="count-up" data-to="${r.gain}">+0</span><span>EXP earned</span></div>`;
-  if(r.leveled)h+=`<div class="m-flag lvl-flag">${ic('zap')}Level up · ${S.level}</div><div class="m-flag">+${r.points} stat points to assign</div>`;
+  if(r.leveled)h+=`<div class="m-flag lvl-flag">${ic('zap')}Level up · ${S.level}</div><div class="m-flag">+${r.points} stat points to assign · +${r.points/POINTS_PER_LEVEL} skill point${r.points>POINTS_PER_LEVEL?'s':''}</div>`;
   r.bonus.forEach(b=>h+=`<div class="m-flag">${esc(b)}</div>`);
   if(r.mins)h+=`<div class="m-flag">Session time · ${r.mins} min</div>`;
   if(r.loot&&r.loot.length)h+=`<p class="overline">Items obtained</p>${lootHTML(r.loot)}`;
@@ -181,7 +184,7 @@ function useRestPass(){
   const rec=todayRec();
   if(rec.completed||passUsedThisWeek()||todaysSplit().rest||notStarted())return;
   rec.completed=true;rec.rested=true;rec.exp=0;if(rec.time)swFinish(rec);
-  S.passes[mondayOf(todayStr())]=todayStr();
+  const m=mondayOf(todayStr());S.passes[S.passes[m]?m+'b':m]=todayStr();
   save();renderAll();closeModal();
   toast('Rest Pass used. Streak protected. Recover well.');
 }
@@ -201,7 +204,7 @@ ACT.penalty=n=>logPenalty(+n);
 ACT.startToday=startToday;
 ACT.restPass=()=>openModal(`<div class="m-stamp">Rest Pass</div>
   <p class="m-text">Use this only if you are sick or injured. Today counts as cleared: no EXP, but your streak and penalty level are safe.</p>
-  <p class="m-text dim">1 per week. Next one: ${fmtDate(addDays(mondayOf(todayStr()),7))}.</p>
+  <p class="m-text dim">${passesPerWeek()} per week${passesPerWeek()>1?` (Spare Pass) · ${passesLeft()} left`:''}. Next week's: ${fmtDate(addDays(mondayOf(todayStr()),7))}.</p>
   <div class="m-btns"><button class="btn" data-act="useRestPass">Use Rest Pass</button><button class="btn ghost" data-act="closeModal">Keep training</button></div>`,'sys','moon');
 ACT.useRestPass=useRestPass;
 

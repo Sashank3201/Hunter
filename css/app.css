@@ -1578,3 +1578,59 @@ details.acc .acc-body p{color:var(--ink-2);font-size:15px;padding:5px 0}
 .trial-card.beyond .tc-seal::after{border-color:#7d6cff}
 @media (prefers-reduced-motion:reduce){.bot-aura,.bot-aura::before{animation:none}}
 .bot-host.geared .bot-float{transform:translateY(6%) scale(.84)}
+
+/* Skill tree (tree.js) */
+.tree-link{display:flex;align-items:center;gap:12px;width:100%;margin-top:16px;padding:12px 0 0;border-top:1px solid var(--hair);text-align:left}
+.tree-link .grow{display:flex;flex-direction:column;gap:2px}
+.tree-link b{font-weight:800;font-stretch:80%;font-size:16px;text-transform:uppercase}
+.tree-link .grow span{font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}
+.tree-link>.ic{width:16px;height:16px;flex:none}
+.tree-link.card{margin:0 0 16px;padding:12px 14px}
+.tree-head{display:flex;gap:18px;align-items:flex-end;margin:2px 0 20px}
+.tree-pts{font-weight:900;font-stretch:62%;font-size:68px;line-height:.85;color:var(--red)}
+.tree{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tr-br{display:flex;flex-direction:column}
+.tr-br header{display:flex;flex-direction:column;gap:3px;padding:10px 0 12px;border-top:var(--rule)}
+.tr-br header .ic{width:16px;height:16px}
+.tr-br header b{font-weight:800;font-stretch:75%;font-size:19px;line-height:1;text-transform:uppercase}
+.tr-br header span{font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);line-height:1.3}
+.tr-node{display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;padding:10px 8px 12px;min-height:136px;box-shadow:inset 0 0 0 1px var(--ink);background:var(--paper)}
+.tr-node b{font-weight:800;font-stretch:78%;font-size:15px;line-height:1.05;text-transform:uppercase;overflow-wrap:anywhere}
+.tr-node .tr-d{font-size:12px;line-height:1.3;color:var(--ink-2)}
+.tr-cost{width:24px;height:24px;display:grid;place-items:center;font-family:var(--mono);font-size:12px;font-weight:600;box-shadow:inset 0 0 0 1px var(--ink)}
+.tr-cost .ic{width:13px;height:13px}
+.tr-node.got{background:var(--ink);color:var(--paper)}
+.tr-node.got .tr-d{color:var(--paper-3)}
+.tr-node.got .tr-cost{background:var(--red);color:#fff;box-shadow:none}
+.tr-node.open.afford{box-shadow:inset 0 0 0 2px var(--red),4px 4px 0 var(--red)}
+.tr-node.open.afford .tr-cost{background:var(--red);color:#fff;box-shadow:none}
+.tr-node.locked{opacity:.45}
+.tr-link{display:block;width:2px;height:14px;margin:0 auto;background:var(--ink)}
+.tree-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:22px 0 40px}
+
+/* Shadow expeditions (expeditions.js) */
+.exp-strip.quiet{background:var(--paper-2)}
+.exp-strip.quiet .cs-ic{animation:none}
+.exp-strip.quiet .overline{color:var(--ink)}
+.exp-card .btn{margin-top:14px}
+.exp-grades{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 10px}
+.exp-grades .fchip{min-width:40px}
+.exp-grades .fchip[aria-checked=true]{background:var(--ink);color:var(--paper)}
+.exp-gate{font-size:14px;color:var(--ink-2);margin-bottom:16px}
+.exp-gate b{color:var(--ink);font-weight:800;font-stretch:80%;text-transform:uppercase}
+.exp-squad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:8px 0 14px;max-height:276px;overflow:auto}
+.exp-sh{display:flex;flex-direction:column;gap:3px;text-align:left;padding:5px 5px 7px;box-shadow:inset 0 0 0 1px var(--hair)}
+.exp-sh.on{box-shadow:inset 0 0 0 2px var(--red);background:var(--red-soft)}
+.exp-art{display:grid;place-items:end center;aspect-ratio:1;overflow:hidden;background:#0d0c14}
+.exp-art .sil{width:82%;height:auto;margin-bottom:-3px}
+.exp-art .sh-art{width:100%;height:100%}
+.exp-sh b{font-weight:800;font-stretch:80%;font-size:13px;line-height:1.05;text-transform:uppercase;overflow-wrap:anywhere}
+.exp-sh span:last-child{font-family:var(--mono);font-size:9.5px;color:var(--ink-2)}
+.exp-odds{display:grid;grid-template-columns:1fr auto;align-items:end;gap:0 12px;padding:12px 0 14px;border-top:var(--rule)}
+.exp-odds b{grid-row:span 2;font-weight:900;font-stretch:62%;font-size:54px;line-height:.85;color:var(--green)}
+.exp-odds b.risky{color:var(--red)}
+
+/* Hunter's Chronicle (chronicle.js) */
+.chron-text{margin:22px 0 44px;padding-top:14px;border-top:var(--rule)}
+.chron-text .h2{margin:6px 0 12px}
+.chron-text p:not(.overline){font-size:16px;line-height:1.55;margin-bottom:10px}

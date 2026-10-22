@@ -16,7 +16,7 @@ function hunterPower(){
     quests:S.totalQuests*15, streak:S.bestStreak*25, records:prs*30,
     volume:Math.round(S.totalReps*.4), job:S.job?2500:0,
     shadows:S.shadows.reduce((a,s)=>a+30+s.lvl*10,0), gates:S.dungeons.filter(d=>d.ok).reduce((a,d)=>a+150*(gi(d.g)+1),0),
-    feats:Object.keys(S.feats).length*80, weapon:equippedWeapon()?weaponAtk(equippedWeapon())*8:0, deaths:-S.deaths*100
+    feats:Object.keys(S.feats).length*80, weapon:equippedWeapon()?weaponAtk(equippedWeapon())*8:0, skills:treeGot().length*60, deaths:-S.deaths*100
   };
   const total=Math.max(0,Object.values(parts).reduce((a,b)=>a+b,0));
   const cls=POWER_CLASSES.find(([t])=>total<t)[1];
@@ -175,7 +175,7 @@ async function openCard(){
   const P=await drawCard($('cardCanvas'));
   const rows=[['Level',P.parts.level],['Stats',P.parts.stats],['Official rank',P.parts.rank],['Quests cleared',P.parts.quests],
     ['Best streak',P.parts.streak],['Personal records',P.parts.records],['Total reps',P.parts.volume],['Job',P.parts.job],
-    ['Shadow army',P.parts.shadows],['Gates cleared',P.parts.gates],['Achievements',P.parts.feats],['Weapon',P.parts.weapon],['Deaths',P.parts.deaths]];
+    ['Shadow army',P.parts.shadows],['Gates cleared',P.parts.gates],['Achievements',P.parts.feats],['Weapon',P.parts.weapon],['Skill tree',P.parts.skills],['Deaths',P.parts.deaths]];
   $('cardBreak').innerHTML=`<div class="sec-label"><span class="overline">How your power is assessed</span><span class="small">${P.total.toLocaleString('en-US')} total</span></div>
     <div class="card tight"><ul class="list plain">${rows.filter(r=>r[1]).map(([k,v])=>`<li class="lrow" style="min-height:44px"><span class="grow t">${k}</span><span class="target">${v>0?'+':''}${v.toLocaleString('en-US')}</span></li>`).join('')}</ul></div>
     <p class="faint small" style="padding:14px 0 40px">Official rank only rises by passing rank tests. Assessed class is what your training numbers say, and it can run ahead of your rank.</p>`;

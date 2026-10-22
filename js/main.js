@@ -108,7 +108,7 @@ function renderAll(){renderedDay=todayStr();renderTop();renderStatus();renderQue
 /* If the app stays open past midnight, roll the day over when it comes back into view. */
 function checkDay(){
   if(needsAwakening())return;
-  if(todayStr()!==renderedDay){processMissedDays();ensureWeekSnap();renderAll();maybeReport();setTimeout(maybeChest,1000);setTimeout(maybeEvent,1400)}
+  if(todayStr()!==renderedDay){processMissedDays();ensureWeekSnap();ensureMonthSnap();renderAll();maybeReport();maybeChronicle();setTimeout(maybeChest,1000);setTimeout(maybeEvent,1400)}
   else{ // keep countdowns fresh without rebuilding the screen
     const tl=$('timeLeft');if(tl)tl.textContent=timeLeft();
     const q=S.sudden;
@@ -121,4 +121,4 @@ setInterval(checkDay,60000);
 
 applyTheme();
 if(needsAwakening()){renderAll();startAwakening()}
-else{processMissedDays();ensureWeekSnap();renderAll();animateIn($('status'));huntCatchUp();armoryCatchUp();skinCheck();gearCheck();maybeReport();setTimeout(maybeChest,1000);setTimeout(maybeSudden,1200);setTimeout(maybeEvent,1400);setTimeout(arrowNudge,4500)}
+else{processMissedDays();ensureWeekSnap();ensureMonthSnap();renderAll();animateIn($('status'));huntCatchUp();armoryCatchUp();skinCheck();gearCheck();maybeReport();maybeChronicle();setTimeout(maybeChest,1000);setTimeout(maybeSudden,1200);setTimeout(maybeEvent,1400);setTimeout(arrowNudge,4500)}

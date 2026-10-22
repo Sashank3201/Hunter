@@ -51,6 +51,8 @@ module.exports=function generate(app,seed=7){
   const bosses=app.STORY_EVENTS.flatMap(e=>[e.raid.boss.split(',')[0],e.raid.boss.split(',')[0].replace(/^the /i,'')]).map(s=>s.toLowerCase());
   const skins=[...Object.values(app.ARROW_SKINS).map(k=>k.n.toLowerCase()),'ink','default','blue','monarch','orc','frost','wolf'];
   const bodies=[...Object.values(app.ARROW_FORMS).map(f=>f.n.toLowerCase()),'cubee','the orb','a cloud','the cloud','a cube','the cube','a puffball','the pink puffball'];
+  const perks=app.TREE.flatMap(b=>b.nodes.map(x=>x.n.toLowerCase().replace(/'/g,'')));
+  const months=['january','february','march','april','may','june','july','august','september','october','november','december'];
   const num=lang=>chance(.55)?String(1+Math.floor(R()*6)):pick(NUMW[lang].filter(w=>!/^(a|an|half|a couple of|a few)$/.test(w))||NUMW.en);
   const food=(lang,bare)=>{
     const name=chance(.08)?pick(UNKNOWN):pick(aliases);if(bare)return name;
@@ -69,7 +71,7 @@ module.exports=function generate(app,seed=7){
     K:()=>`${10*(5+Math.floor(R()*70))} ${pick(['kcal','calories','cal','kcals','cals'])}`,P:()=>`${2+Math.floor(R()*38)}${pick([' g',' grams','g'])} protein`,
     X:()=>pick(exercises),T:()=>pick(PAGES),SH:()=>pick(shadows),I:()=>pick(ingredients),IS:()=>ings(lang),ST:()=>pick(STATW),D:()=>pick(DRINK[lang]),
     G:()=>pick(GOALW),MV:()=>pick(MOVIES),BP:()=>pick(BODYP),U:()=>pick(UNKNOWN),R:()=>pick(['e','d','c','b','a','s','ss','sss']),B:()=>pick(BODY[lang]),
-    EV:()=>pick(events),BOSS:()=>pick(bosses),SK:()=>pick(skins),FM:()=>pick(bodies),
+    EV:()=>pick(events),BOSS:()=>pick(bosses),SK:()=>pick(skins),FM:()=>pick(bodies),PK:()=>pick(perks),MO:()=>pick(months),
     W:()=>String(42+Math.floor(R()*60))+(chance(.3)?'.'+Math.floor(R()*10):''),L:()=>String(chance(.5)?26+Math.floor(R()*20):60+Math.floor(R()*50))}[k]||(()=>{throw new Error('slot '+k)}))();
   const expand=(t,lang)=>{
     let s=t;

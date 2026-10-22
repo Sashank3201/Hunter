@@ -14,7 +14,8 @@ const ARROW_LABEL={log_food:'Log food',food_info:'Nutrition facts',undo:'Undo la
   exercise_howto:'Exercise form',motivate:'Motivation',recovery:'Rest and soreness',pain:'Pain or injury',coach_tip:'Training tips',open_tab:'Open a page',
   start_workout:'Start workout',open_license:'Hunter License',open_settings:'Settings',theme:'Theme',ask_event:'Story event',
   ask_advice:'Coach me',ask_progress:'Am I improving?',daily_plan:'Plan my day',nutrition_tip:'Diet advice',feeling_down:'Feeling low',more:'Tell me more',
-  fun_fact:'Fun fact',arrow_skin:'Arrow\'s look',about_me:'About me',log_body:'Log weight or waist',ask_body:'Body progress',ask_sleep:'My sleep'};
+  fun_fact:'Fun fact',arrow_skin:'Arrow\'s look',about_me:'About me',log_body:'Log weight or waist',ask_body:'Body progress',ask_sleep:'My sleep',
+  expedition:'Shadow expeditions',skill_tree:'Skill tree',chronicle:'Monthly chronicle'};
 
 /* ---------- voice: a sassy friend ---------- */
 const SAY={
@@ -63,7 +64,49 @@ const SAY={
 };
 const arPick=a=>a[Math.floor(Math.random()*a.length)];
 const arFill=(s,v)=>s.replace(/\{(\w+)\}/g,(_,k)=>v[k]!==undefined?v[k]:'');
-const arSay=(k,v)=>arFill(arPick(SAY[k]),v||{});
+const arSay=(k,v)=>arFill(arPick(arVoiceSay(k)||SAY[k]),v||{});
+/* ---------- each body's voice ----------
+   The Orb is classic Arrow. Kirby is cheerful and always hungry, Cyber is terse and robotic, Cloudee is
+   calm and sleepy. They say their own hellos, thank-yous and comebacks (say), and now and then open or
+   close a reply in character (open, close). Facts and numbers never change, and serious topics stay plain. */
+const AR_VOICE={
+  kirby:{say:{
+      greet:['Hiii {nm}! Small, round and hungry. What are we doing today?','{nm}! I was just thinking about snacks. And you. Mostly snacks.','Hey {nm}! Did you eat? I always eat.'],
+      thanks:['Aww. I would hug you, but my arms are tiny.','Anytime! Pay me in snacks.','You\'re welcome! *happy wobble*'],
+      praise:['I know, I\'m adorable. Also hungry.','Stop it, I\'m turning pinker.','Correct. Round is a shape and I am nailing it.'],
+      howAreYou:['Full of energy and also full of snacks. You?','Bouncy! A little hungry. You?','Great! My tiny arms did zero push-ups today. Your turn.'],
+      whoAreYou:['I\'m Arrow, in my puffball body. I track your food, run your quests and think about snacks between replies.','Arrow! Today I\'m a pink puffball with stubby arms. Same coach, bigger appetite.'],
+      bye:['Bye! Eat something good and tell me about it.','See you! I\'ll be here, thinking about food.','Later! Don\'t forget your protein.'],
+      insult:['Rude. I\'m going to go eat my feelings.','Wow. My tiny arms are crossed right now.','Hmph. Still helping you, though.']},
+    open:['Mmf, okay.','*munch* Right.','Ooh, good question.'],close:['Now, about snacks...','I would eat that advice if I could.','All this talk is making me hungry.','*munch*']},
+  cyber:{say:{
+      greet:['HELLO, {nm}. SYSTEMS ONLINE. STATE YOUR REQUEST.','{nm} DETECTED. READY.','[BOOT COMPLETE] Hi, {nm}.'],
+      thanks:['ACKNOWLEDGED.','Gratitude logged.','You\'re welcome. Efficiency is its own reward.'],
+      praise:['COMPLIMENT RECEIVED. EGO +1.','Accurate assessment.','Processing... yes. I am excellent.'],
+      howAreYou:['ALL SYSTEMS NOMINAL. YOUR STATUS?','Running at 100%. Fans quiet. You?','Optimal. Corners sharp. You?'],
+      whoAreYou:['UNIT: ARROW. BODY: CYBER CUBE. FUNCTION: TRACK FOOD, RUN QUESTS, OPTIMISE HUNTER.','Arrow, in cube mode. Same System, fewer curves.'],
+      bye:['LOGGING OFF. TRAIN WELL.','Session closed. See you, Hunter.','END OF LINE.'],
+      insult:['INSULT DETECTED. IGNORED.','Error 418: feelings not found. Continuing.','Noted. Still helping.']},
+    open:['[SCAN COMPLETE]','> QUERY ACCEPTED.','[PROCESSING...]'],close:['END OF REPORT.','Beep.','// Arrow.exe','EXECUTE.']},
+  cloudee:{say:{
+      greet:['Hi {nm}... *soft yawn* Good to see you.','Oh, hello {nm}. Let\'s take it easy and still get it done.','{nm}. Breathe in. Okay. What do you need?'],
+      thanks:['Of course. Always.','Mm, anytime.','No need. I\'m just glad to float here with you.'],
+      praise:['Oh... that\'s sweet. I\'m all fluffy now.','Thank you. Now drink some water, okay?','You\'re kind. Kinder than my weather.'],
+      howAreYou:['Calm. A little sleepy. You?','Floating along. How about you?','Peaceful. Light rain inside, sunshine outside. You?'],
+      whoAreYou:['I\'m Arrow, in my cloud body. I track your food, keep your quests, and remind you to rest.','Arrow, softer today. Same System, quieter voice.'],
+      bye:['Rest well. I\'ll be here.','Bye for now. Sleep is training too.','Drift off easy. See you.'],
+      insult:['Okay. I\'ll rain a little, then I\'ll still help.','That stung. Let\'s keep going anyway.','Mm. Breathe. Me too.']},
+    open:['*yawns* Okay...','Mm. Softly, then.','Easy now.'],close:['No rush. Breathe.','Then rest a little, okay?','Float on.']}
+};
+const arVoiceOf=()=>typeof arrowForm==='function'&&typeof S!=='undefined'&&S.profile?AR_VOICE[arrowForm()]:null;
+const arVoiceSay=k=>{const V=arVoiceOf();return V&&V.say[k]};
+/* Intents that keep a plain voice, and those that already spoke in character through arSay. */
+const AR_PLAIN=new Set(['pain','feeling_down','recovery','reset_log','undo','remove_item','correction','clear_chat','greet','thanks','praise','how_are_you','who_are_you','bye','insult']);
+function arVoice(r,intent){
+  const V=arVoiceOf();if(!V||!r||!r.say||AR_PLAIN.has(intent)||Math.random()>=.45)return r;
+  if(Math.random()<.5)r.say=`${arPick(V.open)} ${r.say}`;else r.say=`${r.say}${/[.!?)]$/.test(r.say)?'':'.'} ${arPick(V.close)}`;
+  return r;
+}
 /* Which language the Player is using, for a little local flavour. */
 const AR_TE=new Set('tinna tinnanu nenu naaku ivala ninna ledu undi unnayi cheyyi chesa ra annam pappu perugu neellu emi enti ela entha vaddu avunu sare inka mariyu tho lo tarvata madhyanam rathri tiffin'.split(' '));
 const AR_HI=new Set('khaya khayi khaye maine aaj kal nahi aur hai tha kya kaise kitna kitni karo mujhe mera meri bhai yaar chahiye paani doodh chawal dahi subah raat dopahar nashta'.split(' '));
@@ -89,7 +132,8 @@ function arRules(low){
   const R=[[/^(undo|oops)\b/,'undo'],[/\bclear\b.*\bchat\b|\bchat\b.*\b(clear|delete|saaf)\b/,'clear_chat'],[/^(hi|hello|hey|yo|namaste)\b/,'greet'],[/\b(thanks|thank you|thx)\b/,'thanks'],
     [/^(lol|haha+|lmao)\b/,'laugh'],[/^(yes|yeah|ok|okay|sure|haan|avunu)\b/,'affirm'],[/^(no|nope|nah|vaddu|nahi)\b/,'deny'],[/\bhelp\b|what can you do/,'help'],
     [/\b(calories|protein|macros)\b.*\b(in|of)\b/,'food_info'],[/\bwhat should i eat\b|\bhungry\b/,'suggest_meal'],[/\bstreak\b/,'ask_streak'],[/\b(summary|so far|how am i doing)\b/,'summary'],
-    [/\bstart\b.*\bworkout\b/,'start_workout'],[/\b(dark|light|night) mode\b/,'theme'],[/\b(event|chapter|story)\b/,'ask_event'],
+    [/\bstart\b.*\bworkout\b/,'start_workout'],[/\b(dark|light|night) mode\b/,'theme'],[/\bexpeditions?\b|\bsend (my )?shadows\b/,'expedition'],[/\bskill (tree|points?)\b|\bperks?\b/,'skill_tree'],
+    [/\bchronicle\b|\bmonthly (story|chapter)\b/,'chronicle'],[/\b(event|chapter|story)\b/,'ask_event'],
     [/\b(advice|what should i improve|coach me)\b/,'ask_advice'],[/\bplan my day\b|what should i do today/,'daily_plan'],[/\bskins?\b/,'arrow_skin'],
     [/\b(fun )?fact\b/,'fun_fact'],[/^(more|tell me more|another one|why)\b/,'more'],[/\b(i weigh|my weight is|waist)\b/,'log_body'],
     [/\bsleep (graph|chart|this week|average)\b/,'ask_sleep'],[/\bslept\b/,'recovery'],[/\b(hurts?|pain|injur\w*|sprain\w*)\b/,'pain']];
@@ -311,7 +355,7 @@ AH.how_are_you=()=>{
   return {say:why?`${arPick(['Great, actually.','Thriving.','Pretty good.'])}${why} How about you?`:arSay('howAreYou'),mood:'playful'};
 };
 AH.who_are_you=()=>({say:arSay('whoAreYou'),mood:'proud'});
-AH.help=()=>({say:'Here\'s what I can do: log food ("rendu idlis tinna", "2 rotis and dal"), tell you calories ("protein in paneer?"), suggest meals ("what should I eat?"), cook from your kitchen ("I have eggs and rice"), repeat meals ("same as yesterday"), answer Hunter questions ("what\'s my streak?", "who\'s my strongest shadow?"), coach you from your own numbers ("give me advice", "am I improving?", "plan my day"), answer diet questions ("is creatine safe?"), track your body without a scale ("waist 81 cm", "I weigh 64 kg"), your sleep ("slept 6 hours") and injuries ("my knee hurts"), teach form ("push-up form"), change my look ("wear the Monarch skin"), and run the app ("start my workout", "open Gates", "dark mode"). Say "tell me more" after any tip. Got something wrong? Tap "not what I meant" and I learn.',mood:'curious',
+AH.help=()=>({say:'Here\'s what I can do: log food ("rendu idlis tinna", "2 rotis and dal"), tell you calories ("protein in paneer?"), suggest meals ("what should I eat?"), cook from your kitchen ("I have eggs and rice"), repeat meals ("same as yesterday"), answer Hunter questions ("what\'s my streak?", "who\'s my strongest shadow?"), coach you from your own numbers ("give me advice", "am I improving?", "plan my day"), answer diet questions ("is creatine safe?"), track your body without a scale ("waist 81 cm", "I weigh 64 kg"), your sleep ("slept 6 hours") and injuries ("my knee hurts"), teach form ("push-up form"), change my look ("wear the Monarch skin", "become Kirby"), send your shadows on expeditions ("send my shadows out"), help with your skill tree ("what perk should I get?"), tell your month as a story ("show my chronicle"), and run the app ("start my workout", "open Gates", "dark mode"). Say "tell me more" after any tip. Got something wrong? Tap "not what I meant" and I learn.',mood:'curious',
   chips:[chip('Give me advice','arrowAsk','give me advice'),chip('Plan my day','arrowAsk','plan my day'),chip('Fun fact','arrowAsk','tell me a fun fact')]});
 AH.joke=c=>({say:arFresh(c.ds,'joke',SAY.jokes),mood:'laughing',chips:[chip('Another one','arrowAsk','another one')]});
 AH.laugh=()=>({say:arSay('laugh'),mood:'laughing'});
@@ -699,10 +743,60 @@ AH.daily_plan=c=>{
   if(wl)steps.push(`Water: ${wl} more glass${wl>1?'es':''}.`);
   injuries().forEach(i=>steps.push(`Injury care: your ${INJURY_PARTS[i.part].n} rests until ${fmtDate(i.until)}, so ${pausedText(i.part)} are off.`));
   if(checkinDue()&&S.totalQuests>=1){steps.push('Body: your weekly check-in is due. One minute, no scale needed.');chips.push(chip('Do my check-in','arrowGo','body'))}
+  if(typeof expState==='function'){const st=expState();
+    if(st==='back'){steps.push('Shadows: your expedition is back. Claim the loot.');chips.push(chip('Claim the loot','arrowExp'))}
+    else if(expCanLaunch()&&h>=17)steps.push('Shadows: send them on an expedition tonight.')}
+  if(S.tree&&S.tree.pts)steps.push(`Skill tree: ${S.tree.pts} point${S.tree.pts>1?'s':''} to spend.`);
   const ls=sleepLast();
   steps.push(`${ls!==null?`Sleep: last night ${sleepFmt(ls)}${ls<6?', so go lighter today':''}. `:'Sleep: '}${h>=21?'Lights out soon. 7 to 9 hours is part of the plan.':'Aim for 7 to 9 hours tonight.'}`);
   chips.push(chip('What should I eat?','arrowAsk','what should i eat'));
   return {say:`Today's plan${arName()?', '+arName():''}: ${steps.map((s,i)=>`${i+1}) ${s}`).join(' ')}`,mood:'curious',chips:chips.slice(0,3)};
+};
+
+/* ---------- shadow expeditions, the skill tree and the chronicle ---------- */
+AH.expedition=c=>{
+  if(!S.shadows.length)return {say:'No shadows to send yet. Beat one of your own records and I\'ll extract your first. Then it can raid Gates while you sleep.',mood:'curious'};
+  const st=expState(),e=S.expedition;
+  if(st==='back')return {say:`They're back from ${gateOf(e.g).name}! Tap below to see what they brought.`,mood:'excited',chips:[chip('Claim the loot','arrowExp')]};
+  if(st==='away')return {say:`${arList(expSquadOK(e.squad).map(sh=>sh.n))} ${e.squad.length>1?'are':'is'} in ${gateOf(e.g).name} (${e.g}-grade), back ${expBackText(e)}, with a ${Math.round(e.chance*100)}% chance to beat ${gateOf(e.g).boss}.${S.log[e.date]&&S.log[e.date].completed?' You cleared that day\'s quest, so they bring more.':' Clear today\'s quest before they return and they bring more.'}`,mood:'thinking'};
+  if(!expCanLaunch())return {say:'Your shadows already went out today. Send them again tomorrow.',mood:'shy'};
+  const g=expDefaultGrade(),sq=expDefaultSquad(),d=gateOf(g);
+  return {say:`I'd send ${arList(sq.map(ex=>shadowFor(ex).n))} into ${d.name} (${g}-grade): ${Math.round(expChance(g,sq)*100)}% chance to beat ${d.boss}. They'd be back ${flHour()<EXP_BACK_HOUR?'this morning':'tomorrow'} at ${EXP_BACK_HOUR}:00, with more loot if you clear today's quest first. Send them?`,mood:'proud',
+    chips:[chip('Send them','arrowExpSend'),chip('Pick my own squad','arrowExp')]};
+};
+/* The perk worth taking next: the Body branch if days are being missed, Growth for a growing army,
+   Mastery once the basics are in, otherwise Growth. */
+function arPerkPick(){
+  const next=b=>TREE.find(x=>x.k===b).nodes.find(x=>!perk(x.id));
+  const missed=Object.keys(S.log).filter(d=>d>=addDays(todayStr(),-14)&&S.log[d].missed).length;
+  const pick=(b,why)=>{const x=next(b);return x?{x,why}:null};
+  return (S.penaltyLevel>0||missed?pick('body','You\'ve been missing days, so the Body branch softens the hit.'):null)
+    ||(S.shadows.length>=3?pick('growth','Your army is growing, and Growth makes everything level faster.'):null)
+    ||(S.level>=10?pick('mastery','You\'re strong enough for harder moves and bigger hunts.'):null)
+    ||pick('growth','Growth pays off on every single quest.')||pick('body','')||pick('mastery','');
+}
+AH.skill_tree=c=>{
+  const pts=S.tree.pts,got=treeGot(),low=c.low.replace(/'/g,'');
+  const named=Object.values(TREE_NODES).find(x=>low.includes(x.n.toLowerCase().replace(/'/g,'')));
+  if(named){
+    if(/\b(learn|get|buy|unlock|take|pick|choose|spend on|nerchuko|seekho|lelo)\b/.test(low)&&!perk(named.id)){
+      const why=treeBlock(named.id);if(!why){learnPerk(named.id);renderAll();return {say:`${named.n} learned. ${named.d}${S.tree.pts?` ${S.tree.pts} skill point${S.tree.pts>1?'s':''} left.`:''}`,mood:'proud'}}
+      return {say:`Can't learn ${named.n} yet: ${why.replace(/^./,m=>m.toLowerCase())}.`,mood:'sad',chips:[chip('Open skill tree','arrowTree')]};
+    }
+    return {say:`${named.n} (${named.branch.n} branch, ${named.cost} point${named.cost>1?'s':''}): ${named.d}${perk(named.id)?' You have it.':''}`,mood:'curious',chips:[chip('Open skill tree','arrowTree')]};
+  }
+  const p=arPerkPick();
+  let say=`You have ${pts} skill point${pts===1?'':'s'}${got.length?` and ${got.length} of ${Object.keys(TREE_NODES).length} perks learned`:''}. You get 1 every level.`;
+  if(p)say+=` My pick: ${p.x.n} (${p.x.cost} point${p.x.cost>1?'s':''}): ${p.x.d.replace(/\.$/,'')}. ${p.why}${pts<p.x.cost?` You need ${p.x.cost-pts} more point${p.x.cost-pts>1?'s':''}.`:''}`;
+  else say+=' You\'ve learned every perk. Maxed out.';
+  return {say,mood:'thinking',chips:[...(p&&!treeBlock(p.x.id)?[chip(`Learn ${p.x.n}`,'arrowPerk',p.x.id)]:[]),chip('Open skill tree','arrowTree')]};
+};
+AH.chronicle=c=>{
+  const last=/\b(last|previous|past) (month|chapter)\b|pichle mahine|poyina nela|gatha nela/.test(c.low),ym=last?ymAdd(ymOf(todayStr()),-1):ymOf(todayStr());
+  if(ym<ymOf(S.startDate))return {say:`Your chronicle starts in ${ymName(ymOf(S.startDate))}. Chapter 1 is being written right now.`,mood:'curious',chips:[chip('Open the chronicle','arrowChron')]};
+  const R=monthReport(ym);
+  return {say:`Chapter ${R.chapter}, ${R.name}${R.live?' so far':''}: "${R.title}". ${R.story.slice(0,3).join(' ')} Grade ${R.grade}.`,mood:'SA'.includes(R.grade)?'proud':'BC'.includes(R.grade)?'happy':'thinking',
+    chips:[chip('Open the chronicle','arrowChron',ym)]};
 };
 
 /* ---------- feelings: no sass here ---------- */
@@ -886,7 +980,7 @@ function arrowReply(ds,text,force){
   if(!force&&cls.src==='model'&&cls.p<.42&&low.split(/\s+/).length>1){
     return {say:arSay('clarify'),mood:'confused',chips:cls.top.slice(0,3).map(x=>chip(ARROW_LABEL[x.intent]||x.intent,'arrowPick',x.intent)),intent:null};
   }
-  const r=(AH[cls.intent]||AH.out_of_scope)(c);
+  const r=arVoice((AH[cls.intent]||AH.out_of_scope)(c),cls.intent);
   if(cls.intent!=='more'||r.ctx)ds.arrowCtx=Object.assign({i:cls.intent,at:Date.now()},r.ctx||{});
   delete r.ctx;
   return Object.assign(r,{intent:cls.intent,conf:cls.p,src:cls.src});
@@ -1019,6 +1113,13 @@ ACT.arrowUsual=m=>flSend(`Usual ${m}`,false,'repeat_meal');
 ACT.arrowStart=()=>flSend('Start my workout',false,'start_workout');
 ACT.arrowGo=k=>arGo(k);
 ACT.arrowWear=k=>{const ds=dietState();equipSkin(k);flSay(ds,k?`${arSkinName(k)} on. How do I look?`:arrowForm()==='orb'?'Back in classic ink.':`Back to classic ${ARROW_FORMS[arrowForm()].n}.`);saveDietState(ds);renderBot();Bot.react('proud',2400)};
+ACT.arrowExp=()=>openExpedition();
+ACT.arrowExpSend=()=>{const ds=dietState(),ok=expCanLaunch()&&launchExpedition(expDefaultGrade(),expDefaultSquad());
+  flSay(ds,ok?`Sent into ${gateOf(S.expedition.g).name}. Back ${expBackText(S.expedition)}.`:'They can\'t go out right now.');saveDietState(ds);renderBot();if(ok){Bot.react('proud',2400);renderAll()}};
+ACT.arrowTree=()=>openTree();
+ACT.arrowPerk=id=>{const ds=dietState(),why=treeBlock(id),ok=!why&&learnPerk(id);
+  flSay(ds,ok?`${TREE_NODES[id].n} learned. ${TREE_NODES[id].d}`:`Can't learn that yet: ${why}.`);saveDietState(ds);renderBot();if(ok){Bot.react('proud',2400);renderAll()}};
+ACT.arrowChron=ym=>openChronicle(ym||undefined);
 ACT.arrowBody=f=>{const ds=dietState();equipForm(f,true);flSay(ds,AR_FORM_SAY[f]);saveDietState(ds);renderBot();Bot.react('happy',2400)};
 ACT.arrowAlloc=()=>{closeBot();ACT.allocate()};
 ACT.arrowGoal=g=>{const ds=dietState();ds.goal=g;const t=foodTargets(ds);flDay(ds).msgs.push({w:'bot',x:`Goal set to ${GOALS[g].n}: ${fmtK(t.kcal)} kcal and ${t.p} g protein a day.`,at:Date.now()});saveDietState(ds);renderBot();Bot.react('proud',2400)};

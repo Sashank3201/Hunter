@@ -42,8 +42,8 @@ function shadowBonus(kind){
   return t;
 }
 const bonusCap=kind=>SKILL_CAP[kind.startsWith('stat:')?'stat':kind]||30;
-/* Army skills plus the equipped weapon, capped. */
-function armyBonus(kind){return Math.min(bonusCap(kind),Math.round((shadowBonus(kind)+weaponBonus(kind))*10)/10)}
+/* Army skills plus the equipped weapon and skill tree perks (tree.js), capped. */
+function armyBonus(kind){return Math.min(bonusCap(kind),Math.round((shadowBonus(kind)+weaponBonus(kind)+treeBonus(kind))*10)/10)}
 const armyMult=kind=>1+armyBonus(kind)/100;
 /* Every active effect, for the army page. */
 function armyEffects(){
@@ -65,11 +65,11 @@ function shadowGain(sh,n,ups){
   return sh.lvl>lv;
 }
 /* The whole army trains with you. Officers train harder: captain x3, vice x2. */
-function armyTrain(base,ups){S.shadows.forEach(sh=>{const r=roleOf(sh);shadowGain(sh,base*(r==='captain'?3:r==='vice'?2:1),ups)})}
+function armyTrain(base,ups){S.shadows.forEach(sh=>{const r=roleOf(sh);shadowGain(sh,base*(r==='captain'?3:r==='vice'?2:1)*shadowXpMult(),ups)})}
 /* A logged set feeds the shadow of that move (1 XP per rep, or per 3 seconds held). */
 function trainShadow(ex,amount,timed){
   const sh=shadowFor(ex);if(!sh)return;
-  const ups=[];shadowGain(sh,timed?amount/3:amount,ups);save();
+  const ups=[];shadowGain(sh,(timed?amount/3:amount)*shadowXpMult(),ups);save();
   if(ups.length)announceUps(ups,true);
 }
 /* Report level-ups: promotions get their own notice; plain level-ups a toast (or a reward line). */
@@ -289,6 +289,7 @@ function armyHTML(){
     <div class="grow"><p class="overline">Army power</p><p class="army-cp">${fmtN(total)} <small>CP</small></p>
     <p class="muted small">Beat a record to extract a shadow.${next?` Next to rise: <b>${next[0]}</b>.`:''}</p></div></div>`;
   if(!list.length)return h+`<div class="card state-card"><div class="state-ic">${ic('helm')}</div><div><p class="h3">No shadows yet</p><p class="muted small">Log sets in workout mode. The first time you beat a record, Igris will answer.</p></div></div>`;
+  h+=expCardHTML(); // expeditions.js
   const slot=role=>{const sh=S.army[role]&&shadowFor(S.army[role]);
     return sh?miniCard(sh,'cmd'):`<div class="mcard cmd empty"><span class="mc-art">${ic('helm')}</span><span class="mc-grade">${ROLE_NAME[role]}</span><b class="mc-name">Vacant</b><span class="mc-lv">Open a card to appoint</span></div>`};
   h+=`<div class="sec-label" style="margin-top:0"><span class="overline">Command</span><span class="small">Skill ×2 · ×1.5</span></div>

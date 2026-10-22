@@ -176,7 +176,7 @@ function dRender(){
     <div class="w-prog">${ws.map((x,i)=>`<i class="${i<r.wave?'d':''}${i===r.wave?' c':''}${x.boss?' boss':''}"></i>`).join('')}</div>`;
   if(!r.deadline){
     h+=`<div class="w-body d-intro"><p class="overline">${d.ev?'Story event · boss raid':`Gate of ${d.g} grade`}</p><h2 class="w-name">${d.name}</h2>
-      <p class="muted" style="margin-top:-6px">Boss: ${d.boss}. Clear every wave in ${armyBonus('gateTime')?`${fmtClock(Math.round(d.limit*60*armyMult('gateTime')))} (+${armyBonus('gateTime')}% from your army)`:`${d.limit} minutes`}.</p>
+      <p class="muted" style="margin-top:-6px">Boss: ${d.boss}. Clear every wave in ${armyBonus('gateTime')?`${fmtClock(Math.round(d.limit*60*armyMult('gateTime')))} (+${armyBonus('gateTime')}% from your army, weapon and perks)`:`${d.limit} minutes`}.</p>
       <ol class="method d-waves">${ws.map(x=>`<li><span>${x.boss?'<b class="boss-tag">Boss</b> ':''}${x.n} · ${amtText(x)}</span></li>`).join('')}</ol></div>
       <div class="w-foot"><button class="btn" data-act="dBegin">Begin the raid</button></div>`;
   }else{
