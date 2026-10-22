@@ -1,6 +1,7 @@
 /* Hunter System: story events (data only).
-   Four Solo Leveling arcs take turns, one live for 7 days at a time, then the next.
-   After all four have run, they rerun in the same order.
+   Eight Solo Leveling arcs take turns, one live for 7 days at a time, then the next.
+   After all of them have run, they rerun in the same order. New arcs can go anywhere in
+   the list: a week that has started keeps its event (see evOf in events.js).
    Each event has 5 daily chapters: a short story scene and a mission. Chapter n opens
    on day n, and missed chapters can be caught up later in the week. Clearing all 5
    opens the finale, a 3D boss raid.
@@ -156,6 +157,179 @@ const STORY_EVENTS=[
   waves:[['legs',2.5,'Cross the ruins'],['agility',2,'Dodge the falling stone'],['push',2.5,'Topple the giants'],['core',2,'Hold the line'],['legs',3,'Bring down the king']]},
  weapon:'giant-spear',skin:'giant',shadow:'Titan'},
 
+{id:'frost',name:'Winter of the Frost Monarch',short:'Frost Monarch',tag:'Monarch of Frost · the city freezes',
+ blurb:'Snow in the middle of summer. Then the snow stopped melting. Under the ice, a Monarch is waking up.',
+ art:'<path class="em-s" d="M60 6v108M13 33l94 54M13 87l94-54M52 10l8 8 8-8M52 110l8-8 8 8"/><circle class="em-f" cx="60" cy="64" r="25"/><path class="em-f" d="M36 50l6-24 9 13 9-19 9 19 9-13 6 24z"/><circle class="em-r" cx="51" cy="64" r="3.4"/><circle class="em-r" cx="69" cy="64" r="3.4"/><path class="em-s" d="M51 78h18"/>',
+ chapters:[
+  {t:'First Snow',exp:40,lines:[
+    ['n','Snow begins to fall in the middle of summer. It lands on hot tarmac and does not melt.'],
+    ['sys','Warning. Temperature falling. Mana readings rising.'],
+    ['v','News anchor','Experts cannot explain it. Citizens are asked to stay indoors.'],
+    ['n','By evening the river has frozen solid. By midnight, so have the streets.'],
+    ['sys','Mission: Keep your body warm. A cold muscle tears.']],
+   moves:[['speed',2,'Run to stay warm'],['mobility',1.5,'Loosen the frozen joints']],
+   after:'Out on the frozen river, footprints appear in the snow. Nobody is making them.'},
+  {t:'The Ice Elves',exp:40,loot:['potion'],lines:[
+    ['n','They walk out of the blizzard without a sound: tall, pale, carrying spears of blue ice.'],
+    ['v','Ice elf','The Frost King has returned. Kneel, and your city sleeps. Fight, and it shatters.'],
+    ['n','Behind them, every window on the street is glazed white from the inside.'],
+    ['sys','Mission: Break the patrol before it reaches the shelters.']],
+   moves:[['push',2,'Shatter their spears'],['agility',2,'Slip through the blizzard']],
+   after:'They crack apart like glass. Far to the north, a bell made of ice begins to ring.'},
+  {t:'Frozen Hearts',exp:50,loot:['box'],lines:[
+    ['n','The cold is inside the buildings now. Hunters in the shelter sit still, frost on their eyelashes, too tired to stand.'],
+    ['sys','Debuff: Frostbite. Recovery −40%.'],
+    ['v','Healer','If they stop moving, they won\'t wake up. Keep them on their feet!'],
+    ['sys','Mission: Get the blood moving. Lead by example.']],
+   moves:[['legs',2,'Lead the drill'],['flex',1.5,'Thaw the stiff muscles']],
+   after:'One by one, the hunters stand. Their breath fogs, but their hands are warm again.'},
+  {t:'The Palace of Ice',exp:50,loot:['elixir'],lines:[
+    ['n','Where the river used to be, a palace of ice has grown overnight: towers, bridges, a throne room open to the sky.'],
+    ['n','The bridge to its gate is one sheet of ice, two hundred metres long, with black water far below.'],
+    ['sys','Mission: Cross the bridge. Do not slip.']],
+   moves:[['core',2,'Stay balanced'],['legs',2,'Climb the frozen steps']],
+   after:'The palace doors are already open. Somebody is expecting you.'},
+  {t:'The Frost Monarch',exp:60,lines:[
+    ['n','The throne room is silent. Snow drifts down from a sky that has gone completely white.'],
+    ['v','Sillad','Shadow. You are warmer than I remember. That will not last.'],
+    ['n','He rises from the throne, and the air itself freezes into a thousand blades.'],
+    ['sys','Final quest unlocked: Defeat Sillad, Monarch of Frost.'],
+    ['sys','Chapter reward: Arrow skin, Frost Monarch.']],
+   moves:[['push',1.5,'Raise your guard'],['pull',1.5,'Tear through the ice'],['speed',1.5,'Charge the throne']],
+   after:'The blizzard howls. Every blade of ice in the room turns to point at you.'}],
+ raid:{name:'The Palace of Ice',boss:'Sillad, Monarch of Frost',focus:'Mobility: keep moving in the cold',world:'frost',limit:25,exp:240,
+  waves:[['agility',2,'Cross the frozen hall'],['push',2.5,'Shatter the ice knights'],['flex',2,'Break free of the frost'],['legs',2.5,'Climb to the throne'],['core',2.5,'Outlast the Frost Monarch']]},
+ weapon:'frostbrand',skin:'frost',shadow:'Rime'},
+
+{id:'beast',name:'Hunt of the Fang King',short:'Fang King',tag:'Monarch of Beasts · the hunters become prey',
+ blurb:'Hunters are vanishing in the mountains. Something is hunting them, and it hunts in packs.',
+ art:'<path class="em-w" d="M14 22 34 98M98 18 84 96"/><path class="em-f" d="M60 32 38 12l4 30-14 22 20 22 12 16 12-16 20-22-14-22 4-30z"/><circle class="em-r" cx="50" cy="60" r="3.6"/><circle class="em-r" cx="70" cy="60" r="3.6"/><path class="em-f" d="M53 82h14l-7 9z"/><path class="em-s" d="M44 48l8 5M76 48l-8 5"/>',
+ chapters:[
+  {t:'Missing Hunters',exp:40,lines:[
+    ['sys','Alert. Three hunter teams have stopped answering on the mountain.'],
+    ['n','The last radio call is just breathing. Then howling. Then nothing.'],
+    ['v','Association officer','Search teams go in pairs. Nobody goes up there alone.'],
+    ['n','You go alone.'],
+    ['sys','Mission: Reach the mountain before dark.']],
+   moves:[['legs',2,'Climb the trail'],['speed',1.5,'Race the sunset']],
+   after:'At the tree line you find a hunter\'s sword, snapped in half. The bite marks are fresh.'},
+  {t:'The Pack',exp:40,loot:['potion'],lines:[
+    ['n','Eyes in the dark. Ten pairs. Then twenty.'],
+    ['n','The wolves are as big as horses, and they do not attack at random. They circle. They wait. They test you.'],
+    ['sys','The pack strikes the weakest point. Do not have one.'],
+    ['sys','Mission: Break the circle.']],
+   moves:[['agility',2,'Keep them in front of you'],['push',2,'Drive them back']],
+   after:'The pack scatters into the trees. On a rock above, something much larger watches you go.'},
+  {t:'Scent of Prey',exp:50,loot:['box'],lines:[
+    ['n','You find the missing hunters in a cave: alive, wounded, hidden behind a wall of rocks they piled up themselves.'],
+    ['v','Wounded hunter','It let us live so we would call for help. It wants more of us. It wants you.'],
+    ['sys','Mission: Carry the wounded down the mountain.']],
+   moves:[['pull',2,'Lift them out'],['legs',2,'Carry them down']],
+   after:'The last of them is safe in an ambulance. Behind you, the whole mountain begins to howl.'},
+  {t:'Blood Moon',exp:50,loot:['elixir'],lines:[
+    ['n','The moon rises red. Every beast on the mountain answers it.'],
+    ['sys','Warning. The hunt has begun. You are the prey.'],
+    ['n','They come from every side at once, fast and low and silent.'],
+    ['sys','Mission: Survive until the moon sets. Speed is the only armour you have.']],
+   moves:[['speed',2,'Outrun the pack'],['core',2,'Take the hits'],['agility',1.5,'Turn and strike']],
+   after:'The moon sets. The beasts melt into the forest, and a voice laughs from the summit.'},
+  {t:'The Fang King',exp:60,lines:[
+    ['n','At the summit, on a throne of bones, sits a wolf that walks like a man.'],
+    ['v','Rakan','Finally. Prey worth hunting.'],
+    ['n','He stands up, and keeps standing up, until he towers over the trees.'],
+    ['sys','Final quest unlocked: Defeat Rakan, Monarch of Fangs.'],
+    ['sys','Chapter reward: Arrow skin, Fang King.']],
+   moves:[['legs',1.5,'Stand your ground'],['push',1.5,'Meet his charge'],['speed',1.5,'Strike first']],
+   after:'Rakan drops to all fours, and the mountain shakes under his weight.'}],
+ raid:{name:'The Bone Summit',boss:'Rakan, Monarch of Fangs',focus:'Speed: outrun the pack',world:'beast',limit:25,exp:240,
+  waves:[['speed',2.5,'Outrun the pack'],['agility',2,'Dodge the fangs'],['pull',2.5,'Drag down the alpha'],['legs',2.5,'Climb the bone throne'],['core',2.5,'Bring down the Fang King']]},
+ weapon:'fang-king',skin:'fang',shadow:'Howl'},
+
+{id:'plague',name:'Swarm of the Plague Queen',short:'Plague Queen',tag:'Monarch of Plagues · the sky turns black',
+ blurb:'A black cloud is crossing the sea toward the coast. It isn\'t weather. It\'s wings.',
+ art:'<path class="em-f" d="M55 50C40 26 16 20 5 30c10 4 18 13 21 25 9-6 19-7 29-5zM65 50c15-24 39-30 50-20-10 4-18 13-21 25-9-6-19-7-29-5z"/><path class="em-s" d="M55 38 44 16M65 38l11-22"/><path class="em-f" d="M60 34c-8 0-13 7-13 15 0 6 3 10 7 13l-3 24 9 20 9-20-3-24c4-3 7-7 7-13 0-8-5-15-13-15z"/><circle class="em-r" cx="55" cy="47" r="3"/><circle class="em-r" cx="65" cy="47" r="3"/><path class="em-s" d="M18 86h6M96 82h6M24 100h4M92 98h6"/>',
+ chapters:[
+  {t:'The Black Cloud',exp:40,lines:[
+    ['sys','Warning. An unidentified mass is approaching the coast.'],
+    ['n','At first it looks like a storm. Then the sound reaches the shore: a buzzing so deep you feel it in your teeth.'],
+    ['v','Coast guard','It\'s insects. Billions of them. They\'re eating the boats.'],
+    ['sys','Mission: Reach the coast before the swarm does.']],
+   moves:[['speed',2,'Sprint to the shore'],['legs',2,'Brace for impact']],
+   after:'The swarm hits the beach like a wave. Where it passes, nothing green is left.'},
+  {t:'Stingers',exp:40,loot:['potion'],lines:[
+    ['n','Inside the swarm are bigger things: insects the size of dogs, with stingers like spears.'],
+    ['sys','Debuff: Venom. Every sting slows you down.'],
+    ['v','Hunter on the radio','Don\'t let them land on you! Keep moving!'],
+    ['sys','Mission: Fight your way through without getting stung.']],
+   moves:[['agility',2,'Dodge the stingers'],['push',2,'Swat them down']],
+   after:'The air clears for a moment. Under the sand, something begins to dig.'},
+  {t:'The Hive',exp:50,loot:['box'],lines:[
+    ['n','The swarm has built a hive in the old port: a mountain of wax, spit and stolen steel.'],
+    ['n','Inside, the walls pulse like a heartbeat. Thousands of eggs glow in the dark.'],
+    ['sys','Mission: Climb into the hive and destroy the eggs.']],
+   moves:[['pull',2,'Climb the hive walls'],['core',2,'Hold still in the dark']],
+   after:'The eggs burst into flame. Deep in the hive, a scream answers.'},
+  {t:'Poisoned Air',exp:50,loot:['elixir'],lines:[
+    ['n','Spores fill the tunnels. Every breath burns.'],
+    ['sys','Debuff: Plague. Stamina drains while you stand in the spores.'],
+    ['v','Igris','My king. The air is death here. Move, and do not stop.'],
+    ['sys','Mission: Push through the spores to the Queen\'s chamber.']],
+   moves:[['speed',2,'Hold your breath and run'],['mobility',1.5,'Open up your chest'],['legs',1.5,'Push through']],
+   after:'The tunnel opens into a chamber the size of a stadium. Something on the ceiling unfolds its wings.'},
+  {t:'The Plague Queen',exp:60,lines:[
+    ['n','She drops from the ceiling: half woman, half insect, with wings like stained glass and eyes like a swarm.'],
+    ['v','Querehsha','The Shadow, in my nest. How rude. My children are hungry.'],
+    ['n','The whole chamber starts to buzz.'],
+    ['sys','Final quest unlocked: Defeat Querehsha, Monarch of Plagues.'],
+    ['sys','Chapter reward: Arrow skin, Plague Queen.']],
+   moves:[['push',1.5,'Cut through the swarm'],['core',1.5,'Hold your breath'],['agility',1.5,'Get close']],
+   after:'Querehsha opens her wings, and the swarm pours out of every wall.'}],
+ raid:{name:'The Hive Throne',boss:'Querehsha, Monarch of Plagues',focus:'Endurance: outlast the swarm',world:'plague',limit:25,exp:240,
+  waves:[['agility',2,'Dodge the stingers'],['push',2.5,'Swat down the swarm'],['speed',2.5,'Burn the eggs'],['pull',2.5,'Tear down the hive'],['core',2.5,'Ground the Plague Queen']]},
+ weapon:'stinger',skin:'plague',shadow:'Blight'},
+
+{id:'mirror',name:'The Faceless Monarch',short:'Faceless Monarch',tag:'Monarch of Transfiguration · trust no one',
+ blurb:'People are being replaced. They look the same and talk the same. They are not the same.',
+ art:'<path class="em-f" d="M15 52c0-13 7-20 15-20s15 7 15 20-7 28-15 28-15-15-15-28zM75 52c0-13 7-20 15-20s15 7 15 20-7 28-15 28-15-15-15-28z"/><path class="em-f" d="M40 44c0-17 9-26 20-26s20 9 20 26-9 40-20 40-20-23-20-40z"/><path class="em-s" d="M60 18l-4 16 6 10-5 14M22 50h6M82 50h6M28 66h4M86 66h4"/><circle class="em-r" cx="52" cy="48" r="3.4"/><circle class="em-r" cx="68" cy="48" r="3.4"/><path class="em-s" d="M50 66q10 6 20 0M30 96h60"/>',
+ chapters:[
+  {t:'Strangers',exp:40,lines:[
+    ['n','Your neighbour waves at you from his balcony. He moved away last year.'],
+    ['sys','Anomaly detected. Mana signatures do not match their owners.'],
+    ['v','Association officer','We have people in two places at once. Same face, same voice. One of them is lying.'],
+    ['sys','Mission: Find the copies. Watch how they move.']],
+   moves:[['legs',2,'Follow the copy'],['agility',2,'Stay out of sight']],
+   after:'The copy turns a corner and stops. Its head turns all the way round to look at you, and it smiles.'},
+  {t:'Doppelgangers',exp:40,loot:['potion'],lines:[
+    ['n','They drop their disguises all at once. Faces slide off like masks and leave smooth grey skin behind.'],
+    ['v','Doppelganger','We can be anyone. We can be you.'],
+    ['sys','Mission: Strike only the fakes. The real people are still in the crowd.']],
+   moves:[['push',2,'Strike the fakes'],['core',1.5,'Hold back for the innocent']],
+   after:'The last fake melts into grey mist. In the mist, a thousand voices whisper your name.'},
+  {t:'The Hall of Mirrors',exp:50,loot:['box'],lines:[
+    ['n','The mist leads you into a mall where every surface has turned to mirror.'],
+    ['n','Your reflections do not copy you. They wait. Then they step out of the glass.'],
+    ['sys','Mission: Beat yourself. Every one of you.']],
+   moves:[['pull',2,'Pull them from the glass'],['speed',2,'Be faster than your reflection']],
+   after:'Every mirror cracks at once. Behind the glass is a door that was not there before.'},
+  {t:'A Familiar Face',exp:50,loot:['elixir'],lines:[
+    ['n','Behind the door stands someone you trust completely. A friend. Family. The face keeps changing.'],
+    ['v','???','You\'re tired, aren\'t you? Stop fighting. Come home.'],
+    ['sys','Warning. Mental attack. Do not listen. Do not stop moving.'],
+    ['sys','Mission: Keep your mind clear. Breathe, move, focus.']],
+   moves:[['mobility',1.5,'Shake off the illusion'],['flex',1.5,'Breathe through it'],['legs',1.5,'Walk past it']],
+   after:'The face cracks down the middle. Behind it there is nothing at all.'},
+  {t:'The Monarch of Transfiguration',exp:60,lines:[
+    ['n','The illusion falls away. You are standing in an empty theatre, and the only figure on the stage has no face.'],
+    ['v','Yogumunt','Every face I wear, I have taken. Yours will be my favourite.'],
+    ['n','Its body ripples: arms, wings, claws, all at once.'],
+    ['sys','Final quest unlocked: Defeat Yogumunt, Monarch of Transfiguration.'],
+    ['sys','Chapter reward: Arrow skin, Faceless.']],
+   moves:[['push',1.5,'Strike the true body'],['agility',1.5,'Read its next shape'],['speed',1.5,'Close the distance']],
+   after:'The theatre lights go out. When they come back on, there are a hundred of it.'}],
+ raid:{name:'The Theatre of Faces',boss:'Yogumunt, Monarch of Transfiguration',focus:'Focus: find the true body',world:'mirror',limit:26,exp:250,
+  waves:[['agility',2,'Spot the copies'],['push',2.5,'Break the doppelgangers'],['core',2.5,'Hold through the illusion'],['speed',2.5,'Chase the true body'],['legs',2.5,'Unmask the Monarch']]},
+ weapon:'mirrorblade',skin:'faceless',shadow:'Mirage'},
+
 {id:'war',name:'The Monarchs\' War',short:'Monarchs\' War',tag:'The final war · the Shadow against Destruction',
  blurb:'The Monarchs have come for the Shadow. The sky over the city turns red.',
  art:'<path class="em-f" d="M56 70C40 44 18 36 4 40c10 6 12 16 10 26 8-6 17-4 21 4 6-4 15-3 21 0zM64 70c16-26 38-34 52-30-10 6-12 16-10 26-8-6-17-4-21 4-6-4-15-3-21 0z"/><path class="em-f" d="M38 96l-6-34 16 14 12-24 12 24 16-14-6 34z"/><path class="em-s" d="M38 96h44"/><circle class="em-r" cx="60" cy="82" r="5"/><circle class="em-r" cx="44" cy="84" r="2.6"/><circle class="em-r" cx="76" cy="84" r="2.6"/>',
@@ -205,13 +379,22 @@ const STORY_EVENTS=[
 
 /* Event shadows: extracted from each event's boss raid. Name -> event and starting grade.
    Their body, look and skill live with the other shadows in data.js. */
-const EVENT_SHADOWS={Granite:{ev:'dd',rank:'Elite Knight'},Fury:{ev:'orc',rank:'Elite Knight'},Titan:{ev:'giant',rank:'Knight Commander'},Ruin:{ev:'war',rank:'Knight Commander'}};
+const EVENT_SHADOWS={Granite:{ev:'dd',rank:'Elite Knight'},Fury:{ev:'orc',rank:'Elite Knight'},Titan:{ev:'giant',rank:'Knight Commander'},Ruin:{ev:'war',rank:'Knight Commander'},
+  Rime:{ev:'frost',rank:'Elite Knight'},Howl:{ev:'beast',rank:'Elite Knight'},Blight:{ev:'plague',rank:'Knight Commander'},Mirage:{ev:'mirror',rank:'Knight Commander'}};
 
-/* Arrow skins: the orb's body and eye colours, unlocked by clearing an event's five chapters.
+/* Arrow skins: the orb's body and eye colours. Event skins (ev) unlock by clearing an event's
+   five chapters; milestone skins (how) unlock when a number reaches n (see skinCheck in events.js).
    Each colour is mid-toned so the orb reads on both the paper and the night theme. */
 const ARROW_SKINS={
   stone:{n:'Cartenon Stone',ev:'dd',body:'#7d776d',eyes:'#ff3b2f'},
   orc:{n:'High Orc',ev:'orc',body:'#3e5a30',eyes:'#ffcf3d'},
   giant:{n:'Giant King',ev:'giant',body:'#a8743a',eyes:'#fff1d0'},
-  monarch:{n:'Monarch',ev:'war',body:'#4a1a6e',eyes:'#ff8a2a'}
+  frost:{n:'Frost Monarch',ev:'frost',body:'#6f9cc0',eyes:'#f2fbff'},
+  fang:{n:'Fang King',ev:'beast',body:'#5e5752',eyes:'#ffb21a'},
+  plague:{n:'Plague Queen',ev:'plague',body:'#6e6c2c',eyes:'#f3ff6a'},
+  faceless:{n:'Faceless',ev:'mirror',body:'#8a7f8c',eyes:'#ff4fb8'},
+  monarch:{n:'Monarch',ev:'war',body:'#4a1a6e',eyes:'#ff8a2a'},
+  system:{n:'System Blue',how:{k:'quests',n:25},body:'#2f6fd6',eyes:'#e9f3ff'},
+  flame:{n:'Undying Flame',how:{k:'streak',n:14},body:'#c2451e',eyes:'#ffe08a'},
+  sovereign:{n:'Shadow Sovereign',how:{k:'shadows',n:10},body:'#46407a',eyes:'#b3a6ff'}
 };

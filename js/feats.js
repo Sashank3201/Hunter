@@ -40,6 +40,7 @@ const FEATS=[
 function featProgress(f){return Math.min(f.target,Math.max(0,f.prog()||0))}
 /* Unlock everything newly earned. silent: collect without notices (used for the catch-up on update). */
 function checkFeats(silent){
+  skinCheck(silent); // milestone Arrow skins count the same numbers
   const got=[];
   FEATS.forEach(f=>{
     if(S.feats[f.id]||featProgress(f)<f.target)return;
