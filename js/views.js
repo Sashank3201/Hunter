@@ -75,6 +75,7 @@ function renderStatus(){
   <button class="license-link" data-act="card"><span class="ll-ph"><img src="${hunterPhoto()}" alt=""></span><span class="overline grow">Hunter License</span><span class="overline">View card →</span></button>
   ${equippedWeapon()?(id=>`<button class="weapon-link" style="--rc:${RARITY[WEAPONS[id].rarity].c}" data-act="weaponOpen" data-arg="${id}"><span class="wl-art">${weaponSVG(id,'tilt')}</span><span class="grow"><span class="overline">Weapon · ${RARITY[WEAPONS[id].rarity].n}</span><b>${esc(WEAPONS[id].name)}${refineOf(id)?` +${refineOf(id)}`:''}</b></span><span class="overline">ATK ${weaponAtk(id)}</span></button>`)(equippedWeapon()):''}
   ${chestReady()?`<button class="chest-strip" data-act="chest"><span class="cs-ic">${ic('box')}</span><span class="grow"><b>Daily supply ready</b><span>Day ${chestDay().day} of 7 · ${rewardLabel(LOGIN_REWARDS[chestDay().day-1])}</span></span><span class="overline">Open →</span></button>`:''}
+  ${expStripHTML()}
   ${S.elixirActive?`<div class="card" style="border-top:1px solid var(--hair);padding:12px var(--gut)"><p class="overline" style="color:var(--red)">${ic('elixir')} Elixir active · next quest gives 1.5× EXP</p></div>`:''}
   ${eventBannerHTML()}`;
   h+=bodyStatusHTML(); // injuries, last night's sleep, the weekly check-in (body.js)
@@ -95,17 +96,18 @@ function renderStatus(){
   const smax=Math.max(20,Math.ceil(Math.max(...STATS.map(x=>S.stats[x]))/10)*10);
   h+=`<div class="sec-label"><span class="overline">Stats</span><span class="small">${S.statPoints?`${S.statPoints} points unassigned`:'Grow by training'}</span></div>
     <div class="card" style="border-top:0;padding-top:6px"><div class="stat-grid">${STATS.map(x=>`<div><b>${String(Math.floor(S.stats[x])).padStart(2,'0')}</b><div class="bar-mini"><i style="width:${S.stats[x]/smax*100}%"></i></div><span>${x.slice(0,3).toUpperCase()}</span></div>`).join('')}</div>
-    ${S.statPoints?`<button class="btn block" style="margin-top:16px" data-act="allocate">Assign ${S.statPoints} stat point${S.statPoints>1?'s':''}</button>`:''}</div>`;
+    ${S.statPoints?`<button class="btn block" style="margin-top:16px" data-act="allocate">Assign ${S.statPoints} stat point${S.statPoints>1?'s':''}</button>`:''}
+    <button class="tree-link" data-act="tree"><span class="lead">${ic('zap')}</span><span class="grow"><b>Skill tree</b><span>${S.tree.pts?`${plural(S.tree.pts,'skill point')} to spend`:`${treeGot().length} of ${Object.keys(TREE_NODES).length} perks learned`}</span></span>${S.tree.pts?`<span class="pill accent">${S.tree.pts}</span>`:''}${ic('right')}</button></div>`;
 
   if(S.penaltyLevel>0||S.penaltyReps>0){
     h+=`<div class="card bad"><div class="card-head"><span class="h3">Penalty level ${S.penaltyLevel} of 5</span><span class="pill bad">${ic('alert')}Danger</span></div>
       <div class="pen-seg">${[1,2,3,4,5].map(i=>`<i class="${i<=S.penaltyLevel?'on':''}${i===5?' last':''}"></i>`).join('')}</div>
-      <p class="muted small">${S.penaltyReps>0?`You owe ${S.penaltyReps-S.penaltyProgress} reps. `:''}Level 5 means death. Three clean days in a row lower it by 1.</p>
+      <p class="muted small">${S.penaltyReps>0?`You owe ${S.penaltyReps-S.penaltyProgress} reps. `:''}Level 5 means death. ${perk('mend')?'Two':'Three'} clean days in a row lower it by 1.</p>
       ${S.penaltyReps>0?`<button class="btn danger block" style="margin-top:14px" data-act="goQuest">Clear penalty</button>`:''}</div>`;
   }else{
     h+=`<div class="card tight"><ul class="list">
       <li class="lrow"><span class="lead">${ic('shield')}</span><div class="grow"><p class="t">No penalties</p><p class="s">Keep the streak alive</p></div><span class="pill good">Safe</span></li>
-      <li class="lrow"><span class="lead">${ic('moon')}</span><div class="grow"><p class="t">Rest Pass</p><p class="s">${passUsedThisWeek()?'Used this week':'1 available this week'}</p></div><span class="pill ${passUsedThisWeek()?'':'accent'}">${passUsedThisWeek()?'Used':'Ready'}</span></li>
+      <li class="lrow"><span class="lead">${ic('moon')}</span><div class="grow"><p class="t">Rest Pass</p><p class="s">${passUsedThisWeek()?'Used this week':`${passesLeft()} available this week`}</p></div><span class="pill ${passUsedThisWeek()?'':'accent'}">${passUsedThisWeek()?'Used':'Ready'}</span></li>
     </ul></div>`;
   }
 
@@ -148,7 +150,7 @@ function renderQuest(){
       <div class="grow"><p class="t">${dn(t.name)}${t.fresh&&!on?' <span class="tag-new">New</span>':''}</p>
         <p class="s">${t.stat===t.family?t.stat:`${t.family} · ${t.stat}`}${t.note?` · <span class="boss-note">${t.note}</span>`:''}</p>
         ${logged.length?`<p class="log-line">Logged ${logged.join(' · ')}${t.timed?' sec':''}</p>`:pr?`<p class="log-line faint">Best ${pr.best}${pr.timed?' sec':''}</p>`:''}
-        <button class="how-btn" aria-expanded="${open}" data-act="cue" data-arg="${t.id}">How to ${ic('down')}</button>${!lock&&!on&&!logged.length&&canEase(t)?`<button class="how-btn ease-btn" data-act="ease" data-arg="${t.id}">${t.orig?`Back to ${esc(dn(t.orig))}`:'Too hard? Easier version'}</button>`:''}</div>
+        <button class="how-btn" aria-expanded="${open}" data-act="cue" data-arg="${t.id}">How to ${ic('down')}</button>${!lock&&!on&&!logged.length&&canEase(t)?`<button class="how-btn ease-btn" data-act="ease" data-arg="${t.id}">${t.orig?`Back to ${esc(dn(t.orig))}`:'Too hard? Easier version'}</button>`:''}${!lock&&!on&&!logged.length&&!t.orig&&canHarden(t)?`<button class="how-btn ease-btn" data-act="harder" data-arg="${t.id}">Harder version</button>`:''}</div>
       <span class="target">${t.sets}<i>×</i>${t.amt}${t.timed?'s':''}</span></div>
       ${open&&t.cue?`<div class="ex-cue">${demoHTML(t.name)}<p>${t.cue}</p></div>`:''}</li>`;
   };
@@ -176,6 +178,7 @@ function renderQuest(){
 }
 ACT.cue=id=>{openCues.has(id)?openCues.delete(id):openCues.add(id);renderQuest()};
 ACT.ease=id=>{if(swapMove(id)){buzz('tap');renderAll()}};
+ACT.harder=id=>{if(swapHarder(id)){buzz('tap');renderAll()}};
 
 /* ---------- PROGRESS ---------- */
 function renderProgress(){
@@ -190,7 +193,8 @@ ACT.prog=k=>{progTab=k;renderProgress();animateIn($('progBody'))};
 
 function skillsHTML(){
   const lv=effLevel(),nr=nextRank();
-  let h=`<p class="muted small" style="margin:-4px 4px 16px">Each area trains several patterns. Harder moves unlock as you level up${nr&&S.level>=nr.lv?`. You're at the cap for your rank: pass the ${nr.r}-Rank trial to open the next moves`:', and each rank caps your level until you pass its trial'}.</p>`;
+  let h=`<button class="tree-link card" data-act="tree"><span class="lead">${ic('zap')}</span><span class="grow"><b>Skill tree</b><span>${S.tree.pts?`${plural(S.tree.pts,'skill point')} to spend`:'Perks that change how you train'}</span></span>${ic('right')}</button>
+    <p class="muted small" style="margin:-4px 4px 16px">Each area trains several patterns. Harder moves unlock as you level up${nr&&S.level>=nr.lv?`. You're at the cap for your rank: pass the ${nr.r}-Rank trial to open the next moves`:', and each rank caps your level until you pass its trial'}.</p>`;
   Object.keys(AREAS).forEach(k=>{
     const A=AREAS[k],all=CHAINS[k].flatMap(c=>c[1]).sort((x,y)=>x[1]-y[1]),open=all.filter(m=>m[1]<=lv).length;
     h+=`<div class="card ladder"><div class="card-head"><span class="h2">${A.title}</span><span class="pill">${open} / ${all.length}</span></div>`;
@@ -243,7 +247,8 @@ const DAY_LABEL={done:'Quest cleared',pass:'Rest Pass',miss:'Missed',rest:'Recov
 function historyHTML(){
   const durs=Object.values(S.log).map(r=>r.duration||0).filter(Boolean),mins=durs.reduce((a,b)=>a+b,0);
   const tiles=[['timer',mins>=60?`${Math.floor(mins/60)}h ${mins%60}m`:`${mins}m`,'Time trained'],['calendar',durs.length?`${Math.round(mins/durs.length)}m`:'—','Avg session'],['zap',S.totalQuests,'Quests cleared'],['flame',S.bestStreak,'Best streak'],['dumbbell',S.totalReps.toLocaleString(),'Total reps'],['skull',S.deaths,'Deaths']];
-  let h=`<button class="license-link" data-act="report" style="border-top:0;margin-bottom:12px"><span class="overline">Weekly System report</span><span class="overline">Last week →</span></button><div class="tiles">${tiles.map(([i,v,l])=>`<div class="tile"><span class="lead">${ic(i)}</span><b>${v}</b><span>${l}</span></div>`).join('')}</div>`;
+  let h=`<button class="license-link" data-act="report" style="border-top:0;margin-bottom:0"><span class="overline">Weekly System report</span><span class="overline">Last week →</span></button>
+    <button class="license-link" data-act="chronicle" style="margin-bottom:12px"><span class="overline">Hunter's Chronicle</span><span class="overline">Monthly chapters →</span></button><div class="tiles">${tiles.map(([i,v,l])=>`<div class="tile"><span class="lead">${ic(i)}</span><b>${v}</b><span>${l}</span></div>`).join('')}</div>`;
 
   const W=12,start=addDays(mondayOf(todayStr()),-7*(W-1));
   h+=`<div class="card"><div class="card-head"><span class="h3">Last 12 weeks</span></div><div class="heat" role="grid" aria-label="Training calendar, last 12 weeks">

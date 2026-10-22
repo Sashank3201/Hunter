@@ -14,9 +14,18 @@ It is a Progressive Web App (PWA): plain HTML, CSS and JavaScript with no build 
 - **The Monarch's Path.** S-Rank isn't the end. You keep your rank and chase **SS (Ruler)** and **SSS (Absolute Being)**: trials near the limit of human bodyweight strength, like 50 push-ups in one set, one-arm push-ups, wall handstand push-ups and 15 pistol squats a leg.
 - **Gates.** Dungeon raids, with optional 3D worlds (three.js), bosses and loot.
 - **Shadows, weapons, chests and achievements.**
+- **Shadow expeditions.** Send up to three shadows into a Gate in the evening. They come back at 6:00 the next morning with EXP, shadow XP and maybe a key, box, potion or elixir. Clear that day's quest before they return and they bring 1.5× and an extra loot roll. Your squad's combat power sets the odds. Start one from **Progress → Shadows**, the evening strip on Status, or tell Arrow "send my shadows out".
+- **Skill tree.** Every level gives 1 skill point on top of your 3 stat points. Spend them on twelve perks in three branches, top to bottom, and reset the tree for free once a week. Open it from **Status → Stats → Skill tree**, or ask Arrow "what perk should I take?".
+
+| Branch | Perks (cost) |
+| --- | --- |
+| Body | Second Wind: +15 s rest (1) · Iron Will: −20% penalty reps (2) · Spare Pass: 2 Rest Passes a week (2) · Fast Recovery: penalty drops every 2 clean days (3) |
+| Growth | Quick Learner: +5% quest EXP (1) · Shadow Drill: +25% shadow XP (2) · Weekly Surge: +50% weekly goal stats (2) · Monarch's Luck: +10% luck (3) |
+| Mastery | Challenger: a "Harder version" button on every move (1) · Boss Hunter: +15% boss day EXP (2) · Gate Runner: +10% Gate EXP and time (2) · Record Breaker: +25 EXP per record (3) |
+
 - **Story events.** Eight Solo Leveling arcs take turns, one a week: five daily chapters, then a 3D boss raid that drops a weapon and a shadow.
 - **Arrow evolves.** It grows horns at C-Rank, a crown at A, a shadow aura at S, shadow wings at SS and Monarch eyes at SSS, on top of any skin. Switch any piece off in **Profile → Arrow form**, or tell Arrow "take off your horns" or "base form".
-- **Arrow's bodies.** Arrow can be the Orb, Kirby (a pink puffball with stubby arms), Cloudee (a little cloud) or Cyber (a rounded cube). Same Arrow, same moods and animations, and the evolution gear moves onto each head. Pick one in **Profile → Arrow's body**, or tell Arrow "become Kirby". Each body remembers its own skin.
+- **Arrow's bodies.** Arrow can be the Orb, Kirby (a pink puffball with stubby arms), Cloudee (a little cloud) or Cyber (a rounded cube). Same Arrow, same moods and animations, and the evolution gear moves onto each head. Each body talks its own way: Kirby is cheerful and always hungry, Cyber is terse and robotic, Cloudee is calm and sleepy. The facts and numbers stay the same, and serious topics like pain or feeling low stay plain. Pick one in **Profile → Arrow's body**, or tell Arrow "become Kirby". Each body remembers its own skin.
 - **Arrow skins.** Twenty looks for Arrow. Each event's fifth chapter gives one, and three more come from milestones (quests cleared, best streak, shadows commanded); these fit every body. Kirby, Cloudee and Cyber also have three skins of their own: one comes with the body, two are earned.
 
 | Body | Skin | How to get it |
@@ -37,6 +46,7 @@ Pick a skin in **Profile → Arrow skin**, or tell Arrow "wear the Monarch skin"
 - **Diet.** Daily calorie and protein targets, a food log with 200+ foods (lots of Indian staples), and voice input.
 - **Arrow.** A chat companion that understands English, Telugu and Hindi written in English letters. It logs food, coaches you from your own numbers ("give me advice", "am I improving?", "plan my day"), charts your five stats and where they go in four weeks of full quests ("what are my stats?"), answers training, diet and sleep questions, and follows up when you say "tell me more". Its language model runs on the phone, offline.
 - **Weekly report** with a grade, and a shareable Hunter License card.
+- **Hunter's Chronicle.** Each month becomes a chapter, written from what you actually did: quests, reps, levels, trials, records, shadows, Gates, expeditions, story chapters, body check-ins and sleep. On the first visit of a new month the System shows last month's chapter, with a card to share. Reopen any month from **Progress → History**, or ask Arrow "how was my month?".
 
 The app has five tabs: Status, Quest, Gates, Progress and Diet. Profile and settings open from the button at the top.
 
@@ -117,7 +127,7 @@ There is no build step: edit a file, save it, and refresh the page.
 
 - **Scripts load in order.** `index.html` loads the files in `js/` as classic scripts that share global variables, so the order matters. `js/data.js` comes first and `js/main.js` comes last. Only `js/world3d.js` is an ES module, loaded when a Gate opens.
 - **Adding a new file:** add it to `index.html`, and to the `ASSETS` list in `sw.js` so it works offline.
-- **Before every release:** bump the cache name in `sw.js` (`hunter-system-v25` → `hunter-system-v26`) so phones store the new files for offline use.
+- **Before every release:** bump the cache name in `sw.js` (`hunter-system-v26` → `hunter-system-v27`) so phones store the new files for offline use.
 - **Adding a story event:** add it to `STORY_EVENTS` in `js/story.js` (anywhere in the list), with its weapon in `WEAPONS`, its shadow in `SHADOW_BODY` and `SHADOW_SKILLS` (`js/data.js`), its skin in `ARROW_SKINS`, a silhouette look in `js/shadows.js` and a raid world in `js/world3d.js`. Weeks that have already started keep their event, so a new one never replaces a live one. Then retrain Arrow so it knows the new names.
 - **Changing a body:** the bodies come from avatar definitions in `tools/avatars/` (`*.avatar.json`). Run `node tools/avatars/convert.js` to rebuild `js/forms.js` from them. It keeps the expressions the animations use and measures where each head sits, so the gear lands on it.
 - **Test switches.** Set these in the browser console, or in a test before the page loads:
@@ -150,6 +160,7 @@ There is no build step: edit a file, save it, and refresh the page.
 | `js/arrow*.js`, `js/bot.js`, `js/botgame.js` | Arrow: brain, words, language model and the rest-timer mini game |
 | `js/report.js`, `js/card.js` | Weekly report and Hunter License card |
 | `js/body.js` | Body check-ins, sleep log and injury care |
+| `js/tree.js`, `js/expeditions.js`, `js/chronicle.js` | The skill tree, shadow expeditions and the monthly chronicle |
 | `js/awaken.js`, `js/menu.js`, `js/main.js` | First-run sign-up, the profile menu, start-up |
 | `js/forms.js` | Arrow's other bodies (generated by `tools/avatars/convert.js`) |
 | `js/vendor/` | three.js and the avatar engine |

@@ -33,7 +33,7 @@ function openMenu(){
     <li><button class="lrow" data-act="arrowForget"><span class="lead">${ic('trash')}</span><span class="grow"><span class="t" style="display:block">Forget what Arrow learned</span><span class="s" style="display:block">${arMem().mem.length} phrase${arMem().mem.length===1?'':'s'} learned from your corrections</span></span></button></li>
     <li><form id="remForm" class="rem"><div class="lrow" style="padding-bottom:4px"><span class="lead">${ic('timer')}</span><div class="grow"><p class="t">Daily reminder</p><p class="s">A repeating alarm in your phone's calendar, plus a 9 pm penalty warning</p></div></div>
       <div class="rem-row"><input id="mRemind" type="time" class="text-in" value="${p.remindAt||'18:00'}" aria-label="Reminder time"><button class="btn sm" type="submit">Add to calendar</button></div></form></li>
-    <li class="lrow"><span class="lead">${ic('moon')}</span><div class="grow"><p class="t">Rest Pass</p><p class="s">${passUsedThisWeek()?`Used this week. Next one ${passNext}.`:'Available. Use it from the Quest tab if sick or injured.'}</p></div></li>
+    <li class="lrow"><span class="lead">${ic('moon')}</span><div class="grow"><p class="t">Rest Pass</p><p class="s">${passUsedThisWeek()?`Used this week. Next one ${passNext}.`:`${passesLeft()>1?`${passesLeft()} available`:'Available'}. Use it from the Quest tab if sick or injured.`}</p></div></li>
   </ul></div>
 
   <div class="sec-label"><span class="overline">Rules</span></div>

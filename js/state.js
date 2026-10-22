@@ -47,6 +47,12 @@ function fresh(){return {
   body:[],           // weekly check-ins: [{d, kg, waist, chest, arm, thigh, fit}] (body.js)
   sleep:{},          // date -> hours slept the night before
   injuries:[],       // [{part, since, until, sev, asked, healed}]: pause the areas they load
+  tree:{pts:0,got:[],reset:null}, // skill tree: points, perks learned, monday of the last free reset (tree.js)
+  treeInit:true,     // marks saves that already got back-dated skill points
+  expedition:null,   // shadows out on a Gate expedition: {g, squad, date, back, power} (expeditions.js)
+  expeditions:[],    // finished expeditions: [{g, date, ok, n}]
+  monthSnaps:{},     // 'YYYY-MM' -> {level, rank, stats, shadows} at the start of that month (chronicle.js)
+  chronicleSeen:null,// last month whose chronicle was shown
   profile:null       // {name, haptics, theme, remindAt} once awakened
 }}
 
@@ -54,13 +60,15 @@ function fresh(){return {
 /* Total shadow XP needed to reach level L (Lv2 100, Lv3 300, Lv5 1000, Lv10 4500). */
 const shadowXpAt=L=>50*L*(L-1);
 function migrate(s){
-  const legacy=s.pointsInit===undefined,legacyHunt=s.huntInit===undefined;
+  const legacy=s.pointsInit===undefined,legacyHunt=s.huntInit===undefined,legacyTree=s.treeInit===undefined;
   const f=fresh();
   Object.keys(f).forEach(k=>{if(s[k]===undefined)s[k]=f[k]});
   Object.keys(LADDERS).forEach(k=>{if(!s.ladders[k])s.ladders[k]={step:0,streak:0}});
   delete s.weeklyBonus;
   // saves from before stat points existed get the points their level already earned
   if(legacy){s.statPoints=Math.max(0,((s.level||1)-1)*3);s.pointsInit=true}
+  // saves from before the skill tree get the skill points their level already earned
+  if(legacyTree){s.tree={pts:Math.max(0,(s.level||1)-1),got:[],reset:null};s.treeInit=true}
   // saves from before items/feats/shadows get them retroactively on next start
   if(legacyHunt){s.huntPending=true;s.huntInit=true}
   if(!s.inv.keys)s.inv.keys={E:0,D:0,C:0,B:0,A:0,S:0};
@@ -100,11 +108,11 @@ function notStarted(){return todayStr()<S.startDate}
 /* ---------- progression ---------- */
 function expForLevel(l){return 140+(l-1)*45}
 function levelFromExp(){let l=1,e=S.exp;while(e>=expForLevel(l)){e-=expForLevel(l);l++;if(l>60)break}return {level:l,into:e,need:expForLevel(l)}}
-/* Recompute level from EXP. Each level gained grants 3 stat points. Returns levels gained. */
+/* Recompute level from EXP. Each level gained grants 3 stat points and 1 skill point. Returns levels gained. */
 const POINTS_PER_LEVEL=3;
 function syncLevel(){
   const before=S.level;S.level=levelFromExp().level;
-  const up=Math.max(0,S.level-before);S.statPoints+=up*POINTS_PER_LEVEL;return up;
+  const up=Math.max(0,S.level-before);S.statPoints+=up*POINTS_PER_LEVEL;S.tree.pts+=up;return up;
 }
 function currentRank(){let r=RANKS[0];for(const x of RANKS)if(S.level>=x.lv&&(x.lv===0||S.rankTestsPassed.includes(x.r)))r=x;return r}
 function nextRank(){const c=currentRank();const i=RANKS.findIndex(x=>x.r===c.r);return RANKS[i+1]||null}
@@ -171,6 +179,14 @@ function swapMove(id){
   p.id=moveId(p.n);save();return true;
 }
 function canEase(t){const M=MOVES[t.name];return !!(t.orig||M&&M.i>0&&!AREAS[M.a].pool)}
+/* Challenger (tree.js): swap a move for the next one in its chain, for today only, before any set is logged. */
+const nextInChain=n=>{const M=MOVES[n];return M&&!AREAS[M.a].pool?CHAINS[M.a][M.c][1][M.i+1]:null};
+function canHarden(t){return perk('harder')&&!!nextInChain(t.name)}
+function swapHarder(id){
+  const rec=todayRec(),p=(rec.plan||[]).find(x=>x.id===id),nx=p&&nextInChain(p.n);
+  if(!p||!nx||p.orig||!perk('harder')||rec.sets[id]||rec.done.includes(id))return false;
+  p.orig=p.n;p.n=nx[0];p.id=moveId(p.n);save();return true;
+}
 
 /* ---------- today ---------- */
 function todayRec(){const k=todayStr();if(!S.log[k])S.log[k]={done:[],completed:false,penaltyDone:false};const r=S.log[k];if(!r.sets)r.sets={};return r}
@@ -184,11 +200,12 @@ function todaysSplit(){
 const dn=n=>n.replace(' (secs)','').replace('(secs on/off)','(on/off)');
 
 function restFor(it){
-  if(it.key==='mobility'||it.key==='flex')return REST.stretch;
-  if(it.key==='core'&&!todaysSplit().boss)return REST.core;
-  if(inJobPhase())return JOBS[S.job.path].rest;
-  if(todaysSplit().boss&&it.stat==='Strength')return REST.boss;
-  return REST.normal;
+  const more=perk('wind')?15:0; // Second Wind (tree.js)
+  if(it.key==='mobility'||it.key==='flex')return REST.stretch+more;
+  if(it.key==='core'&&!todaysSplit().boss)return REST.core+more;
+  if(inJobPhase())return JOBS[S.job.path].rest+more;
+  if(todaysSplit().boss&&it.stat==='Strength')return REST.boss+more;
+  return REST.normal+more;
 }
 
 function buildQuestItems(){
@@ -214,5 +231,9 @@ function trainedInWeek(monday){
   for(let i=0;i<7;i++){const d=addDays(monday,i),r=S.log[d];if(r&&r.completed&&!r.rested&&!SPLIT[dowOf(d)].rest)n++}
   return n;
 }
-/* Rest Pass: one per calendar week (Mon-Sun), kept across deaths. */
-function passUsedThisWeek(){return !!S.passes[mondayOf(todayStr())]}
+/* Rest Pass: one per calendar week (Mon-Sun), two with Spare Pass (tree.js), kept across deaths.
+   S.passes[monday] is the first pass of that week, S.passes[monday+'b'] the second. */
+const passesPerWeek=()=>perk('pass')?2:1;
+const passesUsed=(m=mondayOf(todayStr()))=>[m,m+'b'].filter(k=>S.passes[k]).length;
+const passesLeft=()=>Math.max(0,passesPerWeek()-passesUsed());
+function passUsedThisWeek(){return passesLeft()<=0}

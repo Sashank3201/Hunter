@@ -46,11 +46,11 @@ On the phone, Arrow also learns from the Player. When the Player taps "Not what 
 | Skip-grams | on |
 | Epochs | 10 |
 | Seed | 9 |
-| Training examples | 58,750 |
-| Intents | 63 |
-| File size | 875 KB |
+| Training examples | 60,850 |
+| Intents | 66 |
+| File size | 876 KB |
 
-The newest intents are `ask_advice`, `ask_progress`, `daily_plan`, `nutrition_tip`, `feeling_down`, `more`, `fun_fact`, `arrow_skin`, `about_me`, `log_body`, `ask_body` and `ask_sleep`. Their test lines in `realworld.tsv` were written before their templates. Telling Arrow how you slept ("slept 5 hours") stays under `recovery`, which logs it, and "my knee is better now" stays under `pain`, which clears the injury.
+The newest intents are `expedition`, `skill_tree` and `chronicle` (their 24 lines in `realworld.tsv` were written before their templates), and before them `ask_advice`, `ask_progress`, `daily_plan`, `nutrition_tip`, `feeling_down`, `more`, `fun_fact`, `arrow_skin`, `about_me`, `log_body`, `ask_body` and `ask_sleep`. Their test lines in `realworld.tsv` were written before their templates. Telling Arrow how you slept ("slept 5 hours") stays under `recovery`, which logs it, and "my knee is better now" stays under `pain`, which clears the injury.
 
 The blind test is split into two halves of 200 messages:
 
@@ -59,13 +59,15 @@ The blind test is split into two halves of 200 messages:
 
 | Test | Accuracy |
 | --- | --- |
-| Blind test half (honest) | **95.0%** |
+| Blind test half (honest) | **94.0%** |
 | Blind dev half | 99.0% |
-| Hand-written set | 98.7% |
+| Hand-written set | 99.3% |
 
 On the blind test half, Arrow answers directly 90% of the time (confidence ≥ 0.42), and those answers are 98.9% right. For the rest it shows "did you mean" chips.
 
 Teaching Arrow its bodies (`{FM}` in `arrow_skin`: "become Kirby", "turn into a cloud", "what bodies do you have") and the nine body skins cost a little. Before, the blind test half was 96.5%, the dev half 99.5% and the hand-written set 99.2%; the test half now misses 3 more of its 200 messages. On the natural validation set the old templates averaged 89.6% over seeds 7, 8 and 9, the new ones 88.5%, and single seeds swing by up to 3 points, so most of that is noise. Seed 9 scored best on the natural set, so it ships. On 20 body and new-skin phrases the old model got 6 right, the new one 20.
+
+Adding `expedition`, `skill_tree` and `chronicle` (with a `{PK}` slot for perk names and `{MO}` for months) left the natural validation average where it was: 88.1%, 88.6% and 88.8% on seeds 7, 8 and 9, 88.5% on average, the same as before. Seed 9 was best again and ships. The blind test half went from 95.0% to 94.0% (2 more misses of 200); one of its misses now lands in a new intent ("my crush left me on read" → `expedition` at 11% confidence, so Arrow asks what you meant instead of answering). The hand-written set went up from 98.7% to 99.3%, with all 24 new lines right.
 
 Adding intents costs a little accuracy on everyday chats about the old ones. On the natural validation set (held-out collected chats, three seeds each), the 51-intent model averaged 91.7%. The 60-intent model averaged 89.0% at D=32 and 90.2% at D=48, which is why D went up. Some of the remaining misses land in a new intent that still answers well, for example "white rice for fat loss, good or bad?" now gets the rice tip instead of the nutrition facts.
 
