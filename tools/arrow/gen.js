@@ -46,6 +46,10 @@ module.exports=function generate(app,seed=7){
   const ingredients=[...new Set([...ING_EXTRA,...app.RECIPES.flatMap(r=>r.ing.flatMap(i=>(i.split('|')[2]||'').toLowerCase().replace(/\(.*?\)/g,'')
     .split(/\s+or\s+|\s+and\s+|,/).map(x=>x.trim()).filter(n=>n&&n.length>2&&n.length<20&&!/optional|to taste|water|salt|pepper|masala|powder|seeds|leaves/.test(n))))])];
   const shadows=app.SHADOW_LEGENDS.map(s=>s[0].toLowerCase());
+  /* Story events, their bosses and Arrow's skins, by the names people use. */
+  const events=app.STORY_EVENTS.flatMap(e=>[e.name,e.short]).map(s=>s.toLowerCase());
+  const bosses=app.STORY_EVENTS.flatMap(e=>[e.raid.boss.split(',')[0],e.raid.boss.split(',')[0].replace(/^the /i,'')]).map(s=>s.toLowerCase());
+  const skins=[...Object.values(app.ARROW_SKINS).map(k=>k.n.toLowerCase()),'ink','default','blue','monarch','orc','frost','wolf'];
   const num=lang=>chance(.55)?String(1+Math.floor(R()*6)):pick(NUMW[lang].filter(w=>!/^(a|an|half|a couple of|a few)$/.test(w))||NUMW.en);
   const food=(lang,bare)=>{
     const name=chance(.08)?pick(UNKNOWN):pick(aliases);if(bare)return name;
@@ -63,7 +67,8 @@ module.exports=function generate(app,seed=7){
   const slot=(k,lang)=>({F:()=>food(lang),FS:()=>foods(lang),Fn:()=>food(lang,true),M:()=>pick(MEAL[lang]),N:()=>num(lang),
     K:()=>`${10*(5+Math.floor(R()*70))} ${pick(['kcal','calories','cal','kcals','cals'])}`,P:()=>`${2+Math.floor(R()*38)}${pick([' g',' grams','g'])} protein`,
     X:()=>pick(exercises),T:()=>pick(PAGES),SH:()=>pick(shadows),I:()=>pick(ingredients),IS:()=>ings(lang),ST:()=>pick(STATW),D:()=>pick(DRINK[lang]),
-    G:()=>pick(GOALW),MV:()=>pick(MOVIES),BP:()=>pick(BODYP),U:()=>pick(UNKNOWN),R:()=>pick(['e','d','c','b','a','s']),B:()=>pick(BODY[lang])}[k]||(()=>{throw new Error('slot '+k)}))();
+    G:()=>pick(GOALW),MV:()=>pick(MOVIES),BP:()=>pick(BODYP),U:()=>pick(UNKNOWN),R:()=>pick(['e','d','c','b','a','s']),B:()=>pick(BODY[lang]),
+    EV:()=>pick(events),BOSS:()=>pick(bosses),SK:()=>pick(skins)}[k]||(()=>{throw new Error('slot '+k)}))();
   const expand=(t,lang)=>{
     let s=t;
     for(let g=0;g<5&&/\[[^\[\]]*\]/.test(s);g++)s=s.replace(/\[([^\[\]]*)\]/g,(_,x)=>chance(.5)?x:'');

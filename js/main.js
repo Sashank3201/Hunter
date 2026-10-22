@@ -121,4 +121,4 @@ setInterval(checkDay,60000);
 
 applyTheme();
 if(needsAwakening()){renderAll();startAwakening()}
-else{processMissedDays();ensureWeekSnap();renderAll();animateIn($('status'));huntCatchUp();armoryCatchUp();maybeReport();setTimeout(maybeChest,1000);setTimeout(maybeSudden,1200);setTimeout(maybeEvent,1400);setTimeout(arrowNudge,4500)}
+else{processMissedDays();ensureWeekSnap();renderAll();animateIn($('status'));huntCatchUp();armoryCatchUp();skinCheck();maybeReport();setTimeout(maybeChest,1000);setTimeout(maybeSudden,1200);setTimeout(maybeEvent,1400);setTimeout(arrowNudge,4500)}

@@ -38,7 +38,21 @@ const THEMES={
      boss:{kind:'brute',noClaws:true,noCore:true,crown:true,bald:true,body:'#4a3020',eye:'#ffd23d',s:2.9},spread:1.55,cam:{mobLook:2.5,mobBack:4.5,bossLook:6.2,bossBack:4.2,bossHit:6,bossLight:10}},
   war:{walls:'sky',sky:['#08030c','#3d0b22'],fog:['#1d0a1c',.034],hemi:['#c890ff','#0a0410',.48],ground:'#1d1720',rock:'#2a2230',light:'#b05cff',deco:'crack',storm:true,
      parts:{kind:'ember',color:'#ff7a3a',n:280},mob:{kind:'knight',body:'#1a0f24',eye:'#c08aff',s:1.2},boss:{kind:'dragon',body:'#3a1a34',eye:'#ff7a1a',s:1.9},
-     cam:{bossLook:6,bossBack:6.5,bossHit:5.6,bossLight:9}}
+     cam:{bossLook:6,bossBack:6.5,bossHit:5.6,bossLight:9}},
+  /* an ice palace on the frozen river (banner, wall, sun: castle colours and light) */
+  frost:{walls:'castle',sky:['#0a1a2c','#6f93b4'],fog:['#46688a',.04],hemi:['#e4f6ff','#1a2a3a',.8],sun:.7,ground:'#cfe2ee',tiles:['#c4dceb','#86a8c2'],rock:'#a9c6da',banner:'#2f6fae',wall:'#5d7f9c',
+     light:'#9fe3ff',deco:'crystal',parts:{kind:'snow',color:'#ffffff',n:600},mob:{kind:'elf',body:'#1a2433',eye:'#8fe3ff',s:1.05},boss:{kind:'lancer',crown:true,body:'#22324a',eye:'#bff3ff',s:2.2},
+     cam:{bossLook:4.4,bossBack:2,bossHit:4.2,bossLight:7}},
+  /* the Fang King's mountain under a blood moon */
+  beast:{walls:'spires',sky:['#07050a','#3a0d10'],fog:['#1a0a0c',.045],hemi:['#ff9a8a','#0a0406',.6],sun:.4,ground:'#2a2420',rock:'#2e2824',light:'#ff4a2a',deco:'crack',moon:'#ff3b2f',
+     parts:{kind:'ash',color:'#c9b8a8',n:300},mob:{kind:'beast',body:'#2a2420',eye:'#ffb21a',s:1.25},boss:{kind:'beast',body:'#3a322c',eye:'#ff5a1a',s:3.2},spread:1.2,
+     cam:{bossLook:2.8,bossBack:2.5,bossHit:3,bossLight:6}},
+  /* the Plague Queen's hive in the old port */
+  plague:{walls:'nest',sky:['#060602','#22220a'],fog:['#1c1c08',.055],hemi:['#eaff8a','#0a0a03',.36],ground:'#2c2a12',rock:'#3a3816',light:'#d8ff3a',deco:'egg',
+     parts:{kind:'spore',color:'#e8ff6a',n:300},mob:{kind:'ant',body:'#17150a',eye:'#ffe14a',s:1.05},boss:{kind:'insect',body:'#1c1a0c',eye:'#f3ff6a',s:2.1},cam:{bossLook:3.8,bossBack:1.5}},
+  /* a city of illusions: pink light, faceless copies in the street */
+  mirror:{walls:'city',sky:['#0a0410','#2a0a2a'],fog:['#1a0a1e',.04],hemi:['#ff9ae0','#0a040c',.5],ground:'#1e1820',flat:true,road:'#ff4fb8',rock:'#2a2230',light:'#ff4fb8',deco:'crack',windows:'#ff9ae0',
+     parts:{kind:'mote',color:'#ffb8ec',n:200},mob:{kind:'knight',body:'#4a4250',eye:'#ff4fb8',s:1},boss:{kind:'brute',horns:true,body:'#2a1838',eye:'#ff4fb8',s:2.2},cam:{bossLook:3.6,bossBack:1.4}}
 };
 
 /* ---------- textures ---------- */
@@ -67,7 +81,7 @@ export function createWorld(canvas,{grade='E',waves=4,bossWave=3,reduced=false,w
   scene.background=keep(skyTex(T.sky[0],T.sky[1]));
   const fogBase=new THREE.Color(T.fog[0]);scene.fog=new THREE.FogExp2(fogBase.clone(),T.fog[1]);
   const hemi=new THREE.HemisphereLight(T.hemi[0],T.hemi[1],T.hemi[2]);scene.add(hemi);
-  const sun=new THREE.DirectionalLight(T.hemi[0],T.walls==='forest'||T.tall?.9:.25);sun.position.set(3,10,6);scene.add(sun);
+  const sun=new THREE.DirectionalLight(T.hemi[0],T.sun!==undefined?T.sun:T.walls==='forest'||T.tall?.9:.25);sun.position.set(3,10,6);scene.add(sun);
   const C=Object.assign({mobLook:1.15,mobBack:0,bossLook:3.1,bossBack:0,bossHit:2.6,bossLight:4.6},T.cam||{}); // camera and light heights
   const lantern=new THREE.PointLight(T.light,16,14,1.5);scene.add(lantern); // follows the camera
   const stationLights=[0,1,2].map((_,k)=>{const l=new THREE.PointLight(T.light,k?14:46,k?12:20,1.5);scene.add(l);return l});
@@ -128,8 +142,8 @@ export function createWorld(canvas,{grade='E',waves=4,bossWave=3,reduced=false,w
       const arch=new THREE.Mesh(geo(new THREE.TorusGeometry(3.9,.32,5,14,Math.PI)),rock);arch.position.set(0,7.3,z);scene.add(arch)}
     instanced(new THREE.CylinderGeometry(.5,.55,1,8),rock,pl);
     instanced(new THREE.BoxGeometry(1,1,1),rock,cap);
-    instanced(new THREE.PlaneGeometry(1,1),mat('#8a0f14',{side:THREE.DoubleSide,flatShading:false}),ban);
-    instanced(new THREE.BoxGeometry(1,1,1),mat('#1d1824'),wall);
+    instanced(new THREE.PlaneGeometry(1,1),mat(T.banner||'#8a0f14',{side:THREE.DoubleSide,flatShading:false}),ban);
+    instanced(new THREE.BoxGeometry(1,1,1),mat(T.wall||'#1d1824'),wall);
   }else if(T.walls==='temple'){
     /* Cartenon Temple: a hall of pillars with stone statues between them; some statues' eyes are lit. */
     const pl=[],ft=[],cp=[],ped=[],bd=[],hd=[],sw=[];
@@ -180,6 +194,7 @@ export function createWorld(canvas,{grade='E',waves=4,bossWave=3,reduced=false,w
     instanced(new THREE.SphereGeometry(1,7,6),mat(T.ground),bl);
     instanced(new THREE.SphereGeometry(1,10,8),mat('#d7ff9a',{emissive:T.light,emissiveIntensity:.55,roughness:.3,transparent:true,opacity:.85,flatShading:false}),eg);
   }
+  if(T.moon){const moon=sprite(T.moon,26,.7);moon.position.set(-18,22,-L*.5);scene.add(moon)}
   // decorative lights along the way
   for(let z=6;z>-L;z-=T.walls==='castle'?5:7){
     const sd=(Math.round(z/7)%2)?1:-1;

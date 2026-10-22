@@ -391,7 +391,11 @@ const SHADOW_BODY={
   Granite:{atk:13,def:19,spd:7,look:'statue',epithet:'Stone Knight of Cartenon'},
   Fury:{atk:19,def:12,spd:9,look:'warlord',epithet:'High Orc Warchief'},
   Titan:{atk:18,def:17,spd:5,look:'giant',epithet:'Giant of Tokyo Bay'},
-  Ruin:{atk:20,def:12,spd:17,look:'dragon',epithet:'Black Dragon of the Last War'}
+  Ruin:{atk:20,def:12,spd:17,look:'dragon',epithet:'Black Dragon of the Last War'},
+  Rime:{atk:15,def:13,spd:16,look:'frost',epithet:'Ice Elf of the Long Winter'},
+  Howl:{atk:17,def:9,spd:19,look:'wolf',epithet:'Dire Wolf of the Fang King'},
+  Blight:{atk:16,def:15,spd:12,look:'mantis',epithet:'Swarm Knight of the Plague Queen'},
+  Mirage:{atk:15,def:11,spd:18,look:'masked',epithet:'The Thousand-Faced'}
 };
 /* Passive skills. kind decides where the bonus applies; v is the base value in percent.
    Skills grow with the shadow's level (up to 2x at Lv 21). Captain doubles, vice-captain 1.5x. */
@@ -408,7 +412,11 @@ const SHADOW_SKILLS={
   Granite:{name:'Stone Skin',kind:'penalty',v:8,text:v=>`−${v}% penalty reps`},
   Fury:{name:'Plunder',kind:'gateExp',v:6,text:v=>`+${v}% Gate EXP`},
   Titan:{name:'Long Stride',kind:'gateTime',v:6,text:v=>`+${v}% Gate time limit`},
-  Ruin:{name:'Black Flame',kind:'expAll',v:3,text:v=>`+${v}% EXP on every quest`}
+  Ruin:{name:'Black Flame',kind:'expAll',v:3,text:v=>`+${v}% EXP on every quest`},
+  Rime:{name:'Hoarfrost',kind:'stat:Flexibility,Mobility',v:6,text:v=>`+${v}% Flexibility and Mobility gains`},
+  Howl:{name:'Pack Hunter',kind:'stat:Speed,Agility',v:6,text:v=>`+${v}% Speed and Agility gains`},
+  Blight:{name:'Hive Mind',kind:'luck',v:4,text:v=>`+${v}% luck on Random Boxes and daily chests`},
+  Mirage:{name:'False Faces',kind:'expBoss',v:6,text:v=>`+${v}% EXP on boss days`}
 };
 /* Soldiers: a small boost to the stat their move trains. */
 const SOLDIER_SKILL=st=>({name:`${st} Drill`,kind:'stat:'+st,v:3,text:v=>`+${v}% ${st} gains`});
@@ -446,9 +454,17 @@ const WEAPONS={
   'giant-spear':{name:'Spear of the Giant King',type:'spear',rarity:'legendary',atk:150,fx:[{kind:'expBoss',v:12}],src:'Story event · Giants of Japan',ev:'giant',
     lore:'Carved from the tusk of a giant that walked out of Tokyo Bay. It still smells of the sea.',look:{blade:'#efe2c2',dark:'#8a6a3a',edge:'#fff6dc',glow:'#ffb347',grip:'#3a2614',shape:'harpoon'}},
   antares:{name:'Fang of Antares',type:'dagger',rarity:'mythic',atk:220,fx:[{kind:'expAll',v:8},{kind:'expBoss',v:10}],src:'Story event · Monarchs\' War',ev:'war',
-    lore:'Broken from the jaw of the Monarch of Destruction. Black fire still runs along the edge.',look:{blade:'#3a2444',dark:'#0c0710',edge:'#ff9a4a',glow:'#b05cff',grip:'#140b18',shape:'claw'}}
+    lore:'Broken from the jaw of the Monarch of Destruction. Black fire still runs along the edge.',look:{blade:'#3a2444',dark:'#0c0710',edge:'#ff9a4a',glow:'#b05cff',grip:'#140b18',shape:'claw'}},
+  frostbrand:{name:'Frostbrand of Sillad',type:'sword',rarity:'legendary',atk:140,fx:[{kind:'stat:Flexibility,Mobility',v:10}],src:'Story event · Frost Monarch',ev:'frost',
+    lore:'The Frost Monarch\'s own blade. Frost creeps up your arm when you hold it, and never quite reaches your heart.',look:{blade:'#e6f6ff',dark:'#5c8fb8',edge:'#ffffff',glow:'#8fe3ff',grip:'#1e2a3a',shape:'demon'}},
+  'fang-king':{name:'Claw of the Fang King',type:'dagger',rarity:'legendary',atk:160,fx:[{kind:'stat:Speed,Agility',v:10}],src:'Story event · Fang King',ev:'beast',
+    lore:'Torn from Rakan\'s right hand. It still twitches when something runs.',look:{blade:'#d8d0c4',dark:'#4a423c',edge:'#fff4e0',glow:'#ffb21a',grip:'#2a1e16',shape:'claw'}},
+  stinger:{name:'Stinger of the Plague Queen',type:'dagger',rarity:'epic',atk:110,fx:[{kind:'gateExp',v:12}],src:'Story event · Plague Queen',ev:'plague',
+    lore:'A single barb from Querehsha\'s tail. Wipe it clean before you put it away.',look:{blade:'#e2e07a',dark:'#55561a',edge:'#fbff9a',glow:'#d8ff3a',grip:'#1a1a06',shape:'fang'}},
+  mirrorblade:{name:'Mirrorblade',type:'sword',rarity:'mythic',atk:210,fx:[{kind:'expAll',v:6},{kind:'luck',v:8}],src:'Story event · Faceless Monarch',ev:'mirror',
+    lore:'Its surface shows every face Yogumunt ever stole. Yours is not among them, and that is how you know it is yours.',look:{blade:'#f1e8f4',dark:'#6e5a78',edge:'#ffffff',glow:'#ff4fb8',grip:'#1e1222',shape:'straight'}}
 };
-const WEAPON_ORDER=['rusty','knight-killer','venom-fang','frost-spear','baruka','demon-sword','kamish','commandment','cleaver','giant-spear','antares'];
+const WEAPON_ORDER=['rusty','knight-killer','venom-fang','frost-spear','baruka','demon-sword','kamish','commandment','cleaver','giant-spear','frostbrand','fang-king','stinger','mirrorblade','antares'];
 const GATE_WEAPON={E:'knight-killer',D:'venom-fang',C:'frost-spear',B:'baruka',A:'demon-sword',S:'kamish'};
 
 /* ---------- daily supply chest ----------

@@ -3,7 +3,8 @@
    anchored to the day the Player first saw events, so their first event gets a full
    week. Chapter n opens on day n. Each chapter is a story scene and a mission. Clearing
    all five opens the boss raid, which runs on the Gate engine (dungeons.js).
-   State: S.events = {anchor, runs:{n:{id, ch:[dates], raid, clears}}, seen, mission}. */
+   State: S.events = {anchor, runs:{n:{id, ch:[dates], raid, clears}}, seen, mission}. A week's run
+   is stored when the week starts, and its id decides that week's event from then on. */
 
 /* ---------- schedule ---------- */
 function evState(){
@@ -16,10 +17,26 @@ function evState(){
 function evNow(){
   const E=evState(),d=Math.max(0,dayDiff(E.anchor,todayStr())),n=Math.floor(d/EVENT_DAYS);
   if(E.mission&&E.mission.n!==n){E.mission=null;save()} // a mission left over from last week's event
-  return {n,ev:STORY_EVENTS[n%STORY_EVENTS.length],day:d-n*EVENT_DAYS,start:addDays(E.anchor,n*EVENT_DAYS),end:addDays(E.anchor,(n+1)*EVENT_DAYS),rerun:n>=STORY_EVENTS.length};
+  const ev=evRun(n)&&evOf(n);
+  return {n,ev,day:d-n*EVENT_DAYS,start:addDays(E.anchor,n*EVENT_DAYS),end:addDays(E.anchor,(n+1)*EVENT_DAYS),rerun:evRanBefore(ev.id,n)};
 }
 const evById=id=>STORY_EVENTS.find(e=>e.id===id);
-function evRun(n){const E=evState();if(!E.runs[n])E.runs[n]={id:STORY_EVENTS[n%STORY_EVENTS.length].id,ch:[],raid:null,clears:0};return E.runs[n]}
+/* The event of week n. A week that has started keeps the event its run stored, so adding or
+   reordering events never swaps a live one. Later weeks follow the list from there, events
+   the Player hasn't had yet first, then the usual rotation. */
+function evOf(n){
+  const runs=evState().runs,L=STORY_EVENTS.length;
+  const ks=Object.keys(runs).map(Number).filter(k=>k<=n&&evById(runs[k].id)).sort((a,b)=>a-b),last=ks.length?ks[ks.length-1]:-1;
+  if(last===n)return evById(runs[n].id);
+  const had=new Set(ks.map(k=>runs[k].id));let i=last<0?-1:STORY_EVENTS.indexOf(evById(runs[last].id));
+  for(let w=last;w<n;w++){
+    let j=(i+1)%L;for(let k=1;k<=L;k++){const c=(i+k+L)%L;if(!had.has(STORY_EVENTS[c].id)){j=c;break}}
+    i=j;had.add(STORY_EVENTS[i].id);
+  }
+  return STORY_EVENTS[i];
+}
+const evRanBefore=(id,n)=>Object.entries(evState().runs).some(([k,R])=>+k<n&&R.id===id);
+function evRun(n){const E=evState();if(!E.runs[n]){E.runs[n]={id:evOf(n).id,ch:[],raid:null,clears:0};save()}return E.runs[n]}
 /* Chapter i: done, ready, next (clear the one before it first) or locked (opens on a later day). */
 function evChapter(cur,i){
   const R=evRun(cur.n);
@@ -131,8 +148,8 @@ function evPageHTML(){
     <div class="evr-tile"><span class="evr-art sh">${silhouette({n:ev.shadow,ex:'event:'+ev.id,ev:ev.id})}</span><span class="evr-k">Shadow</span><b>${esc(ev.shadow)}</b>
       <span class="evr-s">${shOwned?`Lv ${shOwned.lvl} · in your army`:'Boss raid'}</span></div></div>`;
   h+=`<div class="sec-label"><span class="overline">Coming up</span><span class="small">Each event reruns every ${STORY_EVENTS.length} weeks</span></div>
-    <div class="card tight ev-next"><ul class="list plain">${[1,2,3].map(k=>{const e=STORY_EVENTS[(cur.n+k)%STORY_EVENTS.length];
-      return `<li class="lrow">${evArt(e,'evn-art')}<div class="grow"><p class="t">${esc(e.name)}</p><p class="s">Starts ${fmtDate(addDays(cur.start,k*EVENT_DAYS))}${cur.n+k>=STORY_EVENTS.length?' · rerun':''}</p></div></li>`}).join('')}</ul></div>
+    <div class="card tight ev-next"><ul class="list plain">${[1,2,3].map(k=>{const e=evOf(cur.n+k);
+      return `<li class="lrow">${evArt(e,'evn-art')}<div class="grow"><p class="t">${esc(e.name)}</p><p class="s">Starts ${fmtDate(addDays(cur.start,k*EVENT_DAYS))}${evRanBefore(e.id,cur.n+1)?' · rerun':' · new'}</p></div></li>`}).join('')}</ul></div>
     <p class="faint small ev-foot">Missed a day? Chapters wait for you until the event ends. Nothing is lost if you miss an event: it comes back.</p>`;
   return h;
 }
@@ -159,7 +176,7 @@ function evSceneHTML(){
 
 /* ---------- chapter missions ---------- */
 function evMissionHTML(){
-  const M=evMission(),ev=STORY_EVENTS[M.n%STORY_EVENTS.length],ch=ev.chapters[M.i],w=M.moves[M.m],remain=w.amt-M.done,holding=M.hold&&M.hold>Date.now();
+  const M=evMission(),ev=evOf(M.n),ch=ev.chapters[M.i],w=M.moves[M.m],remain=w.amt-M.done,holding=M.hold&&M.hold>Date.now();
   return `<div class="d-flash"></div><div class="w-top"><button class="icon-btn" data-act="evPage" aria-label="Back to the event (your progress is kept)">${ic('left')}</button>
       <span class="w-pos"><span>Chapter ${M.i+1} · ${esc(ch.t)}</span><b>Move ${M.m+1} of ${M.moves.length}</b></span><span style="width:44px"></span></div>
     <div class="w-prog">${M.moves.map((x,i)=>`<i class="${i<M.m?'d':''}${i===M.m?' c':''}"></i>`).join('')}</div>
@@ -187,7 +204,7 @@ function evMoveDone(){
   if(EV.view==='mission'){evRender();const f=document.querySelector('#eventLayer .d-flash');if(f){f.textContent='Move cleared';f.classList.remove('go');void f.offsetWidth;f.classList.add('go')}}
 }
 function evChapterClear(){
-  const E=evState(),M=E.mission,ev=STORY_EVENTS[M.n%STORY_EVENTS.length],ch=ev.chapters[M.i],R=evRun(M.n),last=M.i===EVENT_CHAPTERS-1;
+  const E=evState(),M=E.mission,ev=evOf(M.n),ch=ev.chapters[M.i],R=evRun(M.n),last=M.i===EVENT_CHAPTERS-1;
   R.ch[M.i]=todayStr();E.mission=null;
   const reps=M.moves.filter(w=>!w.hold).reduce((a,w)=>a+w.amt*(w.side?2:1),0);S.totalReps+=reps;S.exp+=ch.exp;
   const loot=[`+${ch.exp} EXP`];(ch.loot||[]).forEach(k=>loot.push(grantItem(k)));
@@ -257,6 +274,27 @@ function equipSkin(id){
   S.profile=Object.assign(S.profile||{},{arrowSkin:id||null});save();Bot.reskin();
   toast(id?`Arrow is wearing ${ARROW_SKINS[id].n}`:'Arrow is back in ink');buzz('done');
 }
+/* Milestone skins: the number each one counts, and how to earn a skin (todo) or why you have it (done). */
+const SKIN_COUNT={quests:()=>S.totalQuests,streak:()=>S.bestStreak,shadows:()=>S.shadows.length};
+function skinHow(id){
+  const k=ARROW_SKINS[id];if(!k)return {todo:'',done:''};
+  if(k.ev){const ev=evById(k.ev),nm=ev?ev.name:'its story event';return {todo:`Clear all five chapters of ${nm}`,done:`From ${nm}`}}
+  const n=k.how.n,have=Math.min(n,SKIN_COUNT[k.how.k]());
+  return {quests:{todo:`Clear ${n} daily quests (${have}/${n})`,done:`For clearing ${n} daily quests`},
+    streak:{todo:`Reach a ${n}-day streak (best so far: ${have})`,done:`For a ${n}-day streak`},
+    shadows:{todo:`Command ${n} shadows (${have}/${n})`,done:`For commanding ${n} shadows`}}[k.how.k];
+}
+/* Unlock every milestone skin whose number has been reached (older saves get theirs on the next start). */
+function skinCheck(silent){
+  const got=Object.keys(ARROW_SKINS).filter(id=>{const k=ARROW_SKINS[id];return k.how&&!S.skins.includes(id)&&SKIN_COUNT[k.how.k]()>=k.how.n});
+  if(!got.length)return got;
+  S.skins=[...S.skins,...got];save();
+  if(!silent)got.forEach(id=>reveal(`<div class="ev-skin-get">${skinSVG(id,'big')}<div><p class="overline">Arrow skin unlocked</p><p class="h2">${esc(ARROW_SKINS[id].n)}</p><p class="small muted">${esc(skinHow(id).done)}.</p></div></div>
+    <div class="m-btns"><button class="btn" data-act="skinWear" data-arg="${id}">Put it on Arrow</button><button class="btn ghost" data-act="closeModal">Later</button></div>`,'sys','user'));
+  return got;
+}
+ACT.skinWear=id=>{closeModal();equipSkin(id)};
+ACT.skinLocked=id=>{toast(`Locked. ${skinHow(id).todo}.`);buzz('tap')};
 
 /* ---------- Arrow's event nudge: at most once a day ---------- */
 function evNudge(){
