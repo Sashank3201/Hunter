@@ -28,7 +28,7 @@ The same feature code (`js/arrow-nlu.js`) runs in the trainer and in the app, so
 
 ```sh
 cd tools/arrow
-node train.js --skip --D 48     # a minute or two; prints accuracy and every miss
+node train.js --skip --D 48 --seed 9     # a minute or two; prints accuracy and every miss
 ```
 
 After adding foods, intents or templates, retrain and commit the new `models/arrow-nlu.bin`. Then bump the service-worker cache in `sw.js`.
@@ -45,8 +45,8 @@ On the phone, Arrow also learns from the Player. When the Player taps "Not what 
 | Character n-grams | 3 and 4 |
 | Skip-grams | on |
 | Epochs | 10 |
-| Seed | 7 |
-| Training examples | 58,753 |
+| Seed | 9 |
+| Training examples | 58,750 |
 | Intents | 63 |
 | File size | 875 KB |
 
@@ -59,16 +59,18 @@ The blind test is split into two halves of 200 messages:
 
 | Test | Accuracy |
 | --- | --- |
-| Blind test half (honest) | **96.5%** |
-| Blind dev half | 99.5% |
-| Hand-written set | 99.2% |
+| Blind test half (honest) | **95.0%** |
+| Blind dev half | 99.0% |
+| Hand-written set | 98.7% |
 
 On the blind test half, Arrow answers directly 90% of the time (confidence ≥ 0.42), and those answers are 98.9% right. For the rest it shows "did you mean" chips.
+
+Teaching Arrow its bodies (`{FM}` in `arrow_skin`: "become Kirby", "turn into a cloud", "what bodies do you have") and the nine body skins cost a little. Before, the blind test half was 96.5%, the dev half 99.5% and the hand-written set 99.2%; the test half now misses 3 more of its 200 messages. On the natural validation set the old templates averaged 89.6% over seeds 7, 8 and 9, the new ones 88.5%, and single seeds swing by up to 3 points, so most of that is noise. Seed 9 scored best on the natural set, so it ships. On 20 body and new-skin phrases the old model got 6 right, the new one 20.
 
 Adding intents costs a little accuracy on everyday chats about the old ones. On the natural validation set (held-out collected chats, three seeds each), the 51-intent model averaged 91.7%. The 60-intent model averaged 89.0% at D=32 and 90.2% at D=48, which is why D went up. Some of the remaining misses land in a new intent that still answers well, for example "white rice for fat loss, good or bad?" now gets the rice tip instead of the nutrition facts.
 
 To retrain with the same settings:
 
 ```sh
-node train.js --skip --epochs 10 --D 48
+node train.js --skip --epochs 10 --D 48 --seed 9
 ```

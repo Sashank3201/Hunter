@@ -396,7 +396,26 @@ const ARROW_SKINS={
   monarch:{n:'Monarch',ev:'war',body:'#4a1a6e',eyes:'#ff8a2a'},
   system:{n:'System Blue',how:{k:'quests',n:25},body:'#2f6fd6',eyes:'#e9f3ff'},
   flame:{n:'Undying Flame',how:{k:'streak',n:14},body:'#c2451e',eyes:'#ffe08a'},
-  sovereign:{n:'Shadow Sovereign',how:{k:'shadows',n:10},body:'#46407a',eyes:'#b3a6ff'}
+  sovereign:{n:'Shadow Sovereign',how:{k:'shadows',n:10},body:'#46407a',eyes:'#b3a6ff'},
+  /* Made for one body (form): worn only on it. free = owned from the start. */
+  k_star:{n:'Warp Star',form:'kirby',free:true,body:'#ffd23f',eyes:'#4a2c0c'},
+  k_mint:{n:'Mint Puff',form:'kirby',how:{k:'streak',n:7},body:'#8fe3c0',eyes:'#134437'},
+  k_shadow:{n:'Shadow Puff',form:'kirby',how:{k:'shadows',n:5},body:'#4a3a72',eyes:'#ff6fcf'},
+  c_sunset:{n:'Sunset',form:'cloudee',free:true,body:'#ffb48a',eyes:'#4a1d0c'},
+  c_storm:{n:'Thundercloud',form:'cloudee',how:{k:'quests',n:50},body:'#56607a',eyes:'#ffe14a'},
+  c_night:{n:'Night Sky',form:'cloudee',how:{k:'sleep',n:14},body:'#2f3d85',eyes:'#cfe0ff'},
+  x_neon:{n:'Neon Grid',form:'cyber',free:true,body:'#19d3c5',eyes:'#06222b'},
+  x_circuit:{n:'Circuit',form:'cyber',how:{k:'body',n:4},body:'#2a5d6e',eyes:'#4dff9a'},
+  x_glitch:{n:'Glitch',form:'cyber',how:{k:'level',n:15},body:'#7b2cff',eyes:'#2ef2ff'}
+};
+
+/* Arrow's bodies. The orb is Arrow's own (BOT_DATA in bot.js); the rest come from forms.js.
+   Each body keeps its own skin (S.profile.formSkins) and wears the same evolution gear. */
+const ARROW_FORMS={
+  orb:{n:'Orb',d:'Arrow\'s own ink orb'},
+  kirby:{n:'Kirby',d:'A pink puffball with stubby arms'},
+  cloudee:{n:'Cloudee',d:'A soft little cloud'},
+  cyber:{n:'Cyber',d:'A rounded cube from the grid'}
 };
 
 /* Arrow evolves with the Player's rank. Each piece unlocks at its rank, sits on top of any skin, and is

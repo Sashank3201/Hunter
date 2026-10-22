@@ -1,4 +1,4 @@
-/* Hunter System: the System bot (the supplied Grok bot avatar).
+/* Hunter System: the System bot (the supplied Grok bot avatar, or one of Arrow's other bodies).
    One bot for the whole app: it moves between the Diet card, the food chat and the
    rest-period game, keeping its animation state as it moves. Animations come from
    BOT_DATA; react() plays one for a while and returns to the current mood. */
@@ -40,35 +40,64 @@ const BOT_LOOPS={
 /* How high the body is in a loop frame, for the ground shadow: -22% up -> smaller shadow. */
 const botLift=f=>{const m=/translate\([^,]+,\s*(-?[\d.]+)%/.exec(f.transform);return m?Math.max(0,-parseFloat(m[1])):0};
 const BOT_FX={z:['z','z','Z'],z1:['z'],dots:['','',''],q:['?'],ex:['!'],wave:['',''],ha:['ha','ha'],spark:['','','',''],spark1:['',''],sweat:['']};
+/* Arrow's bodies (ARROW_FORMS in story.js): the orb is BOT_DATA, the rest are in forms.js, each with
+   a fit (head box and reach in the runtime's -150..150 box). A body gets a view wide enough for its
+   reach, and the gear, drawn for the orb, is moved onto its head. */
+const ORB_R=40.67; // the orb's radius in the face's 0-100 box (122 of 300)
+const formData=f=>ARROW_FORM_DATA[f]||BOT_DATA;
+const formView=f=>ARROW_FORM_DATA[f]?Math.max(140,Math.round(ARROW_FORM_DATA[f].fit.ext*1.05)):150;
+function formGearAt(f){
+  const d=ARROW_FORM_DATA[f];if(!d)return '';
+  const k=100/(2*formView(f)),[x1,y1,x2,y2]=d.fit.head;
+  return `translate(${(50+(x1+x2)/2*k).toFixed(2)} ${(50+(y1+y2)/2*k).toFixed(2)}) scale(${((x2-x1)/2*k/ORB_R).toFixed(3)}) translate(-50 -50)`;
+}
+/* A body's still frame (its preview face) as an SVG symbol: <use> sets the body colour as fill and
+   the eye colour as --fe. Built once per body, on first use. */
+function formSymbol(f){
+  const id='arrow-form-'+f;if(document.getElementById(id))return id;
+  let sp=document.getElementById('formSprite');
+  if(!sp){sp=document.createElementNS('http://www.w3.org/2000/svg','svg');sp.id='formSprite';sp.setAttribute('aria-hidden','true');sp.style.cssText='position:absolute;width:0;height:0;overflow:hidden';document.body.appendChild(sp)}
+  const d=ARROW_FORM_DATA[f],g=AvatarRuntime.still(d,d.still),h=formView(f),P=x=>`<path d="${x}"/>`;
+  sp.insertAdjacentHTML('beforeend',`<symbol id="${id}" viewBox="${-h} ${-h} ${2*h} ${2*h}" overflow="visible">${g.backPaths.map(P).join('')}${P(g.headPath)}<g style="fill:var(--fe)">${g.leftVisible?P(g.leftPath):''}${g.rightVisible?P(g.rightPath):''}</g>${g.frontPaths.map(P).join('')}</symbol>`);
+  return id;
+}
+
 /* Evolution gear (ARROW_GEAR in story.js), drawn in the face's own 0-100 box where the orb is
-   centred at 50,50 with radius 40.75. 'back' sits behind the orb (wings), 'front' on it (horns, crown). */
+   centred at 50,50 with radius 40.75. 'back' sits behind the orb (wings), 'front' on it (horns, crown).
+   On another body it is moved onto that body's head. */
 const GEAR_WING='M12 48C2 34-12 28-24 32c6 5 8 12 6 20 6-4 12-3 15 2 3-3 9-3 13 2z';
-function arrowGearSVG(gear,body,layer){
-  if(layer==='back')return gear.includes('wings')?`<g class="g-wing"><path d="${GEAR_WING}"/><path d="${GEAR_WING}" transform="translate(100 0) scale(-1 1)"/></g>`:'';
-  return (gear.includes('horns')?`<g ${body?`fill="${body}"`:'class="g-ink"'}><path d="M18 27Q6 13 8-6Q20 8 31 17z"/><path d="M82 27Q94 13 92-6Q80 8 69 17z"/></g>`:'')
-    +(gear.includes('crown')?`<path class="g-crown" d="M36 14 34-4 43 4 50-9 57 4 66-4 64 14z"/><circle cx="50" cy="6" r="2.4" fill="#d7261e"/>`:'');
+function arrowGearSVG(gear,body,layer,form){
+  const at=formGearAt(form),wrap=x=>x&&at?`<g transform="${at}">${x}</g>`:x;
+  if(layer==='back')return wrap(gear.includes('wings')?`<g class="g-wing"><path d="${GEAR_WING}"/><path d="${GEAR_WING}" transform="translate(100 0) scale(-1 1)"/></g>`:'');
+  return wrap((gear.includes('horns')?`<g ${body?`fill="${body}"`:'class="g-ink"'}><path d="M18 27Q6 13 8-6Q20 8 31 17z"/><path d="M82 27Q94 13 92-6Q80 8 69 17z"/></g>`:'')
+    +(gear.includes('crown')?`<path class="g-crown" d="M36 14 34-4 43 4 50-9 57 4 66-4 64 14z"/><circle cx="50" cy="6" r="2.4" fill="#d7261e"/>`:''));
 }
 const Bot=(()=>{
   let api=null,host=null,face=null,loopEl=null,poseEl=null,tapEl=null,fxEl=null,ground=null,backEl=null,frontEl=null;
-  let cur=null,mood='idle',timer=0,theme='',skin='',gear='',loopA=null,groundA=null,body='';
+  let cur=null,mood='idle',timer=0,theme='',skin='',gear='',form='',loopA=null,groundA=null,body='';
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const dark=()=>{const t=document.documentElement.dataset.theme;return t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches)};
-  /* The Arrow skin the Player wears (story event reward), if they own it. */
-  const skinNow=()=>{const id=typeof S!=='undefined'&&S.profile&&S.profile.arrowSkin;return id&&ARROW_SKINS[id]&&(S.skins||[]).includes(id)?id:''};
+  /* The body Arrow is in (events.js), and the skin it wears, if the Player owns it and it fits that body. */
+  const formNow=()=>typeof arrowForm==='function'&&typeof S!=='undefined'?arrowForm():'orb';
+  const skinNow=()=>{const id=typeof S!=='undefined'&&S.profile&&S.profile.arrowSkin;
+    return id&&ARROW_SKINS[id]&&(typeof skinOwned==='function'?skinOwned(id):(S.skins||[]).includes(id))&&(!ARROW_SKINS[id].form||ARROW_SKINS[id].form===formNow())?id:''};
   /* The evolution pieces Arrow has on (events.js), as a list. */
   const gearNow=()=>typeof arrowGear==='function'&&typeof S!=='undefined'?arrowGear():[];
   function el(tag,cls,parent){const e=document.createElement(tag);e.className=cls;if(parent)parent.appendChild(e);return e}
-  /* Ink orb with paper eyes; inverted on the night theme so it never disappears. A skin replaces both colours. */
+  /* Ink orb with paper eyes; inverted on the night theme so it never disappears. Other bodies keep
+     their own colours. A skin replaces both colours. */
   function build(){
-    const d=dark(),sk=skinNow(),colors=sk?{body:ARROW_SKINS[sk].body,eyes:ARROW_SKINS[sk].eyes}:d?{body:'#ECE7DD',eyes:'#121110'}:{body:'#121110',eyes:'#FFFFFF'};
+    const d=dark(),f=formNow(),sk=skinNow(),src=formData(f);
+    const colors=sk?{body:ARROW_SKINS[sk].body,eyes:ARROW_SKINS[sk].eyes}:f!=='orb'?Object.assign({},src.avatar.colors):d?{body:'#ECE7DD',eyes:'#121110'}:{body:'#121110',eyes:'#FFFFFF'};
     const g=gearNow();if(g.includes('eyes'))colors.eyes=MONARCH_EYES;
-    theme=d?'dark':'light';skin=sk;gear=g.join();
-    backEl.innerHTML=g.includes('wings')?`<svg viewBox="0 0 100 100">${arrowGearSVG(g,colors.body,'back')}</svg>`:'';
-    frontEl.innerHTML=g.some(k=>k==='horns'||k==='crown')?`<svg viewBox="0 0 100 100">${arrowGearSVG(g,colors.body,'front')}</svg>`:'';
+    theme=d?'dark':'light';skin=sk;gear=g.join();form=f;host.dataset.form=f;
+    backEl.innerHTML=g.includes('wings')?`<svg viewBox="0 0 100 100">${arrowGearSVG(g,colors.body,'back',f)}</svg>`:'';
+    frontEl.innerHTML=g.some(k=>k==='horns'||k==='crown')?`<svg viewBox="0 0 100 100">${arrowGearSVG(g,colors.body,'front',f)}</svg>`:'';
     host.classList.toggle('aura',g.includes('aura'));host.classList.toggle('geared',g.some(k=>k==='horns'||k==='crown'||k==='wings')); // a little smaller so the gear fits
     if(api){api.destroy();api=null}
-    const data=Object.assign({},BOT_DATA,{avatar:Object.assign({},BOT_DATA.avatar,{colors})});
+    const data=Object.assign({},src,{avatar:Object.assign({},src.avatar,{colors})});
     api=AvatarRuntime.create(data,face,{animation:cur||mood,autoplay:true,size:'100%'});
+    const h=formView(f);if(h!==150)face.querySelector('svg').setAttribute('viewBox',`${-h} ${-h} ${2*h} ${2*h}`);
     cur=cur||mood;
   }
   function ensure(){
@@ -80,7 +109,7 @@ const Bot=(()=>{
       fxEl=el('span','bot-fx',fl);
       setBody(cur||mood);
     }
-    if(!api||theme!==(dark()?'dark':'light')||skin!==skinNow()||gear!==gearNow().join())build();
+    if(!api||theme!==(dark()?'dark':'light')||skin!==skinNow()||gear!==gearNow().join()||form!==formNow())build();
   }
   /* Blend from the current body position into the new mood's loop. */
   function setBody(name){
@@ -124,7 +153,7 @@ const Bot=(()=>{
     pause(){if(api&&api.playing)api.pause();if(loopA)loopA.pause();if(groundA)groundA.pause();if(host)host.classList.add('still')},
     resume(){ensure();if(api&&!api.playing)api.play(cur);if(loopA&&loopA.playState==='paused')loopA.play();if(groundA&&groundA.playState==='paused')groundA.play();host.classList.remove('still')},
     retheme(){if(api&&theme!==(dark()?'dark':'light'))build()},
-    reskin(){if(api&&(skin!==skinNow()||gear!==gearNow().join()))build()}
+    reskin(){if(api&&(skin!==skinNow()||gear!==gearNow().join()||form!==formNow()))build()}
   };
   return api_;
 })();
