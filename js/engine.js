@@ -185,7 +185,7 @@ function useRestPass(){
   if(rec.completed||passUsedThisWeek()||todaysSplit().rest||notStarted())return;
   rec.completed=true;rec.rested=true;rec.exp=0;if(rec.time)swFinish(rec);
   const m=mondayOf(todayStr()),extra=extraPassLeft(); // today's extra pass goes first, so the weekly one stays
-  S.passes[extra?m+'x':S.passes[m]?m+'b':m]=todayStr();
+  S.passes[m+(extra?'x':PASS_SLOTS.find(k=>!S.passes[m+k]))]=todayStr();
   save();renderAll();closeModal();
   toast(`${extra?'Extra Rest Pass':'Rest Pass'} used. Streak protected. Recover well.`);
 }
@@ -204,9 +204,9 @@ ACT.completeDay=completeDay;
 ACT.penalty=n=>logPenalty(+n);
 ACT.startToday=startToday;
 ACT.restPass=()=>openModal(`<div class="m-stamp">Rest Pass</div>
-  <p class="m-text">Use this only if you are sick or injured. Today counts as cleared: no EXP, but your streak and penalty level are safe.</p>
-  ${extraPassLeft()?`<p class="m-text"><b>Today only: 1 extra Rest Pass.</b> ${passesUsed()<passesPerWeek()?'It is used first, so your weekly pass stays for later.':'Your weekly pass is already used, so this one is on the house.'}</p>`:''}
-  <p class="m-text dim">${passesPerWeek()} per week${passesPerWeek()>1?' (Spare Pass)':''}${extraPassLeft()?' + 1 extra today':''} · ${passesLeft()} left. Next week's: ${fmtDate(addDays(mondayOf(todayStr()),7))}.</p>
+  <p class="m-text">For when you're sick, injured, or need a day off for any other reason. Today counts as cleared: no EXP, but your streak and penalty level are safe.</p>
+  ${extraPassLeft()?`<p class="m-text"><b>Today only: 1 extra Rest Pass.</b> ${passesUsed()<passesPerWeek()?'It is used first, so your weekly passes stay for later.':'Your weekly passes are used up, so this one is on the house.'}</p>`:''}
+  <p class="m-text dim">${passesPerWeek()} per week${perk('pass')?' (Spare Pass)':''}${extraPassLeft()?' + 1 extra today':''} · ${passesLeft()} left. Next week's: ${fmtDate(addDays(mondayOf(todayStr()),7))}.</p>
   <div class="m-btns"><button class="btn" data-act="useRestPass">Use Rest Pass</button><button class="btn ghost" data-act="closeModal">Keep training</button></div>`,'sys','moon');
 ACT.useRestPass=useRestPass;
 

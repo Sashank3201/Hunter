@@ -19,7 +19,7 @@ function fresh(){return {
   streak:0,bestStreak:0,
   totalQuests:0,totalReps:0,
   weekDays:{},
-  passes:{},         // monday date -> date the weekly Rest Pass was used
+  passes:{},         // monday (+'b', 'c', 'x') -> date a Rest Pass was used that week
   prs:{},            // exercise name -> {best, date}
   statPoints:0,      // unspent points from level-ups (3 per level)
   pointsInit:true,   // marks saves that already got back-dated points
@@ -231,13 +231,14 @@ function trainedInWeek(monday){
   for(let i=0;i<7;i++){const d=addDays(monday,i),r=S.log[d];if(r&&r.completed&&!r.rested&&!SPLIT[dowOf(d)].rest)n++}
   return n;
 }
-/* Rest Pass: one per calendar week (Mon-Sun), two with Spare Pass (tree.js), kept across deaths.
-   S.passes[monday] is the first pass of that week, S.passes[monday+'b'] the second, and
+/* Rest Pass: two per calendar week (Mon-Sun), for any reason, three with Spare Pass (tree.js),
+   kept across deaths. S.passes[monday], [monday+'b'] and [monday+'c'] are the week's passes, and
    S.passes[monday+'x'] a one-off extra pass. Each day in EXTRA_PASS_DAYS gets one extra pass,
    usable that day only, on top of the weekly ones. */
+const PASS_SLOTS=['','b','c'];
 const EXTRA_PASS_DAYS=['2026-10-23'];
-const passesPerWeek=()=>perk('pass')?2:1;
-const passesUsed=(m=mondayOf(todayStr()))=>[m,m+'b'].filter(k=>S.passes[k]).length;
+const passesPerWeek=()=>perk('pass')?3:2;
+const passesUsed=(m=mondayOf(todayStr()))=>PASS_SLOTS.filter(k=>S.passes[m+k]).length;
 const extraPassLeft=()=>EXTRA_PASS_DAYS.includes(todayStr())&&!S.passes[mondayOf(todayStr())+'x'];
 const passesLeft=()=>Math.max(0,passesPerWeek()-passesUsed())+(extraPassLeft()?1:0);
 function passUsedThisWeek(){return passesLeft()<=0}

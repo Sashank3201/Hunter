@@ -289,7 +289,7 @@ const BRIEFING=[
   {h:'Daily Quest',lines:['Every day the System issues a quest: a warm-up, 6 or 7 moves in blocks, and a short stretch.','About 45 minutes. Finish it to earn EXP and grow your stats. New, harder moves unlock as you level up and rank up.','Sunday is recovery. Light, and it never brings a penalty.']},
   {h:'Penalty',red:true,lines:['Miss a training day and your penalty level rises by 1.','You then owe extra reps: 10 times your penalty level. Clear them before your next quest.','Three clean days in a row lower the penalty by 1.']},
   {h:'Death',red:true,lines:['At penalty level 5 you die. Your run resets to Week 1.','Stay away 9 days or more and you die.','You keep a title. The first 3 days of any run are safe.']},
-  {h:'Rank & Rest Pass',lines:['Levels alone never raise your rank. You must pass a rank test.','Really sick or injured? You get 1 Rest Pass each week. It saves your streak.','Your health matters more than any streak. Pain is not progress.']}
+  {h:'Rank & Rest Pass',lines:['Levels alone never raise your rank. You must pass a rank test.','Sick, injured or need a day? You get 2 Rest Passes each week. They save your streak.','Your health matters more than any streak. Pain is not progress.']}
 ];
 
 /* Sudden quests: short surprise tasks. [task, stat it trains] */
