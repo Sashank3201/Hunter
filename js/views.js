@@ -107,7 +107,7 @@ function renderStatus(){
   }else{
     h+=`<div class="card tight"><ul class="list">
       <li class="lrow"><span class="lead">${ic('shield')}</span><div class="grow"><p class="t">No penalties</p><p class="s">Keep the streak alive</p></div><span class="pill good">Safe</span></li>
-      <li class="lrow"><span class="lead">${ic('moon')}</span><div class="grow"><p class="t">Rest Pass</p><p class="s">${passUsedThisWeek()?'Used this week':`${passesLeft()} available this week`}</p></div><span class="pill ${passUsedThisWeek()?'':'accent'}">${passUsedThisWeek()?'Used':'Ready'}</span></li>
+      <li class="lrow"><span class="lead">${ic('moon')}</span><div class="grow"><p class="t">Rest Pass</p><p class="s">${passUsedThisWeek()?'Used this week':`${passesLeft()} available${extraPassLeft()?' (1 extra, today only)':' this week'}`}</p></div><span class="pill ${passUsedThisWeek()?'':'accent'}">${passUsedThisWeek()?'Used':'Ready'}</span></li>
     </ul></div>`;
   }
 
@@ -163,7 +163,7 @@ function renderQuest(){
 
   if(!rec.completed&&!notStarted()&&!sp.rest){
     h+=passUsedThisWeek()?`<p class="faint small" style="text-align:center;margin-top:16px">Rest Pass used this week. Next one ${fmtDate(addDays(mondayOf(todayStr()),7))}.</p>`
-      :`<button class="pass-link" data-act="restPass">${ic('moon')}<span class="grow"><b>Sick or injured?</b>Use this week's Rest Pass</span>${ic('right')}</button>`;
+      :`<button class="pass-link" data-act="restPass">${ic('moon')}<span class="grow"><b>Sick or injured?</b>${extraPassLeft()?'Use today\'s extra Rest Pass':'Use this week\'s Rest Pass'}</span>${ic('right')}</button>`;
   }
 
   let label,act='',disabled=false,icon='play';
