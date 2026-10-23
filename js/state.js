@@ -232,8 +232,12 @@ function trainedInWeek(monday){
   return n;
 }
 /* Rest Pass: one per calendar week (Mon-Sun), two with Spare Pass (tree.js), kept across deaths.
-   S.passes[monday] is the first pass of that week, S.passes[monday+'b'] the second. */
+   S.passes[monday] is the first pass of that week, S.passes[monday+'b'] the second, and
+   S.passes[monday+'x'] a one-off extra pass. Each day in EXTRA_PASS_DAYS gets one extra pass,
+   usable that day only, on top of the weekly ones. */
+const EXTRA_PASS_DAYS=['2026-10-23'];
 const passesPerWeek=()=>perk('pass')?2:1;
 const passesUsed=(m=mondayOf(todayStr()))=>[m,m+'b'].filter(k=>S.passes[k]).length;
-const passesLeft=()=>Math.max(0,passesPerWeek()-passesUsed());
+const extraPassLeft=()=>EXTRA_PASS_DAYS.includes(todayStr())&&!S.passes[mondayOf(todayStr())+'x'];
+const passesLeft=()=>Math.max(0,passesPerWeek()-passesUsed())+(extraPassLeft()?1:0);
 function passUsedThisWeek(){return passesLeft()<=0}
