@@ -8,7 +8,7 @@ const TREE=[
   {k:'body',n:'Body',icon:'shield',d:'Endure more, lose less',nodes:[
     {id:'wind',n:'Second Wind',s:'+15 s rest between sets',cost:1,d:'+15 seconds of rest between sets.'},
     {id:'will',n:'Iron Will',s:'−20% penalty reps',cost:2,d:'−20% penalty reps when you miss a day.',bonus:{penalty:20}},
-    {id:'pass',n:'Spare Pass',s:'2 Rest Passes a week',cost:2,d:'A second Rest Pass every week.'},
+    {id:'pass',n:'Spare Pass',s:'3 Rest Passes a week',cost:2,d:'A third Rest Pass every week.'},
     {id:'mend',n:'Fast Recovery',s:'Penalty drops every 2 clean days',cost:3,d:'Clean days lower your penalty level every 2 days instead of 3.'}]},
   {k:'growth',n:'Growth',icon:'zap',d:'Grow faster',nodes:[
     {id:'learn',n:'Quick Learner',s:'+5% EXP on every quest',cost:1,d:'+5% EXP on every quest.',bonus:{expAll:5}},

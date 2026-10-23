@@ -9,6 +9,7 @@ It is a Progressive Web App (PWA): plain HTML, CSS and JavaScript with no build 
 ## What's inside
 
 - **Daily quests.** A rank-based program of 150+ calisthenics moves in blocks (push, pull, legs, core, plyometrics, speed, mobility, flexibility). New moves unlock as you level up, and every target grows a little past your last session.
+- **Rest Passes.** Two a week (three with the Spare Pass perk) for when you're sick, injured or need a day off for any other reason. The day counts as cleared, so your streak and penalty level are safe, but it gives no EXP.
 - **Workout runner.** Warm-up, set timers, rest timers, a matched cool-down and animated form demos for every move.
 - **Ranks and trials.** Pass a rank trial to move up from E to S. The next rank's moves stay locked until you pass it.
 - **The Monarch's Path.** S-Rank isn't the end. You keep your rank and chase **SS (Ruler)** and **SSS (Absolute Being)**: trials near the limit of human bodyweight strength, like 50 push-ups in one set, one-arm push-ups, wall handstand push-ups and 15 pistol squats a leg.
@@ -19,7 +20,7 @@ It is a Progressive Web App (PWA): plain HTML, CSS and JavaScript with no build 
 
 | Branch | Perks (cost) |
 | --- | --- |
-| Body | Second Wind: +15 s rest (1) · Iron Will: −20% penalty reps (2) · Spare Pass: 2 Rest Passes a week (2) · Fast Recovery: penalty drops every 2 clean days (3) |
+| Body | Second Wind: +15 s rest (1) · Iron Will: −20% penalty reps (2) · Spare Pass: 3 Rest Passes a week (2) · Fast Recovery: penalty drops every 2 clean days (3) |
 | Growth | Quick Learner: +5% quest EXP (1) · Shadow Drill: +25% shadow XP (2) · Weekly Surge: +50% weekly goal stats (2) · Monarch's Luck: +10% luck (3) |
 | Mastery | Challenger: a "Harder version" button on every move (1) · Boss Hunter: +15% boss day EXP (2) · Gate Runner: +10% Gate EXP and time (2) · Record Breaker: +25 EXP per record (3) |
 
@@ -127,10 +128,10 @@ There is no build step: edit a file, save it, and refresh the page.
 
 - **Scripts load in order.** `index.html` loads the files in `js/` as classic scripts that share global variables, so the order matters. `js/data.js` comes first and `js/main.js` comes last. Only `js/world3d.js` is an ES module, loaded when a Gate opens.
 - **Adding a new file:** add it to `index.html`, and to the `ASSETS` list in `sw.js` so it works offline.
-- **Before every release:** bump the cache name in `sw.js` (`hunter-system-v28` → `hunter-system-v29`) so phones store the new files for offline use.
+- **Before every release:** bump the cache name in `sw.js` (`hunter-system-v29` → `hunter-system-v30`) so phones store the new files for offline use.
 - **Adding a story event:** add it to `STORY_EVENTS` in `js/story.js` (anywhere in the list), with its weapon in `WEAPONS`, its shadow in `SHADOW_BODY` and `SHADOW_SKILLS` (`js/data.js`), its skin in `ARROW_SKINS`, a silhouette look in `js/shadows.js` and a raid world in `js/world3d.js`. Weeks that have already started keep their event, so a new one never replaces a live one. Then retrain Arrow so it knows the new names.
 - **Changing a body:** the bodies come from avatar definitions in `tools/avatars/` (`*.avatar.json`). Run `node tools/avatars/convert.js` to rebuild `js/forms.js` from them. It keeps the expressions the animations use and measures where each head sits, so the gear lands on it.
-- **A one-off extra Rest Pass:** add the date to `EXTRA_PASS_DAYS` in `js/state.js`. That day gets one extra pass, used before the weekly one, and it expires at midnight.
+- **A one-off extra Rest Pass:** add the date to `EXTRA_PASS_DAYS` in `js/state.js`. That day gets one extra pass, used before the weekly ones, and it expires at midnight.
 - **Test switches.** Set these in the browser console, or in a test before the page loads:
 
 | Switch | Effect |
