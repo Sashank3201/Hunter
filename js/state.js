@@ -234,7 +234,8 @@ function trainedInWeek(monday){
 /* Rest Pass: two per calendar week (Mon-Sun), for any reason, three with Spare Pass (tree.js),
    kept across deaths. S.passes[monday], [monday+'b'] and [monday+'c'] are the week's passes, and
    S.passes[monday+'x'] a one-off extra pass. Each day in EXTRA_PASS_DAYS gets one extra pass,
-   usable that day only, on top of the weekly ones. */
+   usable that day only, on top of the weekly ones. If that day is missed with the pass unused,
+   the day change (processMissedDays) uses it then instead of a penalty. */
 const PASS_SLOTS=['','b','c'];
 const EXTRA_PASS_DAYS=['2026-10-23','2026-10-30'];
 const passesPerWeek=()=>perk('pass')?3:2;

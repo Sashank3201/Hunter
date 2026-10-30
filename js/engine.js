@@ -14,6 +14,9 @@ function processMissedDays(){
     const rec=S.log[day];
     if(SPLIT[dowOf(day)].rest||dayDiff(S.startDate,day)<=2)continue;
     if(!rec||!rec.completed){
+      // a missed day that still had its extra Rest Pass (EXTRA_PASS_DAYS) uses it instead of a penalty
+      const m=mondayOf(day);
+      if(EXTRA_PASS_DAYS.includes(day)&&!S.passes[m+'x']){S.passes[m+'x']=day;S.log[day]=Object.assign(rec||{done:[]},{completed:true,rested:true,exp:0,auto:true});continue}
       S.penaltyLevel++;S.penaltyReps+=Math.round(10*S.penaltyLevel*(1-armyBonus('penalty')/100));S.streak=0;penalties++;
       if(rec)rec.missed=true;else S.log[day]={done:[],missed:true};
       if(S.penaltyLevel>=5){died=true;break}
