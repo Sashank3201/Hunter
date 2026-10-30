@@ -526,7 +526,7 @@ function arRestReply(c){
   if(notStarted())return {say:`Your quests start ${fmtDate(S.startDate)}, so there's nothing to skip. Rest up.${care}`,mood:'happy'};
   if(rec.completed)return {say:`${rec.rested?'You\'re already on a Rest Pass today.':'You already cleared today\'s quest, so rest all you want.'} Recover well.${care}`,mood:'happy'};
   if(sp.rest)return {say:`Today is a recovery day anyway. Skip the stretches if you need to, there's no penalty.${care}`,mood:'happy'};
-  if(!passUsedThisWeek())return {say:`Okay, take today off. Use a Rest Pass and today counts as cleared: your streak and penalty level stay safe, you just get no EXP. ${passesLeft()} left this week.${care}`,
+  if(!passUsedThisWeek())return {say:`Okay, take today off. Use a Rest Pass and today counts as cleared: your streak and penalty level stay safe, you just get no EXP. ${extraPassLeft()&&passesUsed()>=passesPerWeek()?'Your weekly ones are used, but there\'s an extra one for today.':`${passesLeft()} left this week.`}${care}`,
     mood:'shy',chips:[chip('Use a Rest Pass','arrowRestPass'),chip('Show my quest','arrowGo','quest')]};
   const owe=Math.round(10*(S.penaltyLevel+1)*(1-armyBonus('penalty')/100));
   return {say:`Your Rest Passes are used up this week (new ones ${fmtDate(addDays(mondayOf(todayStr()),7))}). If you skip today, your penalty level goes up to ${S.penaltyLevel+1} and you'll owe ${owe} reps.${S.inv.potion?' A Healing Potion can undo that.':''} If you can, open your quest and tap "Too hard? Easier version" on each move: an easy day still counts.${care}`,
