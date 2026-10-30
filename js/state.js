@@ -236,7 +236,7 @@ function trainedInWeek(monday){
    S.passes[monday+'x'] a one-off extra pass. Each day in EXTRA_PASS_DAYS gets one extra pass,
    usable that day only, on top of the weekly ones. */
 const PASS_SLOTS=['','b','c'];
-const EXTRA_PASS_DAYS=['2026-10-23'];
+const EXTRA_PASS_DAYS=['2026-10-23','2026-10-30'];
 const passesPerWeek=()=>perk('pass')?3:2;
 const passesUsed=(m=mondayOf(todayStr()))=>PASS_SLOTS.filter(k=>S.passes[m+k]).length;
 const extraPassLeft=()=>EXTRA_PASS_DAYS.includes(todayStr())&&!S.passes[mondayOf(todayStr())+'x'];
