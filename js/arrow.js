@@ -15,7 +15,7 @@ const ARROW_LABEL={log_food:'Log food',food_info:'Nutrition facts',undo:'Undo la
   start_workout:'Start workout',open_license:'Hunter License',open_settings:'Settings',theme:'Theme',ask_event:'Story event',
   ask_advice:'Coach me',ask_progress:'Am I improving?',daily_plan:'Plan my day',nutrition_tip:'Diet advice',feeling_down:'Feeling low',more:'Tell me more',
   fun_fact:'Fun fact',arrow_skin:'Arrow\'s look',about_me:'About me',log_body:'Log weight or waist',ask_body:'Body progress',ask_sleep:'My sleep',
-  expedition:'Shadow expeditions',skill_tree:'Skill tree',chronicle:'Monthly chronicle'};
+  expedition:'Shadow expeditions',skill_tree:'Skill tree',chronicle:'Monthly chronicle',rest_day:'Take a rest day'};
 
 /* ---------- voice: a sassy friend ---------- */
 const SAY={
@@ -101,7 +101,7 @@ const AR_VOICE={
 const arVoiceOf=()=>typeof arrowForm==='function'&&typeof S!=='undefined'&&S.profile?AR_VOICE[arrowForm()]:null;
 const arVoiceSay=k=>{const V=arVoiceOf();return V&&V.say[k]};
 /* Intents that keep a plain voice, and those that already spoke in character through arSay. */
-const AR_PLAIN=new Set(['pain','feeling_down','recovery','reset_log','undo','remove_item','correction','clear_chat','greet','thanks','praise','how_are_you','who_are_you','bye','insult']);
+const AR_PLAIN=new Set(['rest_day','pain','feeling_down','recovery','reset_log','undo','remove_item','correction','clear_chat','greet','thanks','praise','how_are_you','who_are_you','bye','insult']);
 function arVoice(r,intent){
   const V=arVoiceOf();if(!V||!r||!r.say||AR_PLAIN.has(intent)||Math.random()>=.45)return r;
   if(Math.random()<.5)r.say=`${arPick(V.open)} ${r.say}`;else r.say=`${r.say}${/[.!?)]$/.test(r.say)?'':'.'} ${arPick(V.close)}`;
@@ -355,7 +355,7 @@ AH.how_are_you=()=>{
   return {say:why?`${arPick(['Great, actually.','Thriving.','Pretty good.'])}${why} How about you?`:arSay('howAreYou'),mood:'playful'};
 };
 AH.who_are_you=()=>({say:arSay('whoAreYou'),mood:'proud'});
-AH.help=()=>({say:'Here\'s what I can do: log food ("rendu idlis tinna", "2 rotis and dal"), tell you calories ("protein in paneer?"), suggest meals ("what should I eat?"), cook from your kitchen ("I have eggs and rice"), repeat meals ("same as yesterday"), answer Hunter questions ("what\'s my streak?", "who\'s my strongest shadow?"), coach you from your own numbers ("give me advice", "am I improving?", "plan my day"), answer diet questions ("is creatine safe?"), track your body without a scale ("waist 81 cm", "I weigh 64 kg"), your sleep ("slept 6 hours") and injuries ("my knee hurts"), teach form ("push-up form"), change my look ("wear the Monarch skin", "become Kirby"), send your shadows on expeditions ("send my shadows out"), help with your skill tree ("what perk should I get?"), tell your month as a story ("show my chronicle"), and run the app ("start my workout", "open Gates", "dark mode"). Say "tell me more" after any tip. Got something wrong? Tap "not what I meant" and I learn.',mood:'curious',
+AH.help=()=>({say:'Here\'s what I can do: log food ("rendu idlis tinna", "2 rotis and dal"), tell you calories ("protein in paneer?"), suggest meals ("what should I eat?"), cook from your kitchen ("I have eggs and rice"), repeat meals ("same as yesterday"), answer Hunter questions ("what\'s my streak?", "who\'s my strongest shadow?"), coach you from your own numbers ("give me advice", "am I improving?", "plan my day"), answer diet questions ("is creatine safe?"), track your body without a scale ("waist 81 cm", "I weigh 64 kg"), your sleep ("slept 6 hours"), injuries ("my knee hurts") and rest days ("I can\'t work out today"), teach form ("push-up form"), change my look ("wear the Monarch skin", "become Kirby"), send your shadows on expeditions ("send my shadows out"), help with your skill tree ("what perk should I get?"), tell your month as a story ("show my chronicle"), and run the app ("start my workout", "open Gates", "dark mode"). Say "tell me more" after any tip. Got something wrong? Tap "not what I meant" and I learn.',mood:'curious',
   chips:[chip('Give me advice','arrowAsk','give me advice'),chip('Plan my day','arrowAsk','plan my day'),chip('Fun fact','arrowAsk','tell me a fun fact')]});
 AH.joke=c=>({say:arFresh(c.ds,'joke',SAY.jokes),mood:'laughing',chips:[chip('Another one','arrowAsk','another one')]});
 AH.laugh=()=>({say:arSay('laugh'),mood:'laughing'});
@@ -499,8 +499,40 @@ AH.motivate=()=>{
   const sp=todaysSplit(),rec=todayRec(),n=buildQuestItems().filter(i=>!i.warm).length;
   const tail=rec.completed?' Quest is already done today though, so rest, legend.':sp.rest?' It\'s a recovery day anyway: just stretch.':` Today is only ${n} moves. Start the warm-up and see.`;
   const past=S.totalReps>=200?` You've already done ${fmtK(S.totalReps)} reps since ${fmtDate(S.startDate)}. That person doesn't quit.`:'';
-  return {say:arSay('motivate')+tail+(S.streak?` Your streak is ${S.streak} days. Protect it.`:past),mood:'excited',chips:rec.completed||sp.rest?null:[chip('Start workout','arrowStart')]};
+  return {say:arSay('motivate')+tail+(S.streak?` Your streak is ${S.streak} days. Protect it.`:past),mood:'excited',chips:rec.completed||sp.rest?null:[chip('Start workout','arrowStart'),...(arRestChip()?[chip('I really need rest','arrowRestPass')]:[])]};
 };
+/* ---------- "I can't train today": the Rest Pass, straight from chat ----------
+   Clear asks to rest today skip the model and come here, in English, Telugu or Hindi. General
+   questions about rest ("how many rest days do I need?") still go to the coach (recovery). */
+const AR_REST=new RegExp([
+  "\\b(can'?t|cannot|can not|won'?t( be able to)?|unable to|not able to|don'?t think i can|not going to)\\s+(do\\s+)?(my |the |today'?s |a )?(work ?outs?|train(ing)?|exercise|gym|quest)\\b",
+  "\\b(need|want|take|taking|give me)\\s+(a |some |the )?(rest|day off|off day|rest day|break)\\b(?! from)",
+  "\\b(use|activate|apply)\\s+(a |my |the )?rest ?pass",
+  "\\bskip(ping)?\\s+((the |my |today'?s )?(work ?out|quest|training)|today)\\b",
+  "\\bno (work ?out|training|exercise|quest) today\\b",
+  "\\b(i'?m|i am|feeling|feel|i feel)\\s+(sick|ill|unwell|not well|injured|hurt|too tired)\\b",
+  "\\bmy body (is )?(injured|hurt|hurting|in pain|aching|broken|not ok|not okay)\\b",
+  "\\b(ivala|eeroju)\\b.*\\b(cheyyalenu|cheyalenu|cheyya lenu|cheyanu|cheyyanu|vaddu|rest)\\b|\\brest (kavali|teesukunta)\\b",
+  "\\baaj\\b.*\\b(nahi (kar (sakta|sakti|paunga|paungi|paaunga)|karunga|karungi|ho (payega|paega|ga))|chhutti|chutti|rest|aaram)\\b|\\b(rest|aaram|chhutti|chutti) chahiye\\b"
+].join('|'));
+const AR_REST_Q=/\b(how many|how often|how long|between sets|should i|do i need|is it ok|is it okay|when should|why)\b/;
+const arWantsRest=low=>AR_REST.test(low)&&!AR_REST_Q.test(low);
+/* A Rest Pass chip, when one can be used today. */
+const arRestChip=()=>!notStarted()&&!todayRec().completed&&!todaysSplit().rest&&!passUsedThisWeek()?chip('Use a Rest Pass','arrowRestPass'):null;
+function arRestReply(c){
+  const rec=todayRec(),sp=todaysSplit(),part=injuryPart(c.low);
+  const hurt=/injur|hurt|pain|sprain|noppi|dard|chot|debba/.test(c.low),sick=/\bsick\b|\bill\b|unwell|not well|fever|\bflu\b|bimar|jwaram|jvaram/.test(c.low);
+  const care=part?` Tell me "my ${INJURY_PARTS[part].n} hurts" and I'll also pause the moves that load it.`:hurt?' If something hurts, tell me where, like "my knee hurts", and I\'ll pause the moves that load it.':sick?' Rest, drink water and sleep. Training sick only makes it last longer.':'';
+  if(notStarted())return {say:`Your quests start ${fmtDate(S.startDate)}, so there's nothing to skip. Rest up.${care}`,mood:'happy'};
+  if(rec.completed)return {say:`${rec.rested?'You\'re already on a Rest Pass today.':'You already cleared today\'s quest, so rest all you want.'} Recover well.${care}`,mood:'happy'};
+  if(sp.rest)return {say:`Today is a recovery day anyway. Skip the stretches if you need to, there's no penalty.${care}`,mood:'happy'};
+  if(!passUsedThisWeek())return {say:`Okay, take today off. Use a Rest Pass and today counts as cleared: your streak and penalty level stay safe, you just get no EXP. ${passesLeft()} left this week.${care}`,
+    mood:'shy',chips:[chip('Use a Rest Pass','arrowRestPass'),chip('Show my quest','arrowGo','quest')]};
+  const owe=Math.round(10*(S.penaltyLevel+1)*(1-armyBonus('penalty')/100));
+  return {say:`Your Rest Passes are used up this week (new ones ${fmtDate(addDays(mondayOf(todayStr()),7))}). If you skip today, your penalty level goes up to ${S.penaltyLevel+1} and you'll owe ${owe} reps.${S.inv.potion?' A Healing Potion can undo that.':''} If you can, open your quest and tap "Too hard? Easier version" on each move: an easy day still counts.${care}`,
+    mood:'sad',chips:[chip('Show my quest','arrowGo','quest')]};
+}
+
 /* Pain: remember where, pause the moves that load it (body.js), and check in daily. */
 const arCap=s=>s[0].toUpperCase()+s.slice(1);
 const AR_BETTER=/\b(better|healed|fine now|ok now|okay now|no (more )?pain|doesn'?t hurt|not hurting|recovered|gone|theek ho|thik ho|bagundi|taggindi|tagindi)\b/;
@@ -512,7 +544,7 @@ AH.pain=c=>{
   const part=injuryPart(c.low);
   if(part&&AR_BETTER.test(c.low)){const was=injuries().some(x=>x.part===part);if(was)injuryAnswer(part,'better');
     return {say:was?`Love that. ${arCap(INJURY_PARTS[part].n)} moves are back in your quest. Start one step easier for the first session and stop if it twinges.`:`Good to hear your ${INJURY_PARTS[part].n} is fine.`,mood:'happy'}}
-  if(!part)return {say:arSay('pain')+' Tell me where it hurts (knee, back, shoulder, wrist...) and I\'ll pause the moves that load it.',mood:'scared'};
+  if(!part)return {say:arSay('pain')+' Tell me where it hurts (knee, back, shoulder, wrist...) and I\'ll pause the moves that load it.'+(arRestChip()?' Or take today off with a Rest Pass.':''),mood:'scared',chips:arRestChip()?[arRestChip()]:null};
   const sev=AR_SEVERE.test(c.low)?2:1,i=injuryAdd(part,sev),P=INJURY_PARTS[part];
   return {say:`Noted: your ${P.n}. I've paused ${pausedText(part)} until ${fmtDate(i.until)}, so your quest skips ${P.pause.length>1?'them':'it'}, and I'll check on it every day. ${AR_DOCTOR.test(c.low)?'Numbness, a pop, swelling, or not being able to put weight on it means see a doctor or physio soon.':sev>1?'If it\'s still sharp or swollen in a couple of days, get it checked.':'Rest it, move gently, and stop anything that makes it hurt.'}`,
     mood:'scared',chips:[chip('Show my quest','arrowGo','quest')]};
@@ -960,6 +992,7 @@ function arrowReply(ds,text,force){
   const ctx=ds.arrowCtx&&Date.now()-ds.arrowCtx.at<15*60000?ds.arrowCtx:null; // what Arrow said last, for "tell me more"
   const c={ds,day:flDay(ds),T:foodTargets(ds),text,low,lang:arLang(text),ctx};
   const pend=ds.arrowPending&&Date.now()-ds.arrowPending.at<15*60000?ds.arrowPending:null;
+  if(!force&&arWantsRest(low)){ds.arrowLast={text,intent:'rest_day',top:[]};return Object.assign(arRestReply(c),{intent:'rest_day',conf:1,src:'rules'})} // "I can't train today"
   const cls=force?{intent:force,p:1,top:[],src:'forced'}:arrowClassify(ds,text);
   ds.arrowLast={text,intent:cls.intent,top:(cls.top||[]).map(x=>x.intent)};
   /* a yes or no answers the open question, if there is one */
@@ -1110,6 +1143,9 @@ ACT.arrowUsual=m=>flSend(`Usual ${m}`,false,'repeat_meal');
 ACT.arrowStart=()=>flSend('Start my workout',false,'start_workout');
 ACT.arrowGo=k=>arGo(k);
 ACT.arrowWear=k=>{const ds=dietState();equipSkin(k);flSay(ds,k?`${arSkinName(k)} on. How do I look?`:arrowForm()==='orb'?'Back in classic ink.':`Back to classic ${ARROW_FORMS[arrowForm()].n}.`);saveDietState(ds);renderBot();Bot.react('proud',2400)};
+ACT.arrowRestPass=()=>{const ds=dietState();useRestPass();const ok=todayRec().rested;
+  flSay(ds,ok?`Rest Pass used. Today counts as cleared and your streak is safe. ${passesLeft()?`${passesLeft()} left this week. `:''}Rest well.`:'I couldn\'t use a Rest Pass today. Check the Quest tab.');
+  saveDietState(ds);renderBot();Bot.react(ok?'drowsy':'confused',2400)};
 ACT.arrowExp=()=>openExpedition();
 ACT.arrowExpSend=()=>{const ds=dietState(),ok=expCanLaunch()&&launchExpedition(expDefaultGrade(),expDefaultSquad());
   flSay(ds,ok?`Sent into ${gateOf(S.expedition.g).name}. Back ${expBackText(S.expedition)}.`:'They can\'t go out right now.');saveDietState(ds);renderBot();if(ok){Bot.react('proud',2400);renderAll()}};

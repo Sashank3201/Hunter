@@ -9,7 +9,7 @@ It is a Progressive Web App (PWA): plain HTML, CSS and JavaScript with no build 
 ## What's inside
 
 - **Daily quests.** A rank-based program of 150+ calisthenics moves in blocks (push, pull, legs, core, plyometrics, speed, mobility, flexibility). New moves unlock as you level up, and every target grows a little past your last session.
-- **Rest Passes.** Two a week (three with the Spare Pass perk) for when you're sick, injured or need a day off for any other reason. The day counts as cleared, so your streak and penalty level are safe, but it gives no EXP.
+- **Rest Passes.** Two a week (three with the Spare Pass perk) for when you're sick, injured or need a day off for any other reason. The day counts as cleared, so your streak and penalty level are safe, but it gives no EXP. Use one from the Quest tab, or just tell Arrow "I can't work out today" (English, Telugu or Hindi) and tap Use a Rest Pass.
 - **Workout runner.** Warm-up, set timers, rest timers, a matched cool-down and animated form demos for every move.
 - **Ranks and trials.** Pass a rank trial to move up from E to S. The next rank's moves stay locked until you pass it.
 - **The Monarch's Path.** S-Rank isn't the end. You keep your rank and chase **SS (Ruler)** and **SSS (Absolute Being)**: trials near the limit of human bodyweight strength, like 50 push-ups in one set, one-arm push-ups, wall handstand push-ups and 15 pistol squats a leg.
@@ -128,7 +128,7 @@ There is no build step: edit a file, save it, and refresh the page.
 
 - **Scripts load in order.** `index.html` loads the files in `js/` as classic scripts that share global variables, so the order matters. `js/data.js` comes first and `js/main.js` comes last. Only `js/world3d.js` is an ES module, loaded when a Gate opens.
 - **Adding a new file:** add it to `index.html`, and to the `ASSETS` list in `sw.js` so it works offline.
-- **Before every release:** bump the cache name in `sw.js` (`hunter-system-v29` → `hunter-system-v30`) so phones store the new files for offline use.
+- **Before every release:** bump the cache name in `sw.js` (`hunter-system-v30` → `hunter-system-v31`) so phones store the new files for offline use.
 - **Adding a story event:** add it to `STORY_EVENTS` in `js/story.js` (anywhere in the list), with its weapon in `WEAPONS`, its shadow in `SHADOW_BODY` and `SHADOW_SKILLS` (`js/data.js`), its skin in `ARROW_SKINS`, a silhouette look in `js/shadows.js` and a raid world in `js/world3d.js`. Weeks that have already started keep their event, so a new one never replaces a live one. Then retrain Arrow so it knows the new names.
 - **Changing a body:** the bodies come from avatar definitions in `tools/avatars/` (`*.avatar.json`). Run `node tools/avatars/convert.js` to rebuild `js/forms.js` from them. It keeps the expressions the animations use and measures where each head sits, so the gear lands on it.
 - **A one-off extra Rest Pass:** add the date to `EXTRA_PASS_DAYS` in `js/state.js`. That day gets one extra pass, used before the weekly ones, and it expires at midnight.
