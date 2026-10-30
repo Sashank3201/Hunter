@@ -128,10 +128,10 @@ There is no build step: edit a file, save it, and refresh the page.
 
 - **Scripts load in order.** `index.html` loads the files in `js/` as classic scripts that share global variables, so the order matters. `js/data.js` comes first and `js/main.js` comes last. Only `js/world3d.js` is an ES module, loaded when a Gate opens.
 - **Adding a new file:** add it to `index.html`, and to the `ASSETS` list in `sw.js` so it works offline.
-- **Before every release:** bump the cache name in `sw.js` (`hunter-system-v31` → `hunter-system-v32`) so phones store the new files for offline use.
+- **Before every release:** bump the cache name in `sw.js` (`hunter-system-v32` → `hunter-system-v33`) so phones store the new files for offline use.
 - **Adding a story event:** add it to `STORY_EVENTS` in `js/story.js` (anywhere in the list), with its weapon in `WEAPONS`, its shadow in `SHADOW_BODY` and `SHADOW_SKILLS` (`js/data.js`), its skin in `ARROW_SKINS`, a silhouette look in `js/shadows.js` and a raid world in `js/world3d.js`. Weeks that have already started keep their event, so a new one never replaces a live one. Then retrain Arrow so it knows the new names.
 - **Changing a body:** the bodies come from avatar definitions in `tools/avatars/` (`*.avatar.json`). Run `node tools/avatars/convert.js` to rebuild `js/forms.js` from them. It keeps the expressions the animations use and measures where each head sits, so the gear lands on it.
-- **A one-off extra Rest Pass:** add the date to `EXTRA_PASS_DAYS` in `js/state.js`. That day gets one extra pass, used before the weekly ones, and it expires at midnight.
+- **A one-off extra Rest Pass:** add the date to `EXTRA_PASS_DAYS` in `js/state.js`. That day gets one extra pass, used before the weekly ones. If the day is missed with it unused, it is used automatically instead of a penalty.
 - **Test switches.** Set these in the browser console, or in a test before the page loads:
 
 | Switch | Effect |
