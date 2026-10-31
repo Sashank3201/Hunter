@@ -465,17 +465,17 @@ AH.ask_items=()=>{
 };
 /* The live story event: where you are, what is open, what you win. */
 AH.ask_event=c=>{
-  const cur=evNow(),ev=cur.ev,R=evRun(cur.n),done=evDone(cur),nx=evOf(cur.n+1),open=chip('Open the event','arrowGo','event');
-  if(/\b(next|agla|agli)\b/.test(c.low))return {say:`Next up: ${nx.name}, starting ${fmtDate(cur.end)}. ${nx.blurb}`,mood:'curious',chips:[open]};
+  const cur=evNow(),ev=cur.ev,R=evRun(cur.n),done=evDone(cur),open=chip('Open the event','arrowGo','event');
+  const whenNext=cur.next?`The next event arrives ${fmtDate(cur.next)}`:`The next event arrives the week after you defeat ${ev.raid.boss}`;
+  if(/\b(next|agla|agli)\b/.test(c.low))return {say:`${whenNext}. Which one? Even I don't know. Events come one at a time.`,mood:'curious',chips:[open]};
   /* another event by name or boss: when it comes round */
   const flat=s=>s.toLowerCase().replace(/['’]/g,'').replace(/^the /,''),low=flat(c.low);
   const named=STORY_EVENTS.find(e=>e.id!==ev.id&&[e.name,e.short,e.raid.boss.split(',')[0]].some(n=>low.includes(flat(n))));
-  if(named){const k=[...Array(STORY_EVENTS.length)].map((_,i)=>i+1).find(i=>evOf(cur.n+i).id===named.id)||STORY_EVENTS.length;
-    return {say:`${named.name} starts ${fmtDate(addDays(cur.start,k*EVENT_DAYS))}${k===1?', next week':`, in ${k} weeks`}. ${named.blurb} Rewards: ${WEAPONS[named.weapon].name}, the shadow ${named.shadow} and the ${ARROW_SKINS[named.skin].n} skin. Right now it's ${ev.name}.`,mood:'curious',chips:[open]}}
+  if(named)return {say:`${named.name} isn't live${evRanBefore(named.id,cur.n+1)?', but you\'ve played it before and it comes round again':''}. Events come one at a time: right now it's ${ev.name}, and ${whenNext.replace(/^The/,'the')}. Rewards for ${named.name}: ${WEAPONS[named.weapon].name}, the shadow ${named.shadow} and the ${ARROW_SKINS[named.skin].n} skin.`,mood:'curious',chips:[open]};
   const ready=ev.chapters.findIndex((x,i)=>evChapter(cur,i)==='ready'),M=evMission();
-  let say=`${ev.name} is live for another ${evLeft(cur)}. You've cleared ${done} of ${EVENT_CHAPTERS} chapters.`;
+  let say=`${ev.name} is live${R.raid?'':', with no time limit: it stays until you win'}. You've cleared ${done} of ${EVENT_CHAPTERS} chapters.`;
   if(M)say+=` Your chapter ${M.i+1} mission is half done, finish it.`;
-  else if(R.raid)say+=` You already beat ${ev.raid.boss}. Show-off. Replay the raid for more loot.`;
+  else if(R.raid)say+=` You already beat ${ev.raid.boss}. Show-off. Replay the raid for more loot. ${whenNext}.`;
   else if(evRaidOpen(cur))say+=` The boss raid is open and ${ev.raid.boss} is waiting.`;
   else if(ready>=0)say+=` Chapter ${ready+1}, "${ev.chapters[ready].t}", is ready right now.`;
   else say+=' The next chapter opens tomorrow.';
