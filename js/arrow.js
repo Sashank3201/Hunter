@@ -15,7 +15,7 @@ const ARROW_LABEL={log_food:'Log food',food_info:'Nutrition facts',undo:'Undo la
   start_workout:'Start workout',open_license:'Hunter License',open_settings:'Settings',theme:'Theme',ask_event:'Story event',
   ask_advice:'Coach me',ask_progress:'Am I improving?',daily_plan:'Plan my day',nutrition_tip:'Diet advice',feeling_down:'Feeling low',more:'Tell me more',
   fun_fact:'Fun fact',arrow_skin:'Arrow\'s look',about_me:'About me',log_body:'Log weight or waist',ask_body:'Body progress',ask_sleep:'My sleep',
-  expedition:'Shadow expeditions',skill_tree:'Skill tree',chronicle:'Monthly chronicle',rest_day:'Take a rest day'};
+  expedition:'Shadow expeditions',skill_tree:'Skill tree',chronicle:'Monthly chronicle',rest_day:'Take a rest day',swap_move:'Swap a move'};
 
 /* ---------- voice: a sassy friend ---------- */
 const SAY={
@@ -101,7 +101,7 @@ const AR_VOICE={
 const arVoiceOf=()=>typeof arrowForm==='function'&&typeof S!=='undefined'&&S.profile?AR_VOICE[arrowForm()]:null;
 const arVoiceSay=k=>{const V=arVoiceOf();return V&&V.say[k]};
 /* Intents that keep a plain voice, and those that already spoke in character through arSay. */
-const AR_PLAIN=new Set(['rest_day','pain','feeling_down','recovery','reset_log','undo','remove_item','correction','clear_chat','greet','thanks','praise','how_are_you','who_are_you','bye','insult']);
+const AR_PLAIN=new Set(['rest_day','swap_move','pain','feeling_down','recovery','reset_log','undo','remove_item','correction','clear_chat','greet','thanks','praise','how_are_you','who_are_you','bye','insult']);
 function arVoice(r,intent){
   const V=arVoiceOf();if(!V||!r||!r.say||AR_PLAIN.has(intent)||Math.random()>=.45)return r;
   if(Math.random()<.5)r.say=`${arPick(V.open)} ${r.say}`;else r.say=`${r.say}${/[.!?)]$/.test(r.say)?'':'.'} ${arPick(V.close)}`;
@@ -355,7 +355,7 @@ AH.how_are_you=()=>{
   return {say:why?`${arPick(['Great, actually.','Thriving.','Pretty good.'])}${why} How about you?`:arSay('howAreYou'),mood:'playful'};
 };
 AH.who_are_you=()=>({say:arSay('whoAreYou'),mood:'proud'});
-AH.help=()=>({say:'Here\'s what I can do: log food ("rendu idlis tinna", "2 rotis and dal"), tell you calories ("protein in paneer?"), suggest meals ("what should I eat?"), cook from your kitchen ("I have eggs and rice"), repeat meals ("same as yesterday"), answer Hunter questions ("what\'s my streak?", "who\'s my strongest shadow?"), coach you from your own numbers ("give me advice", "am I improving?", "plan my day"), answer diet questions ("is creatine safe?"), track your body without a scale ("waist 81 cm", "I weigh 64 kg"), your sleep ("slept 6 hours"), injuries ("my knee hurts") and rest days ("I can\'t work out today"), teach form ("push-up form"), change my look ("wear the Monarch skin", "become Kirby"), send your shadows on expeditions ("send my shadows out"), help with your skill tree ("what perk should I get?"), tell your month as a story ("show my chronicle"), and run the app ("start my workout", "open Gates", "dark mode"). Say "tell me more" after any tip. Got something wrong? Tap "not what I meant" and I learn.',mood:'curious',
+AH.help=()=>({say:'Here\'s what I can do: log food ("rendu idlis tinna", "2 rotis and dal"), tell you calories ("protein in paneer?"), suggest meals ("what should I eat?"), cook from your kitchen ("I have eggs and rice"), repeat meals ("same as yesterday"), answer Hunter questions ("what\'s my streak?", "who\'s my strongest shadow?"), coach you from your own numbers ("give me advice", "am I improving?", "plan my day"), answer diet questions ("is creatine safe?"), track your body without a scale ("waist 81 cm", "I weigh 64 kg"), your sleep ("slept 6 hours"), injuries ("my knee hurts") and rest days ("I can\'t work out today"), swap moves you can\'t do ("I don\'t have a table", "replace the push-ups"), teach form ("push-up form"), change my look ("wear the Monarch skin", "become Kirby"), send your shadows on expeditions ("send my shadows out"), help with your skill tree ("what perk should I get?"), tell your month as a story ("show my chronicle"), and run the app ("start my workout", "open Gates", "dark mode"). Say "tell me more" after any tip. Got something wrong? Tap "not what I meant" and I learn.',mood:'curious',
   chips:[chip('Give me advice','arrowAsk','give me advice'),chip('Plan my day','arrowAsk','plan my day'),chip('Fun fact','arrowAsk','tell me a fun fact')]});
 AH.joke=c=>({say:arFresh(c.ds,'joke',SAY.jokes),mood:'laughing',chips:[chip('Another one','arrowAsk','another one')]});
 AH.laugh=()=>({say:arSay('laugh'),mood:'laughing'});
@@ -531,6 +531,56 @@ function arRestReply(c){
   const owe=Math.round(10*(S.penaltyLevel+1)*(1-armyBonus('penalty')/100));
   return {say:`Your Rest Passes are used up this week (new ones ${fmtDate(addDays(mondayOf(todayStr()),7))}). If you skip today, your penalty level goes up to ${S.penaltyLevel+1} and you'll owe ${owe} reps.${S.inv.potion?' A Healing Potion can undo that.':''} If you can, open your quest and tap "Too hard? Easier version" on each move: an easy day still counts.${care}`,
     mood:'sad',chips:[chip('Show my quest','arrowGo','quest')]};
+}
+
+/* ---------- "I don't have a table", "replace the pull workout": swap moves ----------
+   Missing equipment and asks to replace a move skip the model and come here. No table turns every
+   table move into its door version (setNoTable in state.js); other moves get their easier version.
+   Pain goes to the pain handler instead, and food talk ("eat this instead of rice") to the model. */
+const AR_NO_GEAR=/\b(?:don'?t|do not|doesn'?t|does not)\s+(?:have|own|got)\s+(?:a |an |any )?(?:sturdy |heavy |strong |proper |good |big )?(dining table|table|desk|pull ?-?up bar|bar|backpack|bag|chair|box|stairs?|step|towel|door ?frame|doorway|door|equipment|gym)\b|\bno\s+(?:sturdy |heavy |strong |proper )?(table|desk|pull ?-?up bar|equipment|backpack|gym)\b|\bwithout\s+(?:a |an |any )?(table|desk|equipment|bar|backpack|gym)\b|\b(table|desk)\s+(?:ledu|nahi|nahin|nai|illa)\b/;
+const AR_SWAP=/\b(replace|swap|substitute|switch out|alternative|instead)\b|\bchange\b.{0,30}\b(exercises?|moves?|workout|rows?|curls?)\b/;
+const AR_SWAP_WHAT=/\b(exercises?|moves?|workout|pull|push|legs?|core|rows?|curls?|squats?|lunges?|plank|push-?ups?|table|speed|agility|jumps?)\b/;
+const AR_HAVE_TABLE=/\b(?:i (?:do |now )?have|i'?ve got|i got|got)\s+(?:a |an )?(?:sturdy |heavy |strong |new )?(?:dining )?(?:table|desk)\b|\b(?:table|desk)\s+(?:undi|hai)\b/;
+const arWantsSwap=low=>!/\b(hurts?|pain|injur\w*|sprain\w*|noppi|dard)\b/.test(low)&&(AR_NO_GEAR.test(low)||AR_HAVE_TABLE.test(low)||
+  (AR_SWAP.test(low)&&AR_SWAP_WHAT.test(low)&&!/\b(eat|ate|food|meal|breakfast|lunch|dinner|snack|protein|calories|drink|recipe|skin|look|colou?r|theme|goal)\b/.test(low)));
+const AR_GEAR_TIP={
+  bar:'No bar needed. Your pull moves use a doorway, a towel shut in a door, and a backpack.',
+  backpack:'Any bag works: fill a school bag or a grocery bag with books or water bottles. A big water bottle in each hand works for curls too.',
+  chair:'For anything that says chair or box, use a stair, the edge of your bed or a sturdy sofa. Nothing that rolls or tips.',
+  towel:'No towel? A bedsheet or an old T-shirt works the same, folded so it is strong.',
+  door:'No safe doorway or door? Ask me to "replace" a door move and I\'ll give you its easier version, or tap "Too hard? Easier version" in your quest.',
+  gym:'You don\'t need one. Everything here is bodyweight, a backpack, a doorway and a towel. No sturdy table either? Tell me and I\'ll swap table rows for door rows.'};
+const arGearKey=t=>/bar/.test(t)?'bar':/backpack|bag/.test(t)?'backpack':/chair|box|stair|step/.test(t)?'chair':/towel/.test(t)?'towel':/door/.test(t)?'door':/gym|equipment/.test(t)?'gym':'table';
+const arSwapList=sw=>sw.map(([a,b])=>`${dn(a)} → ${dn(b)}`).join('; ');
+function arSwapReply(c){
+  const low=c.low,g=low.match(AR_NO_GEAR),thing=g?(g[1]||g[2]||g[3]||g[4]||''):'',key=thing?arGearKey(thing):'';
+  if(!g&&AR_HAVE_TABLE.test(low)){const was=noTable(),sw=setNoTable(false);renderAll();
+    return {say:was?`Table moves are back${sw.length?`. Swapped for today: ${arSwapList(sw)}`:''}. Only use a table that doesn't slide or tip.`:'Good, table moves are already on.',mood:'happy',chips:was?[chip('Show my quest','arrowGo','quest')]:null}}
+  if(key&&key!=='table')return {say:AR_GEAR_TIP[key],mood:'thinking',chips:key==='gym'&&!noTable()?[chip('I don\'t have a table','arrowTable','0')]:null};
+  const rec=todayRec(),busy=notStarted()||rec.completed,plan=busy?[]:planToday();
+  if(key==='table'||/\btable\b/.test(low)||(planHasTable()&&/\b(pull|rows?|back|biceps|curls?)\b/.test(low))){
+    const was=noTable(),sw=setNoTable(true),kept=plan.filter(p=>NO_TABLE[p.n]);renderAll();
+    let say=sw.length?`No table, no problem. Swapped for today: ${arSwapList(sw)}.`:was?'Table moves are already off for you.':'Done: no more table moves.';
+    say+=' From now on your quests, story events, Gates and trials use door versions: a doorway row, or a towel shut in a solid door that opens away from you. Tap "How to" on a move for the setup.';
+    if(kept.length)say+=` ${dn(kept[0].n)} was already started today, so it stays.`;
+    return {say,mood:'proud',chips:[chip('Show my quest','arrowGo','quest'),chip('I do have a table','arrowTable','1')]};
+  }
+  if(busy)return {say:rec.completed?'Today\'s quest is already cleared, so there\'s nothing to swap. Ask me tomorrow.':'Your quests haven\'t started yet. Ask me once they do.',mood:'happy'};
+  /* the moves asked about get their easier version for today: a move by name, else a kind of move
+     ("the push-ups", "rows"), else every move of an area ("the pull workout") */
+  const base=n=>dn(n).toLowerCase().split(/ [(,]/)[0];
+  const KIND=[[/\bpush-?ups?\b/,/push-up/],[/\brows?\b/,/\brow\b/],[/\bcurls?\b/,/curl/],[/\bsquats?\b/,/squat/],[/\blunges?\b/,/lunge/],[/\bplanks?\b/,/plank/],[/\bdips?\b/,/\bdip\b/],[/\bjumps?\b/,/jump/]];
+  const kind=KIND.find(([re])=>re.test(low)),area=Object.keys(AREAS).find(a=>new RegExp(`\\b(${a==='flex'?'flex\\w*|stretch\\w*':a==='legs'?'legs?|leg day':a})\\b`).test(low));
+  let named=plan.filter(p=>low.includes(base(p.n)));
+  if(!named.length&&kind)named=plan.filter(p=>kind[1].test(dn(p.n).toLowerCase()));
+  if(!named.length&&area)named=plan.filter(p=>p.a===area);
+  if(!named.length)return {say:'Which move? Say something like "replace the push-ups" or "I don\'t have a table". In your quest, every move also has a "Too hard? Easier version" button.',mood:'curious',chips:[chip('Show my quest','arrowGo','quest')]};
+  const sw=[],stuck=[];
+  named.forEach(p=>{if(rec.sets[p.id]||rec.done.includes(p.id)||p.orig){stuck.push(p.n);return}const from=p.n;if(swapMove(p.id))sw.push([from,p.n]);else stuck.push(from)});
+  if(sw.length)renderAll();
+  const say=(sw.length?`Swapped for today, to the easier version: ${arSwapList(sw)}. Tap "Back to..." in your quest to undo.`:'')
+    +(stuck.length?` ${arList(stuck.map(dn))} ${stuck.length>1?'stay':'stays'}: already started, already swapped, or the easiest version there is.`:'');
+  return {say:say.trim(),mood:sw.length?'happy':'thinking',chips:[chip('Show my quest','arrowGo','quest')]};
 }
 
 /* Pain: remember where, pause the moves that load it (body.js), and check in daily. */
@@ -993,6 +1043,7 @@ function arrowReply(ds,text,force){
   const c={ds,day:flDay(ds),T:foodTargets(ds),text,low,lang:arLang(text),ctx};
   const pend=ds.arrowPending&&Date.now()-ds.arrowPending.at<15*60000?ds.arrowPending:null;
   if(!force&&arWantsRest(low)){ds.arrowLast={text,intent:'rest_day',top:[]};return Object.assign(arRestReply(c),{intent:'rest_day',conf:1,src:'rules'})} // "I can't train today"
+  if(!force&&arWantsSwap(low)){ds.arrowLast={text,intent:'swap_move',top:[]};return Object.assign(arSwapReply(c),{intent:'swap_move',conf:1,src:'rules'})} // "I don't have a table"
   const cls=force?{intent:force,p:1,top:[],src:'forced'}:arrowClassify(ds,text);
   ds.arrowLast={text,intent:cls.intent,top:(cls.top||[]).map(x=>x.intent)};
   /* a yes or no answers the open question, if there is one */
@@ -1146,6 +1197,9 @@ ACT.arrowWear=k=>{const ds=dietState();equipSkin(k);flSay(ds,k?`${arSkinName(k)}
 ACT.arrowRestPass=()=>{const ds=dietState();useRestPass();const ok=todayRec().rested;
   flSay(ds,ok?`Rest Pass used. Today counts as cleared and your streak is safe. ${passesLeft()?`${passesLeft()} left this week. `:''}Rest well.`:'I couldn\'t use a Rest Pass today. Check the Quest tab.');
   saveDietState(ds);renderBot();Bot.react(ok?'drowsy':'confused',2400)};
+ACT.arrowTable=v=>{const ds=dietState(),has=v==='1',sw=setNoTable(!has);
+  flSay(ds,has?`Table moves are back${sw.length?`: ${arSwapList(sw)}`:''}.`:`Table moves are off${sw.length?`: ${arSwapList(sw)}`:''}. Door versions from now on.`);
+  saveDietState(ds);renderBot();renderAll();Bot.react(has?'happy':'proud',2200)};
 ACT.arrowExp=()=>openExpedition();
 ACT.arrowExpSend=()=>{const ds=dietState(),ok=expCanLaunch()&&launchExpedition(expDefaultGrade(),expDefaultSquad());
   flSay(ds,ok?`Sent into ${gateOf(S.expedition.g).name}. Back ${expBackText(S.expedition)}.`:'They can\'t go out right now.');saveDietState(ds);renderBot();if(ok){Bot.react('proud',2400);renderAll()}};

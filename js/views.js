@@ -150,7 +150,7 @@ function renderQuest(){
       <div class="grow"><p class="t">${dn(t.name)}${t.fresh&&!on?' <span class="tag-new">New</span>':''}</p>
         <p class="s">${t.stat===t.family?t.stat:`${t.family} · ${t.stat}`}${t.note?` · <span class="boss-note">${t.note}</span>`:''}</p>
         ${logged.length?`<p class="log-line">Logged ${logged.join(' · ')}${t.timed?' sec':''}</p>`:pr?`<p class="log-line faint">Best ${pr.best}${pr.timed?' sec':''}</p>`:''}
-        <button class="how-btn" aria-expanded="${open}" data-act="cue" data-arg="${t.id}">How to ${ic('down')}</button>${!lock&&!on&&!logged.length&&canEase(t)?`<button class="how-btn ease-btn" data-act="ease" data-arg="${t.id}">${t.orig?`Back to ${esc(dn(t.orig))}`:'Too hard? Easier version'}</button>`:''}${!lock&&!on&&!logged.length&&!t.orig&&canHarden(t)?`<button class="how-btn ease-btn" data-act="harder" data-arg="${t.id}">Harder version</button>`:''}</div>
+        <button class="how-btn" aria-expanded="${open}" data-act="cue" data-arg="${t.id}">How to ${ic('down')}</button>${!lock&&!on&&!logged.length&&canEase(t)?`<button class="how-btn ease-btn" data-act="ease" data-arg="${t.id}">${t.orig?`Back to ${esc(dn(t.orig))}`:'Too hard? Easier version'}</button>`:''}${!lock&&!on&&!logged.length&&!t.orig&&canHarden(t)?`<button class="how-btn ease-btn" data-act="harder" data-arg="${t.id}">Harder version</button>`:''}${!lock&&!on&&!logged.length&&NO_TABLE[t.name]?`<button class="how-btn ease-btn" data-act="noTableAsk">No table? Swap it</button>`:''}</div>
       <span class="target">${t.sets}<i>×</i>${t.amt}${t.timed?'s':''}</span></div>
       ${open&&t.cue?`<div class="ex-cue">${demoHTML(t.name)}<p>${t.cue}</p></div>`:''}</li>`;
   };
@@ -179,6 +179,10 @@ function renderQuest(){
 ACT.cue=id=>{openCues.has(id)?openCues.delete(id):openCues.add(id);renderQuest()};
 ACT.ease=id=>{if(swapMove(id)){buzz('tap');renderAll()}};
 ACT.harder=id=>{if(swapHarder(id)){buzz('tap');renderAll()}};
+ACT.noTableAsk=()=>openModal(`<div class="m-stamp">No sturdy table?</div>
+  <p class="m-text">Every table move becomes a door version: a doorway row, or a towel shut in a solid door. Today's untouched moves swap now, and quests, story events, Gates and trials use the door versions from now on. Switch it back any time in Profile.</p>
+  <div class="m-btns"><button class="btn" data-act="noTableOk">Swap table moves</button><button class="btn ghost" data-act="closeModal">Keep them</button></div>`,'sys','dumbbell');
+ACT.noTableOk=()=>{const sw=setNoTable(true);closeModal();buzz('done');toast(sw.length?`Swapped ${plural(sw.length,'table move')} for door versions`:'Table moves are off');renderAll()};
 
 /* ---------- PROGRESS ---------- */
 function renderProgress(){
@@ -199,11 +203,11 @@ function skillsHTML(){
     h+=`<div class="card ladder"><div class="card-head"><span class="h2">${A.title}</span><span class="pill">${open} / ${all.length}</span></div>`;
     if(A.pool){const nx=all.find(m=>m[1]>lv);h+=`<p class="move">${open} moves in rotation${nx?`<br><span class="faint small">Next: ${dn(nx[0])} at level ${nx[1]}</span>`:''}</p>`}
     else CHAINS[k].forEach(([cn,ms],c)=>{
-      const cur=chainMove(k,c,lv),nx=ms.find(m=>m[1]>lv),pr=cur&&S.prs[cur];
-      h+=`<p class="move chain-line"><span class="faint">${cn}</span> ${cur?dn(cur):`opens at level ${ms[0][1]}`}${pr?` · <span style="color:var(--accent-hi)">best ${pr.best}${pr.timed?'s':''}</span>`:''}${nx?`<br><span class="faint small">Next: ${dn(nx[0])} · level ${nx[1]}</span>`:''}</p>`;
+      const cur=chainMove(k,c,lv),nx=ms.find(m=>m[1]>lv&&equipMove(m[0])!==cur),pr=cur&&S.prs[cur]; // a door stand-in can cover two table moves
+      h+=`<p class="move chain-line"><span class="faint">${cn}</span> ${cur?dn(cur):`opens at level ${ms[0][1]}`}${pr?` · <span style="color:var(--accent-hi)">best ${pr.best}${pr.timed?'s':''}</span>`:''}${nx?`<br><span class="faint small">Next: ${dn(equipMove(nx[0]))} · level ${nx[1]}</span>`:''}</p>`;
     });
     h+=`<div class="steps-bar" aria-hidden="true">${all.map(m=>`<i class="${m[1]<=lv?'d':''}"></i>`).join('')}</div>
-      <details class="more"><summary>All moves ${ic('down')}</summary><ol class="step-list">${all.map(m=>`<li class="${m[1]<=lv?'d':''}">${dn(m[0])} <span class="faint">· Lv ${m[1]}</span></li>`).join('')}</ol></details></div>`;
+      <details class="more"><summary>All moves ${ic('down')}</summary><ol class="step-list">${all.filter((m,i)=>all.findIndex(x=>equipMove(x[0])===equipMove(m[0]))===i).map(m=>`<li class="${m[1]<=lv?'d':''}">${dn(equipMove(m[0]))} <span class="faint">· Lv ${m[1]}</span></li>`).join('')}</ol></details></div>`;
   });
   return h;
 }
