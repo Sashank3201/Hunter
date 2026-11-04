@@ -150,7 +150,7 @@ function renderQuest(){
       <div class="grow"><p class="t">${dn(t.name)}${t.fresh&&!on?' <span class="tag-new">New</span>':''}</p>
         <p class="s">${t.stat===t.family?t.stat:`${t.family} · ${t.stat}`}${t.note?` · <span class="boss-note">${t.note}</span>`:''}</p>
         ${logged.length?`<p class="log-line">Logged ${logged.join(' · ')}${t.timed?' sec':''}</p>`:pr?`<p class="log-line faint">Best ${pr.best}${pr.timed?' sec':''}</p>`:''}
-        <button class="how-btn" aria-expanded="${open}" data-act="cue" data-arg="${t.id}">How to ${ic('down')}</button>${!lock&&!on&&!logged.length&&canEase(t)?`<button class="how-btn ease-btn" data-act="ease" data-arg="${t.id}">${t.orig?`Back to ${esc(dn(t.orig))}`:'Too hard? Easier version'}</button>`:''}${!lock&&!on&&!logged.length&&!t.orig&&canHarden(t)?`<button class="how-btn ease-btn" data-act="harder" data-arg="${t.id}">Harder version</button>`:''}${!lock&&!on&&!logged.length&&NO_TABLE[t.name]?`<button class="how-btn ease-btn" data-act="noTableAsk">No table? Swap it</button>`:''}</div>
+        <button class="how-btn" aria-expanded="${open}" data-act="cue" data-arg="${t.id}">How to ${ic('down')}</button>${!lock&&!on&&!logged.length&&canEase(t)?`<button class="how-btn ease-btn" data-act="ease" data-arg="${t.id}">${t.orig?`Back to ${esc(dn(t.orig))}`:'Too hard? Easier version'}</button>`:''}${!lock&&!on&&!logged.length&&!t.orig&&canHarden(t)?`<button class="how-btn ease-btn" data-act="harder" data-arg="${t.id}">Harder version</button>`:''}${!lock&&!on&&!logged.length&&NO_TABLE[t.name]?`<button class="how-btn ease-btn" data-act="noTableAsk">No table? Swap it</button>`:''}${!lock&&!on&&!logged.length&&NO_DOOR[t.name]?`<button class="how-btn ease-btn" data-act="noDoorAsk">No door? Swap it</button>`:''}</div>
       <span class="target">${t.sets}<i>×</i>${t.amt}${t.timed?'s':''}</span></div>
       ${open&&t.cue?`<div class="ex-cue">${demoHTML(t.name)}<p>${t.cue}</p></div>`:''}</li>`;
   };
@@ -183,6 +183,10 @@ ACT.noTableAsk=()=>openModal(`<div class="m-stamp">No sturdy table?</div>
   <p class="m-text">Every table move becomes a door version: a doorway row, or a towel shut in a solid door. Today's untouched moves swap now, and quests, story events, Gates and trials use the door versions from now on. Switch it back any time in Profile.</p>
   <div class="m-btns"><button class="btn" data-act="noTableOk">Swap table moves</button><button class="btn ghost" data-act="closeModal">Keep them</button></div>`,'sys','dumbbell');
 ACT.noTableOk=()=>{const sw=setNoTable(true);closeModal();buzz('done');toast(sw.length?`Swapped ${plural(sw.length,'table move')} for door versions`:'Table moves are off');renderAll()};
+ACT.noDoorAsk=()=>openModal(`<div class="m-stamp">No door that locks?</div>
+  <p class="m-text">The towel door moves become doorway rows, which grip the doorframe (any doorway works, door or no door), and floor moves with a towel. Today's untouched moves swap now, and everything else follows. Switch it back any time in Profile.</p>
+  <div class="m-btns"><button class="btn" data-act="noDoorOk">Swap door moves</button><button class="btn ghost" data-act="closeModal">Keep them</button></div>`,'sys','dumbbell');
+ACT.noDoorOk=()=>{const sw=setNoDoor(true);closeModal();buzz('done');toast(sw.length?`Swapped ${plural(sw.length,'door move')}`:'Door moves are off');renderAll()};
 
 /* ---------- PROGRESS ---------- */
 function renderProgress(){

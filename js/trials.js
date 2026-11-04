@@ -8,10 +8,10 @@ const TRIAL_RECOVER=120; // seconds of rest after a failed attempt
 const moveKind=m=>m[3]==='hold'?'hold':typeof m[3]==='number'?'window':'reps';
 function moveTarget(m){const k=moveKind(m);return k==='hold'?`${m[1]} sec hold`:k==='window'?`${m[1]} reps in ${m[3]} sec`:`${m[1]} reps, one set`}
 
-/* Rank r's test, with any table move swapped for its door stand-in when there is no table (state.js). */
+/* Rank r's test, with moves the Player has no equipment for swapped for their stand-ins (state.js). */
 const testLabel=n=>dn(n).replace(/ \(each arm\)$/,', each arm');
 function trialOf(r){const t=RANK_TESTS[r];if(!t||!noTable())return t;
-  return Object.assign({},t,{tests:t.tests.map(m=>NO_TABLE[m[2]]?[testLabel(NO_TABLE[m[2]][0]),m[1],NO_TABLE[m[2]][0],...m.slice(3)]:m)})}
+  return Object.assign({},t,{tests:t.tests.map(m=>{const n=equipMove(m[2]);return n!==m[2]?[testLabel(n),m[1],n,...m.slice(3)]:m})})}
 
 /* Requirements for rank r's trial. */
 function trialStatus(r){

@@ -122,9 +122,10 @@ function nextRank(){const c=currentRank();const i=RANKS.findIndex(x=>x.r===c.r);
    so passing a trial is what opens the next rank's moves. */
 function effLevel(){const nr=nextRank();return Math.min(S.level,nr?nr.lv-1:99)}
 /* Equipment: without a sturdy table (Profile, or "I don't have a table" to Arrow), every table move
-   becomes its door stand-in (NO_TABLE in data.js): in quests, story events, Gates and trials. */
-const noTable=()=>!!(S.profile&&S.profile.noTable);
-const equipMove=n=>n&&noTable()&&NO_TABLE[n]?NO_TABLE[n][0]:n;
+   becomes its door stand-in (NO_TABLE in data.js), and without a door that locks, the towel door moves
+   become doorframe and floor versions (NO_DOOR): in quests, story events, Gates and trials. */
+const noTable=()=>!!(S.profile&&S.profile.noTable),noDoor=()=>!!(S.profile&&S.profile.noDoor);
+const equipMove=n=>{if(n&&noTable()&&NO_TABLE[n])n=NO_TABLE[n][0];if(n&&noDoor()&&NO_DOOR[n])n=NO_DOOR[n][0];return n};
 /* The current move of a chain: the hardest one unlocked (or its stand-in). */
 function chainMove(a,c,lv=effLevel()){let m=null;CHAINS[a][c][1].forEach(x=>{if(x[1]<=lv)m=x});return m&&equipMove(m[0])}
 /* Moves that unlock when the capped level rises from a to b. */
@@ -192,18 +193,19 @@ function swapHarder(id){
   if(!p||!nx||p.orig||!perk('harder')||rec.sets[id]||rec.done.includes(id))return false;
   p.orig=p.n;p.n=nx;p.id=moveId(p.n);save();return true;
 }
-/* Turn table moves off (or back on) and swap today's untouched moves to match. Returns [[from, to]]. */
-function setNoTable(on){
-  S.profile=Object.assign(S.profile||{},{noTable:!!on});
-  const rec=todayRec(),out=[];
+/* Turn an equipment setting (noTable, noDoor) on or off and swap today's untouched moves to match.
+   A stand-in goes back through its chain, so it lands on whatever fits the settings now. Returns [[from, to]]. */
+function setEquip(k,on){
+  S.profile=Object.assign(S.profile||{},{[k]:!!on});
+  const rec=todayRec(),out=[],fit=n=>{const M=MOVES[n];return M&&M.alt?chainMove(M.a,M.c):equipMove(n)};
   if(rec.plan&&!rec.completed)rec.plan.forEach(p=>{
     if(rec.sets[p.id]||rec.done.includes(p.id))return;
-    const M=MOVES[p.n],to=on?equipMove(p.n):M&&M.alt?chainMove(M.a,M.c):p.n;
-    if(p.orig)p.orig=on?equipMove(p.orig):MOVES[p.orig]&&MOVES[p.orig].alt?MOVES[p.orig].alt:p.orig;
+    const to=p.orig?equipMove(p.n):fit(p.n);if(p.orig)p.orig=fit(p.orig);
     if(to&&to!==p.n){out.push([p.n,to]);p.n=to;p.id=moveId(to)}});
   save();return out;
 }
-const planHasTable=()=>(todayRec().plan||[]).some(p=>NO_TABLE[p.n]);
+const setNoTable=on=>setEquip('noTable',on),setNoDoor=on=>setEquip('noDoor',on);
+const planHasTable=()=>(todayRec().plan||[]).some(p=>NO_TABLE[p.n]),planHasDoor=()=>(todayRec().plan||[]).some(p=>NO_DOOR[p.n]);
 
 /* ---------- today ---------- */
 function todayRec(){const k=todayStr();if(!S.log[k])S.log[k]={done:[],completed:false,penaltyDone:false};const r=S.log[k];if(!r.sets)r.sets={};return r}

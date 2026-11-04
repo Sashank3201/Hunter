@@ -11,12 +11,12 @@ const gateTag=d=>d.ev?'Event raid':`${d.g}-grade`;
 /* A Gate's level: +1 per clear, up to GATE_MAX_LV. Each level adds 10% reps and EXP. */
 function gateLevel(g){return Math.min(GATE_MAX_LV,1+S.dungeons.filter(d=>d.ok&&d.g===g).length)}
 const lvMult=lv=>1+.1*((lv||1)-1);
-/* The waves of a run: the alternative picked at entry, the amount scaled by the run's level. With no
-   table, table moves are left out of the alternatives, or swapped for their door stand-in (state.js). */
+/* The waves of a run: the alternative picked at entry, the amount scaled by the run's level. Moves the
+   Player has no equipment for are left out of the alternatives, or swapped for their stand-in (state.js). */
 function runWaves(r){if(r.waves)return r.waves;const d=gateOf(r.g),m=lvMult(r.lv);
-  return d.waves.map((w,i)=>{const alts=Array.isArray(w)?w:[w],ok=noTable()?alts.filter(o=>!NO_TABLE[o.demo]):alts,list=ok.length?ok:alts;
-    let x=list[((r.picks||[])[i]||0)%list.length];
-    if(noTable()&&NO_TABLE[x.demo]){const n=NO_TABLE[x.demo][0];x=Object.assign({},x,{n:testLabel(n),demo:n})}
+  return d.waves.map((w,i)=>{const alts=Array.isArray(w)?w:[w],ok=alts.filter(o=>equipMove(o.demo)===o.demo),list=ok.length?ok:alts;
+    let x=list[((r.picks||[])[i]||0)%list.length];const sub=equipMove(x.demo);
+    if(sub!==x.demo)x=Object.assign({},x,{n:testLabel(sub),demo:sub});
     return Object.assign({},x,{amt:Math.round(x.amt*m)})})}
 const waveOf=r=>runWaves(r)[r.wave];
 const amtText=x=>`${x.amt}${x.hold?' s':''}`;
