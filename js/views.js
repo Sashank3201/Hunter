@@ -132,6 +132,10 @@ function renderQuest(){
   else if(rec.completed)h+=`<div class="card ${rec.rested?'':'good'} state-card"><div class="state-ic">${ic(rec.rested?'moon':'check')}</div><div><p class="h3">${rec.rested?'Rest Pass active':'Quest cleared'}</p><p class="muted small">${rec.rested?'No training today. Recover well.':`+${rec.exp||0} EXP${rec.duration?` · ${rec.duration} min trained`:''}. See you tomorrow.`}</p></div></div>`;
   else h+=timerCardHTML();
   if(!rec.completed&&!notStarted())h+=bodyQuestHTML(); // injury care and a short-night note (body.js)
+  if(rec.short&&!sp.rest)h+=`<div class="card short-card"><div class="card-head"><span class="h3">${ic('timer')}10-minute quest</span><span class="pill accent">Half EXP</span></div>
+      <p class="muted small">Warm-up, then one set of each move below, with ${SHORT_REST} s rests. ${rec.completed?'It counted as cleared.':'Clear it and today counts: your streak is safe.'}</p>
+      ${canUnshort()?`<button class="btn sm ghost" style="margin-top:12px" data-act="shortQuest" data-arg="0">Back to the full quest</button>`:''}</div>`;
+  else if(canShort()&&!penDue)h+=`<button class="pass-link short-link" data-act="shortQuest" data-arg="1">${ic('timer')}<span class="grow"><b>Short on time?</b>Do the 10-minute quest: one set each, half EXP</span>${ic('right')}</button>`;
 
   if(penDue){
     const left=S.penaltyReps-S.penaltyProgress;
@@ -178,6 +182,8 @@ function renderQuest(){
 }
 ACT.cue=id=>{openCues.has(id)?openCues.delete(id):openCues.add(id);renderQuest()};
 ACT.ease=id=>{if(swapMove(id)){buzz('tap');renderAll()}};
+ACT.shortQuest=v=>{const on=v==='1';if(!setShort(on))return;buzz('tap');renderAll();
+  toast(on?`10-minute quest: one set of each move. Half EXP, streak safe.`:'Back to the full quest')};
 ACT.harder=id=>{if(swapHarder(id)){buzz('tap');renderAll()}};
 ACT.noTableAsk=()=>openModal(`<div class="m-stamp">No sturdy table?</div>
   <p class="m-text">Every table move becomes a door version: a doorway row, or a towel shut in a solid door. Today's untouched moves swap now, and quests, story events, Gates and trials use the door versions from now on. Switch it back any time in Profile.</p>

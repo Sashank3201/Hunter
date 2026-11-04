@@ -15,7 +15,7 @@ const ARROW_LABEL={log_food:'Log food',food_info:'Nutrition facts',undo:'Undo la
   start_workout:'Start workout',open_license:'Hunter License',open_settings:'Settings',theme:'Theme',ask_event:'Story event',
   ask_advice:'Coach me',ask_progress:'Am I improving?',daily_plan:'Plan my day',nutrition_tip:'Diet advice',feeling_down:'Feeling low',more:'Tell me more',
   fun_fact:'Fun fact',arrow_skin:'Arrow\'s look',about_me:'About me',log_body:'Log weight or waist',ask_body:'Body progress',ask_sleep:'My sleep',
-  expedition:'Shadow expeditions',skill_tree:'Skill tree',chronicle:'Monthly chronicle',rest_day:'Take a rest day',swap_move:'Swap a move'};
+  expedition:'Shadow expeditions',skill_tree:'Skill tree',chronicle:'Monthly chronicle',rest_day:'Take a rest day',swap_move:'Swap a move',short_quest:'10-minute quest'};
 
 /* ---------- voice: a sassy friend ---------- */
 const SAY={
@@ -101,7 +101,7 @@ const AR_VOICE={
 const arVoiceOf=()=>typeof arrowForm==='function'&&typeof S!=='undefined'&&S.profile?AR_VOICE[arrowForm()]:null;
 const arVoiceSay=k=>{const V=arVoiceOf();return V&&V.say[k]};
 /* Intents that keep a plain voice, and those that already spoke in character through arSay. */
-const AR_PLAIN=new Set(['rest_day','swap_move','pain','feeling_down','recovery','reset_log','undo','remove_item','correction','clear_chat','greet','thanks','praise','how_are_you','who_are_you','bye','insult']);
+const AR_PLAIN=new Set(['rest_day','swap_move','short_quest','pain','feeling_down','recovery','reset_log','undo','remove_item','correction','clear_chat','greet','thanks','praise','how_are_you','who_are_you','bye','insult']);
 function arVoice(r,intent){
   const V=arVoiceOf();if(!V||!r||!r.say||AR_PLAIN.has(intent)||Math.random()>=.45)return r;
   if(Math.random()<.5)r.say=`${arPick(V.open)} ${r.say}`;else r.say=`${r.say}${/[.!?)]$/.test(r.say)?'':'.'} ${arPick(V.close)}`;
@@ -355,7 +355,7 @@ AH.how_are_you=()=>{
   return {say:why?`${arPick(['Great, actually.','Thriving.','Pretty good.'])}${why} How about you?`:arSay('howAreYou'),mood:'playful'};
 };
 AH.who_are_you=()=>({say:arSay('whoAreYou'),mood:'proud'});
-AH.help=()=>({say:'Here\'s what I can do: log food ("rendu idlis tinna", "2 rotis and dal"), tell you calories ("protein in paneer?"), suggest meals ("what should I eat?"), cook from your kitchen ("I have eggs and rice"), repeat meals ("same as yesterday"), answer Hunter questions ("what\'s my streak?", "who\'s my strongest shadow?"), coach you from your own numbers ("give me advice", "am I improving?", "plan my day"), answer diet questions ("is creatine safe?"), track your body without a scale ("waist 81 cm", "I weigh 64 kg"), your sleep ("slept 6 hours"), injuries ("my knee hurts") and rest days ("I can\'t work out today"), swap moves you can\'t do ("I don\'t have a table", "replace the push-ups"), teach form ("push-up form"), change my look ("wear the Monarch skin", "become Kirby"), send your shadows on expeditions ("send my shadows out"), help with your skill tree ("what perk should I get?"), tell your month as a story ("show my chronicle"), and run the app ("start my workout", "open Gates", "dark mode"). Say "tell me more" after any tip. Got something wrong? Tap "not what I meant" and I learn.',mood:'curious',
+AH.help=()=>({say:'Here\'s what I can do: log food ("rendu idlis tinna", "2 rotis and dal"), tell you calories ("protein in paneer?"), suggest meals ("what should I eat?"), cook from your kitchen ("I have eggs and rice"), repeat meals ("same as yesterday"), answer Hunter questions ("what\'s my streak?", "who\'s my strongest shadow?"), coach you from your own numbers ("give me advice", "am I improving?", "plan my day"), answer diet questions ("is creatine safe?"), track your body without a scale ("waist 81 cm", "I weigh 64 kg"), your sleep ("slept 6 hours"), injuries ("my knee hurts") rest days ("I can\'t work out today"), a 10-minute quest ("I only have 10 minutes"), swap moves you can\'t do ("I don\'t have a table", "replace the push-ups"), teach form ("push-up form"), change my look ("wear the Monarch skin", "become Kirby"), send your shadows on expeditions ("send my shadows out"), help with your skill tree ("what perk should I get?"), tell your month as a story ("show my chronicle"), and run the app ("start my workout", "open Gates", "dark mode"). Say "tell me more" after any tip. Got something wrong? Tap "not what I meant" and I learn.',mood:'curious',
   chips:[chip('Give me advice','arrowAsk','give me advice'),chip('Plan my day','arrowAsk','plan my day'),chip('Fun fact','arrowAsk','tell me a fun fact')]});
 AH.joke=c=>({say:arFresh(c.ds,'joke',SAY.jokes),mood:'laughing',chips:[chip('Another one','arrowAsk','another one')]});
 AH.laugh=()=>({say:arSay('laugh'),mood:'laughing'});
@@ -527,10 +527,26 @@ function arRestReply(c){
   if(rec.completed)return {say:`${rec.rested?'You\'re already on a Rest Pass today.':'You already cleared today\'s quest, so rest all you want.'} Recover well.${care}`,mood:'happy'};
   if(sp.rest)return {say:`Today is a recovery day anyway. Skip the stretches if you need to, there's no penalty.${care}`,mood:'happy'};
   if(!passUsedThisWeek())return {say:`Okay, take today off. Use a Rest Pass and today counts as cleared: your streak and penalty level stay safe, you just get no EXP. ${extraPassLeft()&&passesUsed()>=passesPerWeek()?'Your weekly ones are used, but there\'s an extra one for today.':`${passesLeft()} left this week.`}${care}`,
-    mood:'shy',chips:[chip('Use a Rest Pass','arrowRestPass'),chip('Show my quest','arrowGo','quest')]};
+    mood:'shy',chips:[chip('Use a Rest Pass','arrowRestPass'),...(canShort()&&!rec.short?[chip('10-minute quest instead','arrowShort','1')]:[chip('Show my quest','arrowGo','quest')])]};
   const owe=Math.round(10*(S.penaltyLevel+1)*(1-armyBonus('penalty')/100));
-  return {say:`Your Rest Passes are used up this week (new ones ${fmtDate(addDays(mondayOf(todayStr()),7))}). If you skip today, your penalty level goes up to ${S.penaltyLevel+1} and you'll owe ${owe} reps.${S.inv.potion?' A Healing Potion can undo that.':''} If you can, open your quest and tap "Too hard? Easier version" on each move: an easy day still counts.${care}`,
-    mood:'sad',chips:[chip('Show my quest','arrowGo','quest')]};
+  return {say:`Your Rest Passes are used up this week (new ones ${fmtDate(addDays(mondayOf(todayStr()),7))}). If you skip today, your penalty level goes up to ${S.penaltyLevel+1} and you'll owe ${owe} reps.${S.inv.potion?' A Healing Potion can undo that.':''} ${rec.short?' You\'re on the 10-minute quest already: one set of each move clears the day.':' If you can, do the 10-minute quest: the warm-up and one set of a few moves clears the day for half the EXP.'}${care}`,
+    mood:'sad',chips:[...(rec.short?[]:[chip('Do the 10-minute quest','arrowShort','1')]),chip('Show my quest','arrowGo','quest')]};
+}
+
+/* ---------- "Only have 10 minutes", "quick workout": the 10-minute quest (setShort in state.js) ---------- */
+const AR_SHORT_ASK=/\b(?:10|ten|15|fifteen)[- ]?min(?:ute)?s?\b.{0,20}\b(?:quest|workout|version|session)\b|\b(?:quick|short|mini|express|shorter)\s+(?:quest|workout|session|version)\b/;
+const AR_SHORT_HINT=/\b(?:no|not much|short on|running out of|little)\s+time\b|\bdon'?t have (?:much |enough )?time\b|\b(?:busy|hectic|packed)\s+(?:today|day|schedule)\b|\bonly (?:have|got) (?:\d+|ten|fifteen|twenty|five) min|\btime ledu\b|\btime nahi\b/;
+const arWantsShort=low=>AR_SHORT_ASK.test(low)||AR_SHORT_HINT.test(low);
+function arShortReply(c){
+  const rec=todayRec(),sp=todaysSplit(),ask=AR_SHORT_ASK.test(c.low),n=()=>buildQuestItems().filter(i=>!i.warm).length;
+  if(notStarted())return {say:`Your quests start ${fmtDate(S.startDate)}. Nothing to squeeze in yet.`,mood:'happy'};
+  if(rec.completed)return {say:'Today\'s quest is already cleared. Enjoy the free time.',mood:'happy'};
+  if(sp.rest)return {say:'Today is a recovery day: ten minutes of stretching is plenty, and there\'s nothing to clear.',mood:'happy'};
+  if(rec.short)return {say:`You're already on the 10-minute quest: the warm-up, then one set each of ${n()} moves. Go!`,mood:'excited',chips:[chip('Start workout','arrowStart')]};
+  if(ask&&setShort(true)){renderAll();
+    return {say:`10-minute quest on: the warm-up, then one set each of ${n()} moves with ${SHORT_REST} s rests. It clears the day for half the EXP, so your streak is safe.`,mood:'excited',chips:[chip('Start workout','arrowStart'),chip('Back to the full quest','arrowShort','0')]}}
+  return {say:`Short on time? Try the 10-minute quest: the warm-up, then one set each of up to ${SHORT_MOVES} moves. Half the EXP, but it clears the day and keeps your streak.`,mood:'curious',
+    chips:[chip('Do the 10-minute quest','arrowShort','1'),...(arRestChip()?[arRestChip()]:[])]};
 }
 
 /* ---------- "I don't have a table", "replace the pull workout": swap moves ----------
@@ -828,7 +844,8 @@ AH.daily_plan=c=>{
   if(penaltyDue())steps.push(`Clear the penalty quest first (${Math.max(0,S.penaltyReps-S.penaltyProgress)} reps owed).`);
   if(rec.completed)steps.push('Quest: done. Nice.');
   else if(sp.rest)steps.push('Quest: recovery day. Stretch and take a walk.');
-  else{steps.push(`Quest: ${sp.name}, ${sp.type.toLowerCase()}, ${buildQuestItems().filter(i=>!i.warm).length} moves.${h>=17?' Do it before dinner.':''}`);chips.push(chip('Start workout','arrowStart'))}
+  else{steps.push(`Quest: ${sp.name}, ${sp.type.toLowerCase()}, ${buildQuestItems().filter(i=>!i.warm).length} moves${rec.short?', the 10-minute version':''}.${h>=17?' Do it before dinner.':''}${h>=19&&!rec.short?' Short on time? The 10-minute quest clears it for half EXP.':''}`);
+    chips.push(chip('Start workout','arrowStart'));if(h>=19&&!rec.short&&canShort())chips.push(chip('10-minute quest','arrowShort','1'))}
   const q=suddenActive();if(q)steps.push(`Sudden quest: ${q.task}. It expires soon.`);
   if(typeof evNow==='function'){const cur=evNow(),R=evRun(cur.n),M=evMission(),ready=cur.ev.chapters.findIndex((x,i)=>evChapter(cur,i)==='ready');
     if(M)steps.push(`Story: finish your chapter ${M.i+1} mission.`);else if(!R.raid&&evRaidOpen(cur))steps.push(`Story: the raid against ${cur.ev.raid.boss} is open.`);
@@ -1058,6 +1075,7 @@ function arrowReply(ds,text,force){
   const c={ds,day:flDay(ds),T:foodTargets(ds),text,low,lang:arLang(text),ctx};
   const pend=ds.arrowPending&&Date.now()-ds.arrowPending.at<15*60000?ds.arrowPending:null;
   if(!force&&arWantsRest(low)){ds.arrowLast={text,intent:'rest_day',top:[]};return Object.assign(arRestReply(c),{intent:'rest_day',conf:1,src:'rules'})} // "I can't train today"
+  if(!force&&arWantsShort(low)){ds.arrowLast={text,intent:'short_quest',top:[]};return Object.assign(arShortReply(c),{intent:'short_quest',conf:1,src:'rules'})} // "only have 10 minutes"
   if(!force&&arWantsSwap(low)){ds.arrowLast={text,intent:'swap_move',top:[]};return Object.assign(arSwapReply(c),{intent:'swap_move',conf:1,src:'rules'})} // "I don't have a table"
   const cls=force?{intent:force,p:1,top:[],src:'forced'}:arrowClassify(ds,text);
   ds.arrowLast={text,intent:cls.intent,top:(cls.top||[]).map(x=>x.intent)};
@@ -1218,6 +1236,10 @@ ACT.arrowTable=v=>{const ds=dietState(),has=v==='1',sw=setNoTable(!has);
 ACT.arrowDoor=v=>{const ds=dietState(),has=v==='1',sw=setNoDoor(!has);
   flSay(ds,has?`Towel door moves are back${sw.length?`: ${arSwapList(sw)}`:''}.`:`Door moves are off${sw.length?`: ${arSwapList(sw)}`:''}. Doorway and floor versions from now on.`);
   saveDietState(ds);renderBot();renderAll();Bot.react(has?'happy':'proud',2200)};
+ACT.arrowShort=v=>{const ds=dietState(),on=v!=='0',ok=setShort(on);
+  flSay(ds,ok?(on?`10-minute quest on: one set each of ${buildQuestItems().filter(i=>!i.warm).length} moves. Half EXP, streak safe.`:'Back to the full quest.')
+    :(on?'The 10-minute quest isn\'t available right now.':'You\'ve already started the 10-minute quest, so it stays.'));
+  saveDietState(ds);renderBot();renderAll();if(ok)Bot.react(on?'excited':'happy',2200)};
 ACT.arrowExp=()=>openExpedition();
 ACT.arrowExpSend=()=>{const ds=dietState(),ok=expCanLaunch()&&launchExpedition(expDefaultGrade(),expDefaultSquad());
   flSay(ds,ok?`Sent into ${gateOf(S.expedition.g).name}. Back ${expBackText(S.expedition)}.`:'They can\'t go out right now.');saveDietState(ds);renderBot();if(ok){Bot.react('proud',2400);renderAll()}};

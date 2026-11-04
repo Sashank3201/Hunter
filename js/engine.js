@@ -120,7 +120,7 @@ function questReady(){
 
 function completeDay(){
   if(!questReady())return;
-  const rec=todayRec(),sp=todaysSplit(),w=weekNumber(),eff0=effLevel();
+  const rec=todayRec(),sp=todaysSplit(),w=weekNumber(),eff0=effLevel(),half=rec.short?.5:1; // the 10-minute quest pays half
   rec.completed=true;rec.doneAt=Date.now();
   const mins=swFinish(rec);
   let gain=sp.rest?30:40+Math.floor(w/2);
@@ -138,18 +138,19 @@ function completeDay(){
   const gained={};
   const trained=[...new Set(buildQuestItems().filter(i=>!i.warm).map(i=>i.key))]; // areas resting for an injury don't grow
   trained.forEach(k=>{const st=LADDERS[k].stat;gained[st]=(gained[st]||0)+1;if(sp.quests.includes(k))S.ladders[k].streak++});
-  Object.keys(gained).forEach(st=>{S.stats[st]+=gained[st]*0.22*armyMult('stat:'+st)});
-  STATS.forEach(st=>{S.stats[st]+=0.08*armyMult('stat:'+st)});
+  Object.keys(gained).forEach(st=>{S.stats[st]+=gained[st]*0.22*half*armyMult('stat:'+st)});
+  STATS.forEach(st=>{S.stats[st]+=0.08*half*armyMult('stat:'+st)});
   // weekly goal: 5 training days in a week boosts every stat
   if(!sp.rest&&trainedInWeek(mondayOf(todayStr()))===5){const surge=perk('surge'); // Weekly Surge (tree.js)
     STATS.forEach(st=>{S.stats[st]+=surge?.9:.6});gain+=surge?60:40;bonus.push(`Weekly goal hit: all stats boosted, +${surge?60:40} EXP${surge?' (Weekly Surge)':''}`);loot.push(grantItem('key'))}
-  if(sp.boss)loot.push(grantItem('box'));
+  if(sp.boss&&!rec.short)loot.push(grantItem('box'));
   if(rec.cooled){gain+=COOLDOWN_EXP;S.stats.Flexibility+=.2;S.stats.Mobility+=.2;bonus.push(`Cool-down: +${COOLDOWN_EXP} EXP, +0.2 FLX and MOB`)}
   const kinds=['expAll',...(sp.quests.includes('push')?['expPush']:[]),...(sp.boss?['expBoss']:[])];
   const pct=kinds.reduce((a,k)=>a+armyBonus(k),0),wPct=kinds.reduce((a,k)=>a+weaponBonus(k),0),tPct=kinds.reduce((a,k)=>a+treeBonus(k),0);
   if(pct){const extra=Math.round(gain*pct/100),wx=Math.min(extra,Math.round(gain*wPct/100)),tx=Math.min(extra-wx,Math.round(gain*tPct/100)),sx=extra-wx-tx;gain+=extra;
     if(sx>0)bonus.push(`Shadow army skills: +${sx} EXP`);if(wx>0)bonus.push(`${weaponOf(equippedWeapon()).name}: +${wx} EXP`);if(tx>0)bonus.push(`Skill tree: +${tx} EXP`)}
-  const shUps=[];armyTrain(sp.rest?5:10,shUps);
+  if(rec.short){const cut=gain-Math.round(gain/2);gain-=cut;bonus.push(`10-minute quest: half EXP (−${cut})${sp.boss?', no boss box':''}`)}
+  const shUps=[];armyTrain((sp.rest?5:10)*half,shUps);
   const shLv=shUps.filter(u=>!u.promo).map(u=>`${u.sh.n} Lv ${u.sh.lvl}`);if(shLv.length)bonus.push(`Shadows leveled: ${shLv.join(', ')}`);
   if(S.elixirActive){const extra=Math.round(gain*.5);gain+=extra;S.elixirActive=false;bonus.push(`Elixir of Growth: +${extra} EXP`)}
   // clean days slowly lower the penalty level
