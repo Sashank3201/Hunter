@@ -230,6 +230,16 @@ const NO_TABLE={
   'Bodyweight curl (table edge)':['Towel door curl',8,'Hold the towel over the door with your palms up, lean back on straight arms, and curl yourself toward the door using only your biceps. Elbows stay where they are.','Doorframe curl (each arm)']
 };
 Object.entries(NO_TABLE).forEach(([t,[n,base,cue,demo]])=>{if(!MOVES[n])MOVES[n]=Object.assign({},MOVES[t],{base,cue,demo:demo||n,alt:t})});
+/* No door that shuts and locks? The towel door moves become versions that only need a doorframe to
+   hold (doorway rows grip the frame, so any doorway works, door or no door) or the floor and a towel. */
+const NO_DOOR={
+  'Towel door row':['Pause doorway row (2s at the top)',6,'A doorway row where you hold the top for 2 seconds, chest to the frame, shoulder blades squeezed. It grips the frame, so any doorway works, door or no door.','Doorframe row (each arm)'],
+  'Tempo towel door row (3s up, 3s down)':['Tempo doorway row (3s up, 3s down)',5,'A doorway row with 3 seconds up and 3 seconds down. Walk your feet closer to the frame to make it harder.','Doorframe row (each arm)'],
+  'One-arm towel door row (each arm)':['One-arm doorway row, deep lean (each arm)',5,'Grip the doorframe with one hand, feet right at the frame, and lean far back on a straight arm. Pull yourself in without twisting.','Doorframe row (each arm)'],
+  'Towel door face pull':['Reverse snow angel',8,'Lie face down, forehead on a folded towel, arms by your sides. Lift your arms a little and sweep them out and up over your head, then back down to your hips, squeezing your shoulder blades the whole way.','Prone Y-T-W raise'],
+  'Towel door curl':['Towel isometric curl (secs)',20,'Stand on the middle of a towel and hold both ends, palms up, elbows at your sides. Curl up as hard as you can against it and hold, breathing steadily.','Backpack curl']
+};
+Object.entries(NO_DOOR).forEach(([t,[n,base,cue,demo]])=>{if(!MOVES[n])MOVES[n]=Object.assign({},MOVES[t],{base,cue,demo:demo||n,alt:t})});
 /* The areas as the rest of the app knows them: title, stat, and every move in unlock order. */
 const LADDERS=Object.fromEntries(Object.entries(AREAS).map(([k,A])=>[k,{stat:A.stat,title:A.title,
   steps:CHAINS[k].flatMap(c=>c[1]).sort((x,y)=>x[1]-y[1]).map(m=>[m[0],m[2],m[3]])}]));
