@@ -219,6 +219,7 @@ function todaysSplit(){
 const dn=n=>n.replace(' (secs)','').replace('(secs on/off)','(on/off)');
 
 function restFor(it){
+  if(todayRec().short)return SHORT_REST; // the 10-minute quest keeps rests short
   const more=perk('wind')?15:0; // Second Wind (tree.js)
   if(it.key==='mobility'||it.key==='flex')return REST.stretch+more;
   if(it.key==='core'&&!todaysSplit().boss)return REST.core+more;
@@ -227,13 +228,20 @@ function restFor(it){
   return REST.normal+more;
 }
 
+/* The 10-minute quest (rec.short): the warm-up, then one set each of up to SHORT_MOVES moves, picked
+   one per block first so every area still gets work. It clears the day for half the EXP. */
+const SHORT_MOVES=5,SHORT_REST=30;
+const canShort=()=>{const r=todayRec();return !notStarted()&&!r.completed&&!todaysSplit().rest};
+/* Back to the full quest only before any move of it is logged. */
+const canUnshort=()=>{const r=todayRec();return !!r.short&&!r.completed&&!buildQuestItems().some(i=>!i.warm&&(r.done.includes(i.id)||(r.sets[i.id]||[]).length))};
+function setShort(on){const r=todayRec();if(on?!canShort():!canUnshort())return false;if(on)r.short=true;else delete r.short;save();return true}
 function buildQuestItems(){
-  const sp=todaysSplit(),paused=pausedAreas(); // an injury rests the areas it would load (body.js)
+  const sp=todaysSplit(),paused=pausedAreas(),short=!!todayRec().short&&!sp.rest; // an injury rests the areas it would load (body.js)
   const items=[];
   if(!sp.rest)WARMUP.forEach((w,i)=>items.push({id:'w'+i,name:i===0&&paused.has('legs')?'March in place':w[0],amt:w[1]+' '+w[2],warm:true}));
   const add=(p,care)=>{
     const L=LADDERS[p.a],M=MOVES[p.n]||{};
-    const sets=care?2:sp.rest?1:(sp.boss||inJobPhase()?4:3);
+    const sets=short?1:care?2:sp.rest?1:(sp.boss||inJobPhase()?4:3);
     const t=moveGoal(p.n),tg=sp.boss&&!care?Math.round(t*1.25):t;
     items.push({id:p.id,key:p.a,name:p.n,sets,amt:tg,timed:isTimed(p.n),stat:L.stat,family:L.title,cue:M.cue||'',block:p.b,orig:p.orig,
       fresh:!S.prs[p.n],care,note:care?'Injury care: gentle, no pain':(sp.boss&&L.stat==='Strength')?'Last set to your limit':''});
@@ -241,6 +249,9 @@ function buildQuestItems(){
   planToday().forEach(p=>{if(!paused.has(p.a))add(p)});
   // every area today is resting: a gentle mobility and stretching session instead
   if(paused.size&&!items.some(i=>!i.warm))['mobility','flex'].filter(a=>!paused.has(a)).forEach((a,b)=>pickMoves(a,2,90+b).forEach(n=>add({id:moveId(n),a,n,b:9+b},true)));
+  if(short){const main=items.filter(i=>!i.warm),keep=new Set(),blocks=[...new Set(main.map(i=>i.block))];
+    for(let k=0;keep.size<Math.min(SHORT_MOVES,main.length);k++)blocks.forEach(b=>{const m=main.filter(i=>i.block===b)[k];if(m&&keep.size<SHORT_MOVES)keep.add(m)});
+    return items.filter(i=>i.warm||keep.has(i))}
   return items;
 }
 

@@ -1618,3 +1618,8 @@ details.acc .acc-body p{color:var(--ink-2);font-size:15px;padding:5px 0}
 .chron-text{margin:22px 0 44px;padding-top:14px;border-top:var(--rule)}
 .chron-text .h2{margin:6px 0 12px}
 .chron-text p:not(.overline){font-size:16px;line-height:1.55;margin-bottom:10px}
+
+/* The 10-minute quest (views.js) */
+.short-card .h3{display:flex;align-items:center;gap:8px}
+.short-card .h3 .ic{width:18px;height:18px}
+.short-link{margin-top:12px}
