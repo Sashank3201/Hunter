@@ -8,16 +8,21 @@ const TRIAL_RECOVER=120; // seconds of rest after a failed attempt
 const moveKind=m=>m[3]==='hold'?'hold':typeof m[3]==='number'?'window':'reps';
 function moveTarget(m){const k=moveKind(m);return k==='hold'?`${m[1]} sec hold`:k==='window'?`${m[1]} reps in ${m[3]} sec`:`${m[1]} reps, one set`}
 
+/* Rank r's test, with any table move swapped for its door stand-in when there is no table (state.js). */
+const testLabel=n=>dn(n).replace(/ \(each arm\)$/,', each arm');
+function trialOf(r){const t=RANK_TESTS[r];if(!t||!noTable())return t;
+  return Object.assign({},t,{tests:t.tests.map(m=>NO_TABLE[m[2]]?[testLabel(NO_TABLE[m[2]][0]),m[1],NO_TABLE[m[2]][0],...m.slice(3)]:m)})}
+
 /* Requirements for rank r's trial. */
 function trialStatus(r){
-  const t=RANK_TESTS[r],retry=rankRetryDate(r),lvOk=S.level>=t.level,wkOk=weekNumber()>=t.week;
+  const t=trialOf(r),retry=rankRetryDate(r),lvOk=S.level>=t.level,wkOk=weekNumber()>=t.week;
   return {t,lvOk,wkOk,retry,ready:lvOk&&wkOk&&!retry&&!S.trialRun&&!S.dungeonRun};
 }
 
 /* ---------- card on the Gates tab and Status ---------- */
 function trialCardHTML(where){
   const run=S.trialRun;
-  if(run){const t=RANK_TESTS[run.r];
+  if(run){const t=trialOf(run.r);
     return `<div class="trial-card live"><div class="tc-seal">${run.r}</div><div class="grow"><p class="overline">Rank-up trial in progress</p><p class="h2">${t.gate}</p>
       <p class="s">Move ${Math.min(run.i+1,t.tests.length)} of ${t.tests.length} · ${2-run.tries} attempt${run.tries?'':'s'} left</p>
       <button class="btn block" data-act="trialResume">Return to the trial</button></div></div>`}
@@ -38,7 +43,7 @@ function trialCardHTML(where){
 /* ---------- entering ---------- */
 function trialEnter(r){
   if(!trialStatus(r).ready)return;
-  const t=RANK_TESTS[r];
+  const t=trialOf(r);
   openModal(`<div class="m-stamp">${r}-Rank trial</div><p class="h2" style="margin-bottom:8px">${t.gate}</p>
     <p class="m-text">Hit every target, in order:</p>
     <ul class="m-moves">${t.tests.map((m,i)=>`<li><b>${String(i+1).padStart(2,'0')}</b><span>${m[0]}</span><em>${moveTarget(m).replace(', one set','')}</em></li>`).join('')}</ul>
@@ -59,14 +64,14 @@ function trialResume(){const L=$('trial');L.hidden=false;L.className='layer';doc
 function closeTrial(){BotGame.stop();$('trial').hidden=true;document.body.classList.remove('locked');renderAll();if(REVEALQ.length)setTimeout(()=>{if(revealIdle())nextReveal()},250)}
 
 /* ---------- the trial ---------- */
-const tRun=()=>S.trialRun,tMove=()=>{const r=tRun();return RANK_TESTS[r.r].tests[r.i]};
+const tRun=()=>S.trialRun,tMove=()=>{const r=tRun();return trialOf(r.r).tests[r.i]};
 function tBegin(){const r=tRun();if(!r||r.phase!=='intro')return;r.phase='ready';save();buzz('set');tRender()}
 function tStart(){ // start a hold or a timed window
   const r=tRun(),m=tMove(),k=moveKind(m);if(r.phase!=='ready')return;
   r.phase=k==='hold'?'hold':'window';r.t=k==='hold'?Date.now():Date.now()+m[3]*1000;save();buzz('set');tRender();
 }
 function tPass(){
-  const r=tRun(),t=RANK_TESTS[r.r];if(!['ready','hold','window','judge'].includes(r.phase))return;
+  const r=tRun(),t=trialOf(r.r);if(!['ready','hold','window','judge'].includes(r.phase))return;
   buzz('done');r.i++;r.tries=0;
   if(r.i>=t.tests.length){trialPass();return}
   r.phase='rest';r.t=Date.now()+TRIAL_REST*1000;save();tRender();flash('Move cleared');
@@ -90,7 +95,7 @@ ACT.tForfeitOk=()=>{closeModal();trialFail(true)};
 function trialPass(){
   const r=tRun().r,rk=RANKS.find(x=>x.r===r),from=currentRank().r,eff0=effLevel();
   S.rankTestsPassed=[...new Set([...S.rankTestsPassed,r])];delete S.rankFails[r];S.trialRun=null;
-  const exp=RANK_TESTS[r].exp||TRIAL_EXP;S.exp+=exp;
+  const exp=trialOf(r).exp||TRIAL_EXP;S.exp+=exp;
   const loot=[`+${exp} EXP`,grantItem('key',1,GRADES.includes(r)?r:'S'),grantItem('box')];
   const firstTitle=!S.titles.includes(rk.name);if(firstTitle)S.titles=[...S.titles,rk.name];
   const ups=[];armyTrain(100,ups);const shLv=announceUps(ups);
@@ -110,7 +115,7 @@ function trialPass(){
   checkFeats();
 }
 function trialFail(forfeit){
-  const r=tRun();if(!r)return;const t=RANK_TESTS[r.r];
+  const r=tRun();if(!r)return;const t=trialOf(r.r);
   S.rankFails[r.r]=todayStr();S.trialRun=null;save();
   const L=$('trial');L.className='layer';
   L.innerHTML=`<div class="d-result lose"><p class="overline">${r.r}-Rank trial · ${t.gate}</p><h2 class="d-big">${forfeit?'Forfeited':'Not yet'}</h2>
@@ -127,7 +132,7 @@ function tRing(frac,big,label,sub,cls){
 }
 function tRender(){
   const r=tRun(),L=$('trial');if(!r){closeTrial();return}
-  const t=RANK_TESTS[r.r],m=t.tests[Math.min(r.i,t.tests.length-1)],k=moveKind(m),now=Date.now();
+  const t=trialOf(r.r),m=t.tests[Math.min(r.i,t.tests.length-1)],k=moveKind(m),now=Date.now();
   let h=`<div class="d-flash"></div><div class="w-top"><button class="icon-btn" data-act="trialClose" aria-label="Leave the screen (the trial stays open)">${ic('left')}</button>
     <span class="w-pos"><span>${r.r}-Rank trial</span><b>${t.gate}</b></span>
     ${r.phase==='intro'?'<span style="width:44px"></span>':`<button class="icon-btn" data-act="tForfeit" aria-label="Forfeit the trial">${ic('x')}</button>`}</div>
@@ -167,7 +172,7 @@ function tRender(){
 /* Ticker: holds, timed windows and rest, even if the trial screen is closed. */
 setInterval(()=>{
   const r=S.trialRun;if(!r||!['hold','window','rest'].includes(r.phase))return;
-  const now=Date.now(),open=!$('trial').hidden,m=RANK_TESTS[r.r].tests[r.i],big=$('tBig'),fg=$('tRingFg');
+  const now=Date.now(),open=!$('trial').hidden,m=trialOf(r.r).tests[r.i],big=$('tBig'),fg=$('tRingFg');
   if(r.phase==='hold'){const held=Math.floor((now-r.t)/1000);
     if(held>=m[1]){if(!open){$('trial').hidden=false;$('trial').className='layer';document.body.classList.add('locked')}tPass();return}
     if(big)big.textContent=held;if(fg)fg.style.strokeDashoffset=339.3*(1-held/m[1]);

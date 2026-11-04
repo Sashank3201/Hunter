@@ -121,8 +121,12 @@ function nextRank(){const c=currentRank();const i=RANKS.findIndex(x=>x.r===c.r);
    Moves unlock by level, but a rank caps your level until its trial is passed,
    so passing a trial is what opens the next rank's moves. */
 function effLevel(){const nr=nextRank();return Math.min(S.level,nr?nr.lv-1:99)}
-/* The current move of a chain: the hardest one unlocked. */
-function chainMove(a,c,lv=effLevel()){let m=null;CHAINS[a][c][1].forEach(x=>{if(x[1]<=lv)m=x});return m&&m[0]}
+/* Equipment: without a sturdy table (Profile, or "I don't have a table" to Arrow), every table move
+   becomes its door stand-in (NO_TABLE in data.js): in quests, story events, Gates and trials. */
+const noTable=()=>!!(S.profile&&S.profile.noTable);
+const equipMove=n=>n&&noTable()&&NO_TABLE[n]?NO_TABLE[n][0]:n;
+/* The current move of a chain: the hardest one unlocked (or its stand-in). */
+function chainMove(a,c,lv=effLevel()){let m=null;CHAINS[a][c][1].forEach(x=>{if(x[1]<=lv)m=x});return m&&equipMove(m[0])}
 /* Moves that unlock when the capped level rises from a to b. */
 function newMoves(a,b){return Object.keys(MOVES).filter(n=>MOVES[n].lv>a&&MOVES[n].lv<=b)}
 const isTimed=n=>/secs|sec on|secs on/.test(n);
@@ -175,18 +179,31 @@ function swapMove(id){
   const rec=todayRec(),p=(rec.plan||[]).find(x=>x.id===id);
   if(!p||rec.sets[id]||rec.done.includes(id))return false;
   if(p.orig){p.n=p.orig;delete p.orig}
-  else{const M=MOVES[p.n],prev=M&&CHAINS[M.a][M.c][1][M.i-1];if(!prev||AREAS[M.a].pool)return false;p.orig=p.n;p.n=prev[0]}
+  else{const M=MOVES[p.n],prev=M&&CHAINS[M.a][M.c][1][M.i-1];if(!prev||AREAS[M.a].pool)return false;p.orig=p.n;p.n=equipMove(prev[0])}
   p.id=moveId(p.n);save();return true;
 }
 function canEase(t){const M=MOVES[t.name];return !!(t.orig||M&&M.i>0&&!AREAS[M.a].pool)}
 /* Challenger (tree.js): swap a move for the next one in its chain, for today only, before any set is logged. */
-const nextInChain=n=>{const M=MOVES[n];return M&&!AREAS[M.a].pool?CHAINS[M.a][M.c][1][M.i+1]:null};
+const nextInChain=n=>{const M=MOVES[n];if(!M||AREAS[M.a].pool)return null;const ms=CHAINS[M.a][M.c][1];
+  for(let i=M.i+1;i<ms.length;i++){const x=equipMove(ms[i][0]);if(x!==n)return x}return null}; // a stand-in may cover two table moves
 function canHarden(t){return perk('harder')&&!!nextInChain(t.name)}
 function swapHarder(id){
   const rec=todayRec(),p=(rec.plan||[]).find(x=>x.id===id),nx=p&&nextInChain(p.n);
   if(!p||!nx||p.orig||!perk('harder')||rec.sets[id]||rec.done.includes(id))return false;
-  p.orig=p.n;p.n=nx[0];p.id=moveId(p.n);save();return true;
+  p.orig=p.n;p.n=nx;p.id=moveId(p.n);save();return true;
 }
+/* Turn table moves off (or back on) and swap today's untouched moves to match. Returns [[from, to]]. */
+function setNoTable(on){
+  S.profile=Object.assign(S.profile||{},{noTable:!!on});
+  const rec=todayRec(),out=[];
+  if(rec.plan&&!rec.completed)rec.plan.forEach(p=>{
+    if(rec.sets[p.id]||rec.done.includes(p.id))return;
+    const M=MOVES[p.n],to=on?equipMove(p.n):M&&M.alt?chainMove(M.a,M.c):p.n;
+    if(p.orig)p.orig=on?equipMove(p.orig):MOVES[p.orig]&&MOVES[p.orig].alt?MOVES[p.orig].alt:p.orig;
+    if(to&&to!==p.n){out.push([p.n,to]);p.n=to;p.id=moveId(to)}});
+  save();return out;
+}
+const planHasTable=()=>(todayRec().plan||[]).some(p=>NO_TABLE[p.n]);
 
 /* ---------- today ---------- */
 function todayRec(){const k=todayStr();if(!S.log[k])S.log[k]={done:[],completed:false,penaltyDone:false};const r=S.log[k];if(!r.sets)r.sets={};return r}

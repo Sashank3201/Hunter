@@ -214,6 +214,22 @@ const CHAINS={
 /* Every move by name: {a: area, c: chain, i: place in the chain, lv, base, cue, demo}. */
 const MOVES={};
 Object.entries(CHAINS).forEach(([a,cs])=>cs.forEach(([,ms],c)=>ms.forEach((m,i)=>{MOVES[m[0]]={a,c,i,lv:m[1],base:m[2],cue:m[3],demo:m[4]||m[0]}})));
+/* No sturdy table? Each table move has a stand-in that needs only a doorway or a towel shut in a
+   door. A stand-in takes its table move's place in the chain (area, chain, unlock level) but has its
+   own target, records and shadow. Used when Profile says there is no table (equipMove in state.js).
+   [stand-in, starting target, how-to, demo it shares]; a stand-in that is already a move needs only its name. */
+const NO_TABLE={
+  'Table row, feet flat':['Doorway row (both hands)',8,'Grip both sides of a doorframe at chest height, toes near the threshold. Lean back on straight arms with your body in one line, then pull your chest through the doorway. The closer your feet, the harder it is.','Doorframe row (each arm)'],
+  'Table row, legs straight':['Doorway row, feet past the threshold',6,'A doorway row with your feet a small step past the threshold, so you lean further back. Body stays straight. If your grip slips, step back in.','Doorframe row (each arm)'],
+  'Table row, feet elevated':['Towel door row',6,'Tie a thick knot in a bath towel, hang it over the top of a solid door with the knot on the far side, then shut and lock the door so it opens away from you. Hold the towel low, lean back on straight arms and row your chest to your hands. Test it with a gentle lean first.','Doorframe row (each arm)'],
+  'Archer table row':['Tempo towel door row (3s up, 3s down)',5,'A towel door row where you take 3 seconds to pull up and 3 seconds to lower. Lean back further to make it harder. Door shut and locked, opening away from you.','Doorframe row (each arm)'],
+  'Tempo table row (3s up, 3s down)':['Tempo towel door row (3s up, 3s down)'],
+  'One-arm table row (each arm)':['One-arm towel door row (each arm)',4,'Hold the towel over the door with one hand, lean back on a straight arm and row yourself in without twisting. Free hand on your chest. Door shut and locked, opening away from you.','Doorframe row (each arm)'],
+  'Wide table row':['Towel door face pull',10,'Hold the towel over the door in both hands, lean back a little, and pull the ends toward your forehead with your elbows high and wide. Squeeze your shoulder blades together.','Doorframe row (each arm)'],
+  'Underhand table row':['Doorframe curl (each arm)'],
+  'Bodyweight curl (table edge)':['Towel door curl',8,'Hold the towel over the door with your palms up, lean back on straight arms, and curl yourself toward the door using only your biceps. Elbows stay where they are.','Doorframe curl (each arm)']
+};
+Object.entries(NO_TABLE).forEach(([t,[n,base,cue,demo]])=>{if(!MOVES[n])MOVES[n]=Object.assign({},MOVES[t],{base,cue,demo:demo||n,alt:t})});
 /* The areas as the rest of the app knows them: title, stat, and every move in unlock order. */
 const LADDERS=Object.fromEntries(Object.entries(AREAS).map(([k,A])=>[k,{stat:A.stat,title:A.title,
   steps:CHAINS[k].flatMap(c=>c[1]).sort((x,y)=>x[1]-y[1]).map(m=>[m[0],m[2],m[3]])}]));
