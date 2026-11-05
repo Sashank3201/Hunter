@@ -15,7 +15,7 @@ const ARROW_LABEL={log_food:'Log food',food_info:'Nutrition facts',undo:'Undo la
   start_workout:'Start workout',open_license:'Hunter License',open_settings:'Settings',theme:'Theme',ask_event:'Story event',
   ask_advice:'Coach me',ask_progress:'Am I improving?',daily_plan:'Plan my day',nutrition_tip:'Diet advice',feeling_down:'Feeling low',more:'Tell me more',
   fun_fact:'Fun fact',arrow_skin:'Arrow\'s look',about_me:'About me',log_body:'Log weight or waist',ask_body:'Body progress',ask_sleep:'My sleep',
-  expedition:'Shadow expeditions',skill_tree:'Skill tree',chronicle:'Monthly chronicle',rest_day:'Take a rest day',swap_move:'Swap a move',short_quest:'10-minute quest'};
+  expedition:'Shadow expeditions',skill_tree:'Skill tree',chronicle:'Monthly chronicle',rest_day:'Take a rest day',swap_move:'Swap a move',short_quest:'10-minute quest',rivals:'Rivals'};
 
 /* ---------- voice: a sassy friend ---------- */
 const SAY={
@@ -101,7 +101,7 @@ const AR_VOICE={
 const arVoiceOf=()=>typeof arrowForm==='function'&&typeof S!=='undefined'&&S.profile?AR_VOICE[arrowForm()]:null;
 const arVoiceSay=k=>{const V=arVoiceOf();return V&&V.say[k]};
 /* Intents that keep a plain voice, and those that already spoke in character through arSay. */
-const AR_PLAIN=new Set(['rest_day','swap_move','short_quest','pain','feeling_down','recovery','reset_log','undo','remove_item','correction','clear_chat','greet','thanks','praise','how_are_you','who_are_you','bye','insult']);
+const AR_PLAIN=new Set(['rest_day','swap_move','short_quest','rivals','pain','feeling_down','recovery','reset_log','undo','remove_item','correction','clear_chat','greet','thanks','praise','how_are_you','who_are_you','bye','insult']);
 function arVoice(r,intent){
   const V=arVoiceOf();if(!V||!r||!r.say||AR_PLAIN.has(intent)||Math.random()>=.45)return r;
   if(Math.random()<.5)r.say=`${arPick(V.open)} ${r.say}`;else r.say=`${r.say}${/[.!?)]$/.test(r.say)?'':'.'} ${arPick(V.close)}`;
@@ -210,7 +210,7 @@ function arGo(k){
   if(['status','quest','gates','progress','diet'].includes(k))showTab(k);
   else if(['history','feats','plan','skills','army','body'].includes(k))ACT.goProg(k);
   else if(k==='armory'){showTab('gates');setTimeout(()=>{const a=document.querySelector('.armory');if(a)a.scrollIntoView({behavior:'smooth',block:'center'})},350)}
-  else if(k==='grocery')ACT.grocery();else if(k==='report')ACT.report();else if(k==='event')openEvent();
+  else if(k==='grocery')ACT.grocery();else if(k==='report')ACT.report();else if(k==='event')openEvent();else if(k==='rivals')openRivals();
   else if(k==='skins'){openMenu();setTimeout(()=>{const s=document.querySelector('.skin-wrap');if(s)s.scrollIntoView({behavior:'smooth',block:'center'})},300)}
 }
 const chip=(l,a,arg)=>({l,a,arg:arg===undefined?'':String(arg)});
@@ -355,7 +355,7 @@ AH.how_are_you=()=>{
   return {say:why?`${arPick(['Great, actually.','Thriving.','Pretty good.'])}${why} How about you?`:arSay('howAreYou'),mood:'playful'};
 };
 AH.who_are_you=()=>({say:arSay('whoAreYou'),mood:'proud'});
-AH.help=()=>({say:'Here\'s what I can do: log food ("rendu idlis tinna", "2 rotis and dal"), tell you calories ("protein in paneer?"), suggest meals ("what should I eat?"), cook from your kitchen ("I have eggs and rice"), repeat meals ("same as yesterday"), answer Hunter questions ("what\'s my streak?", "who\'s my strongest shadow?"), coach you from your own numbers ("give me advice", "am I improving?", "plan my day"), answer diet questions ("is creatine safe?"), track your body without a scale ("waist 81 cm", "I weigh 64 kg"), your sleep ("slept 6 hours"), injuries ("my knee hurts") rest days ("I can\'t work out today"), a 10-minute quest ("I only have 10 minutes"), swap moves you can\'t do ("I don\'t have a table", "replace the push-ups"), teach form ("push-up form"), change my look ("wear the Monarch skin", "become Kirby"), send your shadows on expeditions ("send my shadows out"), help with your skill tree ("what perk should I get?"), tell your month as a story ("show my chronicle"), and run the app ("start my workout", "open Gates", "dark mode"). Say "tell me more" after any tip. Got something wrong? Tap "not what I meant" and I learn.',mood:'curious',
+AH.help=()=>({say:'Here\'s what I can do: log food ("rendu idlis tinna", "2 rotis and dal"), tell you calories ("protein in paneer?"), suggest meals ("what should I eat?"), cook from your kitchen ("I have eggs and rice"), repeat meals ("same as yesterday"), answer Hunter questions ("what\'s my streak?", "who\'s my strongest shadow?"), coach you from your own numbers ("give me advice", "am I improving?", "plan my day"), answer diet questions ("is creatine safe?"), track your body without a scale ("waist 81 cm", "I weigh 64 kg"), your sleep ("slept 6 hours"), injuries ("my knee hurts") rest days ("I can\'t work out today"), a 10-minute quest ("I only have 10 minutes"), rivals ("compete with my friend"), swap moves you can\'t do ("I don\'t have a table", "replace the push-ups"), teach form ("push-up form"), change my look ("wear the Monarch skin", "become Kirby"), send your shadows on expeditions ("send my shadows out"), help with your skill tree ("what perk should I get?"), tell your month as a story ("show my chronicle"), and run the app ("start my workout", "open Gates", "dark mode"). Say "tell me more" after any tip. Got something wrong? Tap "not what I meant" and I learn.',mood:'curious',
   chips:[chip('Give me advice','arrowAsk','give me advice'),chip('Plan my day','arrowAsk','plan my day'),chip('Fun fact','arrowAsk','tell me a fun fact')]});
 AH.joke=c=>({say:arFresh(c.ds,'joke',SAY.jokes),mood:'laughing',chips:[chip('Another one','arrowAsk','another one')]});
 AH.laugh=()=>({say:arSay('laugh'),mood:'laughing'});
@@ -537,6 +537,17 @@ function arRestReply(c){
 const AR_SHORT_ASK=/\b(?:10|ten|15|fifteen)[- ]?min(?:ute)?s?\b.{0,20}\b(?:quest|workout|version|session)\b|\b(?:quick|short|mini|express|shorter)\s+(?:quest|workout|session|version)\b/;
 const AR_SHORT_HINT=/\b(?:no|not much|short on|running out of|little)\s+time\b|\bdon'?t have (?:much |enough )?time\b|\b(?:busy|hectic|packed)\s+(?:today|day|schedule)\b|\bonly (?:have|got) (?:\d+|ten|fifteen|twenty|five) min|\btime ledu\b|\btime nahi\b/;
 const arWantsShort=low=>AR_SHORT_ASK.test(low)||AR_SHORT_HINT.test(low);
+/* "compete with my friend", "share my stats": rivals (rivals.js). */
+const AR_RIVALS=/\b(?:rivals?|compete|competing|competition|versus)\b|\bchallenge (?:a |my )?(?:friends?|buddy|bro|brother|hunter|rival|someone)\b|\bshare my (?:stats|week|file|progress|hunter file)\b|\b(?:add|import|open) (?:a |my )?(?:friend'?s?|rival'?s?) (?:file|stats)\b|\bagainst (?:my )?(?:friends?|bro)\b/;
+function arRivalsReply(){
+  const ids=rivalIds(),m=thisMonday(),inc=incomingChallenges();
+  let say=ids.length?`You have ${plural(ids.length,'rival')}. `:'Rivals: compete with Hunters you know by swapping a weekly file. ';
+  say+=ids.length?ids.slice(0,3).map(id=>{const R=S.rivals[id],f=latestOf(R),d=f&&duelOf(f);return `${R.name}: ${recordText(rivalRecord(R))}${d&&d.live?`, this week ${d.you}–${d.them} so far`:''}`}).join('; ')+'. '
+    :'Share your file with a friend who uses this app, add theirs, and the app scores the week: days, EXP, reps, minutes and Gates. ';
+  if(inc.length)say+=`${inc[0].name} challenged you: ${inc[0].C.n}. `;
+  say+=S.duel.issued[m]?`Your challenge this week: ${CHALLENGES[S.duel.issued[m]].n}.`:'You can also issue a challenge, like the longest plank or most squats in 60 seconds.';
+  return {say,mood:'proud',chips:[chip('Open Rivals','arrowGo','rivals'),chip('Share my file','rivalShare')]};
+}
 function arShortReply(c){
   const rec=todayRec(),sp=todaysSplit(),ask=AR_SHORT_ASK.test(c.low),n=()=>buildQuestItems().filter(i=>!i.warm).length;
   if(notStarted())return {say:`Your quests start ${fmtDate(S.startDate)}. Nothing to squeeze in yet.`,mood:'happy'};
@@ -1077,6 +1088,7 @@ function arrowReply(ds,text,force){
   const c={ds,day:flDay(ds),T:foodTargets(ds),text,low,lang:arLang(text),ctx};
   const pend=ds.arrowPending&&Date.now()-ds.arrowPending.at<15*60000?ds.arrowPending:null;
   if(!force&&arWantsRest(low)){ds.arrowLast={text,intent:'rest_day',top:[]};return Object.assign(arRestReply(c),{intent:'rest_day',conf:1,src:'rules'})} // "I can't train today"
+  if(!force&&AR_RIVALS.test(low)&&!/\b(story|event|raid|gate|dungeon)\b/.test(low)){ds.arrowLast={text,intent:'rivals',top:[]};return Object.assign(arRivalsReply(),{intent:'rivals',conf:1,src:'rules'})}
   if(!force&&arWantsShort(low)){ds.arrowLast={text,intent:'short_quest',top:[]};return Object.assign(arShortReply(c),{intent:'short_quest',conf:1,src:'rules'})} // "only have 10 minutes"
   if(!force&&arWantsSwap(low)){ds.arrowLast={text,intent:'swap_move',top:[]};return Object.assign(arSwapReply(c),{intent:'swap_move',conf:1,src:'rules'})} // "I don't have a table"
   const cls=force?{intent:force,p:1,top:[],src:'forced'}:arrowClassify(ds,text);

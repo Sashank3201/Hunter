@@ -39,7 +39,7 @@ const blocksLine=d=>(d.blocks||d.quests.map(k=>[k,2])).map(([a,n])=>`${BLOCK_NAM
 /* Rough session length in minutes: every set's work (about 3.5 s a rep, both sides for
    one-sided moves) plus its rest, and about 6 minutes of warm-up and cool-down. */
 function sessionMins(items){
-  const secs=items.filter(i=>!i.warm).reduce((a,it)=>a+it.sets*((it.timed?it.amt:it.amt*3.5)*(/each/.test(it.name)?2:1)+restFor(it)),0);
+  const secs=items.filter(i=>!i.warm).reduce((a,it)=>a+it.sets*((it.timed?it.amt:it.amt*3.5)*(sided(it.name)?2:1)+restFor(it)),0);
   return Math.max(10,Math.round(secs/60+(items.some(i=>i.warm)?6:0)));
 }
 
@@ -73,9 +73,11 @@ function renderStatus(){
     <button data-act="goProg" data-arg="army"><b>${S.shadows.length}</b><span>Shadows</span></button>
     <button data-act="goProg" data-arg="feats"><b>${Object.keys(S.feats).length}<small>/${FEATS.length}</small></b><span>Feats</span></button></div>
   <button class="license-link" data-act="card"><span class="ll-ph"><img src="${hunterPhoto()}" alt=""></span><span class="overline grow">Hunter License</span><span class="overline">View card →</span></button>
+  <button class="license-link" data-act="rivals"><span class="ll-ph rv-ph">${ic('sword')}</span><span class="overline grow">Rivals</span><span class="overline">${Object.keys(S.rivals).length?plural(Object.keys(S.rivals).length,'rival'):'Compete'} →</span></button>
   ${equippedWeapon()?(id=>`<button class="weapon-link" style="--rc:${RARITY[WEAPONS[id].rarity].c}" data-act="weaponOpen" data-arg="${id}"><span class="wl-art">${weaponSVG(id,'tilt')}</span><span class="grow"><span class="overline">Weapon · ${RARITY[WEAPONS[id].rarity].n}</span><b>${esc(WEAPONS[id].name)}${refineOf(id)?` +${refineOf(id)}`:''}</b></span><span class="overline">ATK ${weaponAtk(id)}</span></button>`)(equippedWeapon()):''}
   ${chestReady()?`<button class="chest-strip" data-act="chest"><span class="cs-ic">${ic('box')}</span><span class="grow"><b>Daily supply ready</b><span>Day ${chestDay().day} of 7 · ${rewardLabel(LOGIN_REWARDS[chestDay().day-1])}</span></span><span class="overline">Open →</span></button>`:''}
   ${expStripHTML()}
+  ${rivalStripHTML()}
   ${S.elixirActive?`<div class="card" style="border-top:1px solid var(--hair);padding:12px var(--gut)"><p class="overline" style="color:var(--red)">${ic('elixir')} Elixir active · next quest gives 1.5× EXP</p></div>`:''}
   ${eventBannerHTML()}`;
   h+=bodyStatusHTML(); // injuries and last night's sleep (body.js)
@@ -153,9 +155,9 @@ function renderQuest(){
       <button class="chk${on?' on':''}${pop}" aria-pressed="${on}" aria-label="${esc(dn(t.name))}: mark ${on?'not done':'done'}" data-act="toggle" data-arg="${t.id}" ${lock?'disabled':''}>${ic('check')}</button>
       <div class="grow"><p class="t">${dn(t.name)}${t.fresh&&!on?' <span class="tag-new">New</span>':''}</p>
         <p class="s">${t.stat===t.family?t.stat:`${t.family} · ${t.stat}`}${t.note?` · <span class="boss-note">${t.note}</span>`:''}</p>
-        ${logged.length?`<p class="log-line">Logged ${logged.join(' · ')}${t.timed?' sec':''}</p>`:pr?`<p class="log-line faint">Best ${pr.best}${pr.timed?' sec':''}</p>`:''}
+        ${logged.length?`<p class="log-line">Logged ${setsText(t).join(' · ')}${t.timed?' sec':''}</p>`:pr?`<p class="log-line faint">Best ${pr.best}${pr.timed?' sec':''}</p>`:''}
         <button class="how-btn" aria-expanded="${open}" data-act="cue" data-arg="${t.id}">How to ${ic('down')}</button>${!lock&&!on&&!logged.length&&canEase(t)?`<button class="how-btn ease-btn" data-act="ease" data-arg="${t.id}">${t.orig?`Back to ${esc(dn(t.orig))}`:'Too hard? Easier version'}</button>`:''}${!lock&&!on&&!logged.length&&!t.orig&&canHarden(t)?`<button class="how-btn ease-btn" data-act="harder" data-arg="${t.id}">Harder version</button>`:''}${!lock&&!on&&!logged.length&&NO_TABLE[t.name]?`<button class="how-btn ease-btn" data-act="noTableAsk">No table? Swap it</button>`:''}${!lock&&!on&&!logged.length&&NO_DOOR[t.name]?`<button class="how-btn ease-btn" data-act="noDoorAsk">No door? Swap it</button>`:''}</div>
-      <span class="target">${t.sets}<i>×</i>${t.amt}${t.timed?'s':''}</span></div>
+      <span class="target">${t.sets}<i>×</i>${t.amt}${t.timed?'s':''}${sided(t.name)?'<small class="per-side">each side</small>':''}</span></div>
       ${open&&t.cue?`<div class="ex-cue">${demoHTML(t.name)}<p>${t.cue}</p></div>`:''}</li>`;
   };
   if(warm.length)h+=`<div class="sec-label"><span class="overline">Warm-up</span><span class="faint small">2 min</span></div><div class="card tight"><ul class="list">${warm.map(w=>row(w,true)).join('')}</ul></div>`;
@@ -261,7 +263,8 @@ function historyHTML(){
   const durs=Object.values(S.log).map(r=>r.duration||0).filter(Boolean),mins=durs.reduce((a,b)=>a+b,0);
   const tiles=[['timer',mins>=60?`${Math.floor(mins/60)}h ${mins%60}m`:`${mins}m`,'Time trained'],['calendar',durs.length?`${Math.round(mins/durs.length)}m`:'—','Avg session'],['zap',S.totalQuests,'Quests cleared'],['flame',S.bestStreak,'Best streak'],['dumbbell',S.totalReps.toLocaleString(),'Total reps'],['skull',S.deaths,'Deaths']];
   let h=`<button class="license-link" data-act="report" style="border-top:0;margin-bottom:0"><span class="overline">Weekly System report</span><span class="overline">Last week →</span></button>
-    <button class="license-link" data-act="chronicle" style="margin-bottom:12px"><span class="overline">Hunter's Chronicle</span><span class="overline">Monthly chapters →</span></button><div class="tiles">${tiles.map(([i,v,l])=>`<div class="tile"><span class="lead">${ic(i)}</span><b>${v}</b><span>${l}</span></div>`).join('')}</div>`;
+    <button class="license-link" data-act="chronicle"><span class="overline">Hunter's Chronicle</span><span class="overline">Monthly chapters →</span></button>
+    <button class="license-link" data-act="rivals" style="margin-bottom:12px"><span class="overline">Rivals</span><span class="overline">${Object.keys(S.rivals).length?plural(Object.keys(S.rivals).length,'rival'):'Compete with friends'} →</span></button><div class="tiles">${tiles.map(([i,v,l])=>`<div class="tile"><span class="lead">${ic(i)}</span><b>${v}</b><span>${l}</span></div>`).join('')}</div>`;
 
   const W=12,start=addDays(mondayOf(todayStr()),-7*(W-1));
   h+=`<div class="card"><div class="card-head"><span class="h3">Last 12 weeks</span></div><div class="heat" role="grid" aria-label="Training calendar, last 12 weeks">

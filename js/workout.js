@@ -2,7 +2,8 @@
    One exercise at a time: log each set, rest starts automatically, timed holds
    count themselves down. Progress is written to today's log after every set,
    so closing the app mid-workout loses nothing. */
-const W={open:false,steps:[],i:0,phase:'set',end:0,total:0,reps:0,tick:null,wake:null,after:null};
+const W={open:false,steps:[],i:0,phase:'set',end:0,total:0,reps:0,tick:null,wake:null,after:null,half:false};
+const SWITCH_SECS=5; // a one-sided hold: time to switch sides before the other side starts
 
 function wSteps(){
   const items=buildQuestItems(),warm=items.filter(i=>i.warm);
@@ -52,17 +53,20 @@ function enterStep(){
 
 /* ---------- timers ---------- */
 function startClock(sec,phase){
-  W.phase=phase;W.total=sec;W.end=Date.now()+sec*1000;
+  W.phase=phase;W.total=sec;W.end=Date.now()+sec*1000;W.half=false;
   clearInterval(W.tick);W.tick=setInterval(wTick,200);
   wRender();
 }
 function left(){return Math.max(0,Math.ceil((W.end-Date.now())/1000))}
 function wTick(){
-  if(W.phase!=='rest'&&W.phase!=='hold'&&W.phase!=='coolrun'){clearInterval(W.tick);return}
+  if(W.phase!=='rest'&&W.phase!=='hold'&&W.phase!=='coolrun'&&W.phase!=='switch'){clearInterval(W.tick);return}
   const l=left();
   const c=$('wClock');if(c)c.textContent=fmtClock(l);
   const r=$('wRing');if(r)r.style.strokeDashoffset=String(339.3*(1-l/W.total));
-  if(l<=0){clearInterval(W.tick);W.phase==='hold'?holdFinished():W.phase==='coolrun'?coolNext():restFinished()}
+  // a one-sided stretch: switch sides halfway
+  if(!W.half&&l>0&&l<=W.total/2&&switchHalf(W.phase==='hold'?W.steps[W.i].item.name:W.phase==='coolrun'?W.cool[W.ci]:'')){
+    W.half=true;buzz('set');const sub=$('wSub');if(sub){sub.textContent='Switch sides';sub.classList.add('switch-now')}}
+  if(l<=0){clearInterval(W.tick);W.phase==='hold'?holdFinished():W.phase==='coolrun'?coolNext():W.phase==='switch'?startClock(W.steps[W.i].item.amt,'hold'):restFinished()}
 }
 function fmtClock(n){return n>=60?Math.floor(n/60)+':'+String(n%60).padStart(2,'0'):String(n)}
 
@@ -83,7 +87,8 @@ function afterSet(it){
 function holdFinished(){
   const it=W.steps[W.i].item;
   buzz('alarm');
-  logSet(it,it.amt);
+  if(sided(it.name)&&sideA(it)==null){firstSide(it,it.amt);startClock(SWITCH_SECS,'switch');return} // first side held: switch
+  logRound(it,it.amt);
   afterSet(it);
 }
 function restFinished(){
@@ -102,16 +107,18 @@ ACT.wSet=()=>{
   const it=W.steps[W.i].item;
   if(W.reps<=0)return;
   buzz('set');
-  logSet(it,W.reps);
+  if(sided(it.name)&&sideA(it)==null){firstSide(it,W.reps);wRender();return} // first side done: the other side, no rest between
+  logRound(it,W.reps);
   afterSet(it);
 };
 ACT.wHold=()=>{buzz('set');startClock(W.steps[W.i].item.amt,'hold')};
 ACT.wHoldLog=()=>{clearInterval(W.tick);holdFinished()};
 ACT.wHoldStop=()=>{clearInterval(W.tick);W.phase='set';wRender()};
-ACT.wUndo=()=>{const it=W.steps[W.i].item;undoSet(it);W.phase='set';wRender()};
+ACT.wSwitchGo=()=>{clearInterval(W.tick);startClock(W.steps[W.i].item.amt,'hold')};
+ACT.wUndo=()=>{const it=W.steps[W.i].item;clearInterval(W.tick);undoRound(it);W.phase='set';wRender()};
 ACT.wMore=()=>{W.end+=15000;W.total+=15;wTick()};
 ACT.wSkip=()=>{clearInterval(W.tick);restFinished()};
-ACT.wJump=i=>{if(W.phase==='hold'||W.phase==='rest')clearInterval(W.tick);W.i=+i;enterStep();wRender()};
+ACT.wJump=i=>{if(W.phase==='hold'||W.phase==='rest'||W.phase==='switch')clearInterval(W.tick);W.i=+i;enterStep();wRender()};
 ACT.wClaim=()=>{closeWorkout(false);completeDay()};
 
 /* ---------- cool-down ----------
@@ -139,7 +146,7 @@ ACT.coolSkip=()=>{clearInterval(W.tick);W.coolSkip=true;W.phase='final';wRender(
 /* ---------- render ---------- */
 function timerRing(sec,label,sub,cls){
   return `<div class="ring-wrap${cls?' '+cls:''}"><svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true"><circle class="bg" cx="60" cy="60" r="54" stroke-width="7"/><circle id="wRing" class="fg" cx="60" cy="60" r="54" stroke-width="7" style="stroke-dasharray:339.3;stroke-dashoffset:${339.3*(1-sec/W.total)}"/></svg>
-    <div class="ring-in"><span class="overline">${label}</span><b id="wClock" role="timer">${fmtClock(sec)}</b><span class="muted small">${sub}</span></div></div>`;
+    <div class="ring-in"><span class="overline">${label}</span><b id="wClock" role="timer">${fmtClock(sec)}</b><span class="muted small${W.half?' switch-now':''}" id="wSub">${W.half?'Switch sides':sub}</span></div></div>`;
 }
 
 function wRender(){
@@ -151,7 +158,7 @@ function wRender(){
   if(W.phase==='cool'||W.phase==='coolrun'){
     const name=W.cool[W.ci],run=W.phase==='coolrun';
     h+=`<div class="w-body"><p class="overline">Cool-down · stretch ${W.ci+1} of ${W.cool.length}</p><h2 class="w-name">${dn(name)}</h2>${demoHTML(name)}
-      ${run?timerRing(left(),'Breathe','Ease in. No bouncing.'):`<p class="muted" style="margin:4px 0 0">${stretchCue(name)}</p>`}</div>
+      ${run?timerRing(left(),'Breathe',switchHalf(name)?'First side. Switch halfway.':'Ease in. No bouncing.'):`<p class="muted" style="margin:4px 0 0">${stretchCue(name)}</p>`}</div>
       <div class="w-foot">${run?`<div class="row-btns" style="width:100%"><button class="btn ghost" data-act="coolSkip">Skip all</button><button class="btn" data-act="coolNextNow">Next stretch</button></div>`
         :`<button class="btn" data-act="coolStart">Start ${COOLDOWN_SECS}s stretch</button><button class="btn quiet" data-act="coolSkip">Skip cool-down</button>`}</div>`;
   }else if(W.phase==='final'){
@@ -165,9 +172,10 @@ function wRender(){
       <div class="w-warm">${st.items.map(w=>{const on=rec.done.includes(w.id);return `<button class="w-wi${on?' on':''}" aria-pressed="${on}" data-act="wWarm" data-arg="${w.id}"><span class="chk${on?' on':''}">${ic('check')}</span><span class="grow"><b>${w.name}</b><small>${w.amt}</small></span></button>`}).join('')}</div></div>
       <div class="w-foot"><button class="btn" data-act="wWarmNext" ${stepDone(st)?'':'disabled'}>${stepDone(st)?'Start exercises':'Tap each warm-up'}</button></div>`;
   }else{
-    const it=st.item,n=setsLogged(it),logged=todayRec().sets[it.id]||[];
+    const it=st.item,n=setsLogged(it),logged=setsText(it);
     const setNo=Math.min(n+1,it.sets),pr=S.prs[it.name];
-    const pips=`<div class="w-pips" aria-label="${n} of ${it.sets} sets logged">${Array.from({length:it.sets},(_,i)=>`<i class="${i<n?'on':''}${i===n&&W.phase==='set'?' cur':''}">${i<n?logged[i]+(it.timed?'s':''):'Set '+(i+1)}</i>`).join('')}</div>`;
+    const sd=sided(it.name),a=sd?sideA(it):null,two=a!=null,sideTxt=sd?(two?'Other side':'First side'):'';
+    const pips=`<div class="w-pips" aria-label="${n} of ${it.sets} sets logged">${Array.from({length:it.sets},(_,i)=>`<i class="${i<n?'on':''}${i===n&&W.phase==='set'?' cur':''}${i===n&&two?' half':''}">${i<n?logged[i]+(it.timed?'s':''):i===n&&two?`Set ${i+1} · 1/2`:'Set '+(i+1)}</i>`).join('')}</div>`;
     h+=`<div class="w-body"><p class="overline">${it.stat===it.family?it.stat:`${it.family} · ${it.stat}`}</p>
       <h2 class="w-name">${dn(it.name)}</h2>${pips}${W.phase==='set'&&n<it.sets?demoHTML(it.name):''}`;
     const how=`<details class="w-how"${n?'':' open'}><summary>How to do it ${ic('down')}</summary><p>${it.cue}</p></details>`;
@@ -177,22 +185,25 @@ function wRender(){
       h+=`<div class="rest-top">${timerRing(left(),'Rest','Breathe','sm')}
         <div class="next-card"><div class="grow"><p class="faint small">Up next</p><p class="h3">${nx?(nx.warm?'Warm-up':esc(dn(nx.item.name))):`Set ${n+1} of ${it.sets}`}</p></div></div></div>${botGameHTML()}</div>
         <div class="w-foot two"><button class="btn ghost" data-act="wMore">+15 sec</button><button class="btn" data-act="wSkip">Skip rest</button></div>`;
+    }else if(W.phase==='switch'){
+      h+=timerRing(left(),'Switch sides',`Other side next · ${it.amt}s`)+`</div>
+        <div class="w-foot two"><button class="btn ghost" data-act="wHoldStop">Stop</button><button class="btn" data-act="wSwitchGo">Start now</button></div>`;
     }else if(W.phase==='hold'){
-      h+=timerRing(left(),`Set ${setNo} of ${it.sets}`,'Hold steady')+`</div>
+      h+=timerRing(left(),`Set ${setNo} of ${it.sets}${sd?` · ${sideTxt.toLowerCase()}`:''}`,sd?(two?'Other side. Hold steady':'Then switch sides'):switchHalf(it.name)?'First side. Switch halfway.':'Hold steady')+`</div>
         <div class="w-foot two"><button class="btn ghost" data-act="wHoldStop">Stop</button><button class="btn" data-act="wHoldLog">Done early</button></div>`;
     }else if(n>=it.sets){
       const j=nextOpen();
       h+=`<div class="w-done"><div class="badge">${ic('check')}</div><p class="h2">Exercise complete</p><p class="muted">${logged.join(' · ')}${it.timed?' sec':' reps'}</p></div></div>
         <div class="w-foot two"><button class="btn ghost" data-act="wUndo">${ic('undo')}Undo</button>${j>=0?`<button class="btn" data-act="wJump" data-arg="${j}">Next ${ic('right')}</button>`:`<button class="btn" data-act="wFinal">Finish</button>`}</div>`;
     }else if(it.timed){
-      h+=`<div class="w-target"><p class="overline">Set ${setNo} of ${it.sets}</p><div class="big-num">${it.amt}<small>sec</small></div>
-          <p class="muted">${pr?`Your best: ${pr.best} sec`:'Hold with good form'}</p></div>${how}</div>
-        <div class="w-foot">${n?`<button class="btn quiet" data-act="wUndo">${ic('undo')}Undo last set</button>`:''}<button class="btn" data-act="wHold">${ic('timer')}Start ${it.amt}s hold</button></div>`;
+      h+=`<div class="w-target"><p class="overline">Set ${setNo} of ${it.sets}${sd?` · ${sideTxt}`:''}</p><div class="big-num">${it.amt}<small>sec${sd?' each side':''}</small></div>
+          <p class="muted">${sd?(two?'First side done. Now the other side.':'One side, then the other, with 5 s to switch.'):pr?`Your best: ${pr.best} sec`:'Hold with good form'}</p></div>${how}</div>
+        <div class="w-foot">${n||two?`<button class="btn quiet" data-act="wUndo">${ic('undo')}${two?'Undo first side':'Undo last set'}</button>`:''}<button class="btn" data-act="wHold">${ic('timer')}${two?`Start other side · ${it.amt}s`:`Start ${it.amt}s hold`}</button></div>`;
     }else{
-      h+=`<div class="w-target"><p class="overline">Set ${setNo} of ${it.sets} · Target ${it.amt}</p>
+      h+=`<div class="w-target"><p class="overline">Set ${setNo} of ${it.sets}${sd?` · ${sideTxt}`:''} · Target ${it.amt}${sd?' each side':''}</p>
           <div class="stepper"><button data-act="wStep" data-arg="-1" aria-label="One less rep">${ic('minus')}</button><div class="big-num" id="wReps" aria-live="polite">${W.reps}</div><button data-act="wStep" data-arg="1" aria-label="One more rep">${ic('plus')}</button></div>
-          <p class="muted">${pr?`Reps you did · best ${pr.best}`:'Adjust to the reps you actually did'}</p></div>${how}</div>
-        <div class="w-foot">${n?`<button class="btn quiet" data-act="wUndo">${ic('undo')}Undo last set</button>`:''}<button class="btn" data-act="wSet">${ic('check')}Log set</button></div>`;
+          <p class="muted">${sd?(two?`First side: ${a}. Now the same on the other side, then rest.`:'Do every rep on one side first. The other side comes next, then rest.'):pr?`Reps you did · best ${pr.best}`:'Adjust to the reps you actually did'}</p></div>${how}</div>
+        <div class="w-foot">${n||two?`<button class="btn quiet" data-act="wUndo">${ic('undo')}${two?'Undo first side':'Undo last set'}</button>`:''}<button class="btn" data-act="wSet">${ic('check')}${sd?(two?'Log other side':'Log first side'):'Log set'}</button></div>`;
     }
   }
   $('workout').innerHTML=h;
