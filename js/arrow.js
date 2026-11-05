@@ -551,8 +551,9 @@ function arShortReply(c){
 
 /* ---------- "I don't have a table", "replace the pull workout": swap moves ----------
    Missing equipment and asks to replace a move skip the model and come here. No table turns every
-   table move into its door version, and no door turns the towel door moves into doorframe and floor
-   versions (setNoTable, setNoDoor in state.js); other moves get their easier version.
+   table move into its door version, and no door turns the towel door moves into floor versions
+   (setNoTable, setNoDoor in state.js); doorway moves are gone for everyone (NO_FRAME in data.js).
+   Other moves get their easier version.
    Pain goes to the pain handler instead, and food talk ("eat this instead of rice") to the model. */
 const AR_NO_GEAR=/\b(?:don'?t|do not|doesn'?t|does not)\s+(?:have|own|got)\s+(?:a |an |any )?(?:sturdy |heavy |strong |proper |good |big )?(dining table|table|desk|pull ?-?up bar|bar|backpack|bag|chair|box|stairs?|step|towel|door ?frame|doorway|door|equipment|gym)\b|\bno\s+(?:sturdy |heavy |strong |proper |solid )?(table|desk|pull ?-?up bar|equipment|backpack|gym|door)\b|\bwithout\s+(?:a |an |any )?(table|desk|equipment|bar|backpack|gym|door)\b|\b(table|desk|door|darwaza|talupu)\s+(?:ledu|nahi|nahin|nai|illa)\b/;
 /* A door that won't do: no lock, opens toward you, too flimsy. */
@@ -564,12 +565,12 @@ const AR_HAVE_TABLE=/\b(?:i (?:do |now )?have|i'?ve got|i got|got)\s+(?:a |an )?
 const arWantsSwap=low=>!/\b(hurts?|pain|injur\w*|sprain\w*|noppi|dard)\b/.test(low)&&(AR_NO_GEAR.test(low)||AR_HAVE_TABLE.test(low)||AR_BAD_DOOR.test(low)||AR_HAVE_DOOR.test(low)||
   (AR_SWAP.test(low)&&AR_SWAP_WHAT.test(low)&&!/\b(eat|ate|food|meal|breakfast|lunch|dinner|snack|protein|calories|drink|recipe|skin|look|colou?r|theme|goal)\b/.test(low)));
 const AR_GEAR_TIP={
-  bar:'No bar needed. Your pull moves use a doorway, a towel shut in a door, and a backpack.',
+  bar:'No bar needed. Your pull moves use a backpack, the floor with a towel (floor slide pulls work your lats like a pull-up), and a towel shut in a door if you have one.',
   backpack:'Any bag works: fill a school bag or a grocery bag with books or water bottles. A big water bottle in each hand works for curls too.',
   chair:'For anything that says chair or box, use a stair, the edge of your bed or a sturdy sofa. Nothing that rolls or tips.',
   towel:'No towel? A bedsheet or an old T-shirt works the same, folded so it is strong.',
-  frame:'No doorframe you can grip? Tap "Too hard? Easier version" on the row in your quest until you reach backpack rows: a bag full of books works anywhere. Or ask me to "replace the rows".',
-  gym:'You don\'t need one. Everything here is bodyweight, a backpack, a doorway and a towel. No sturdy table either? Tell me and I\'ll swap table rows for door rows.'};
+  frame:'No doorframe needed: doorway moves are gone. Your pull moves are backpack rows, floor slide pulls and backpack curls, and they work anywhere.',
+  gym:'You don\'t need one. Everything here is bodyweight, a backpack, a chair and a towel. No sturdy table either? Tell me and I\'ll swap the table rows.'};
 const arGearKey=t=>/bar/.test(t)?'bar':/backpack|bag/.test(t)?'backpack':/chair|box|stair|step/.test(t)?'chair':/towel/.test(t)?'towel':/door ?frame|doorway/.test(t)?'frame':/door|darwaza|talupu/.test(t)?'door':/gym|equipment/.test(t)?'gym':'table';
 const arSwapList=sw=>sw.map(([a,b])=>`${dn(a)} → ${dn(b)}`).join('; ');
 function arSwapReply(c){
@@ -581,18 +582,19 @@ function arSwapReply(c){
   if(key==='door'||AR_BAD_DOOR.test(low)){
     const was=noDoor(),sw=setNoDoor(true),kept=(todayRec().plan||[]).filter(p=>NO_DOOR[p.n]);renderAll();
     let say=sw.length?`No door, no problem. Swapped for today: ${arSwapList(sw)}.`:was?'Door moves are already off for you.':'Done: no more towel door moves.';
-    say+=' Doorway rows grip the frame, so any doorway works, door or no door. The rest are floor moves with a towel. Tap "How to" on a move to see how.';
+    say+=' Your pulls are now backpack rows and floor slide pulls: lie face down on a towel and pull yourself along the floor. Nothing grips a door or a doorframe. Tap "How to" on a move to see how.';
     if(!noTable())say+=' You still have table rows on. No sturdy table either? Tell me.';
     if(kept.length)say+=` ${dn(kept[0].n)} was already started today, so it stays.`;
     return {say,mood:'proud',chips:[chip('Show my quest','arrowGo','quest'),chip('I do have a door','arrowDoor','1')]};
   }
+  if(!key&&/\bdoor ?(?:way|frame)s?\b/.test(low))return {say:AR_GEAR_TIP.frame,mood:'happy',chips:[chip('Show my quest','arrowGo','quest')]}; // "replace the doorway rows"
   if(key&&key!=='table')return {say:AR_GEAR_TIP[key],mood:'thinking',chips:key==='gym'&&!noTable()?[chip('I don\'t have a table','arrowTable','0')]:null};
   const rec=todayRec(),busy=notStarted()||rec.completed,plan=busy?[]:planToday();
   if(key==='table'||/\btable\b/.test(low)||(planHasTable()&&/\b(pull|rows?|back|biceps|curls?)\b/.test(low))){
     const was=noTable(),sw=setNoTable(true),kept=plan.filter(p=>NO_TABLE[p.n]);renderAll();
     let say=sw.length?`No table, no problem. Swapped for today: ${arSwapList(sw)}.`:was?'Table moves are already off for you.':'Done: no more table moves.';
-    say+=noDoor()?' From now on your quests, story events, Gates and trials use doorway rows, which grip the frame, and floor moves instead. Tap "How to" on a move for the setup.'
-      :' From now on your quests, story events, Gates and trials use door versions: a doorway row, or a towel shut in a solid door that opens away from you. Tap "How to" on a move for the setup. No door like that? Tell me "I don\'t have a door".';
+    say+=noDoor()?' From now on your quests, story events, Gates and trials use backpack rows and floor slide pulls instead. Tap "How to" on a move for the setup.'
+      :' From now on your quests, story events, Gates and trials use backpack rows, floor slide pulls and towel door rows (a towel shut in a solid door that opens away from you). Tap "How to" on a move for the setup. No door like that? Tell me "I don\'t have a door".';
     if(kept.length)say+=` ${dn(kept[0].n)} was already started today, so it stays.`;
     return {say,mood:'proud',chips:[chip('Show my quest','arrowGo','quest'),chip('I do have a table','arrowTable','1')]};
   }
@@ -1234,7 +1236,7 @@ ACT.arrowTable=v=>{const ds=dietState(),has=v==='1',sw=setNoTable(!has);
   flSay(ds,has?`Table moves are back${sw.length?`: ${arSwapList(sw)}`:''}.`:`Table moves are off${sw.length?`: ${arSwapList(sw)}`:''}. Door versions from now on.`);
   saveDietState(ds);renderBot();renderAll();Bot.react(has?'happy':'proud',2200)};
 ACT.arrowDoor=v=>{const ds=dietState(),has=v==='1',sw=setNoDoor(!has);
-  flSay(ds,has?`Towel door moves are back${sw.length?`: ${arSwapList(sw)}`:''}.`:`Door moves are off${sw.length?`: ${arSwapList(sw)}`:''}. Doorway and floor versions from now on.`);
+  flSay(ds,has?`Towel door moves are back${sw.length?`: ${arSwapList(sw)}`:''}.`:`Door moves are off${sw.length?`: ${arSwapList(sw)}`:''}. Floor versions from now on.`);
   saveDietState(ds);renderBot();renderAll();Bot.react(has?'happy':'proud',2200)};
 ACT.arrowShort=v=>{const ds=dietState(),on=v!=='0',ok=setShort(on);
   flSay(ds,ok?(on?`10-minute quest on: one set each of ${buildQuestItems().filter(i=>!i.warm).length} moves. Half EXP, streak safe.`:'Back to the full quest.')

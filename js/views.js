@@ -186,11 +186,11 @@ ACT.shortQuest=v=>{const on=v==='1';if(!setShort(on))return;buzz('tap');renderAl
   toast(on?`10-minute quest: one set of each move. Half EXP, streak safe.`:'Back to the full quest')};
 ACT.harder=id=>{if(swapHarder(id)){buzz('tap');renderAll()}};
 ACT.noTableAsk=()=>openModal(`<div class="m-stamp">No sturdy table?</div>
-  <p class="m-text">Every table move becomes a door version: a doorway row, or a towel shut in a solid door. Today's untouched moves swap now, and quests, story events, Gates and trials use the door versions from now on. Switch it back any time in Profile.</p>
+  <p class="m-text">Every table move becomes a towel door row (a towel shut in a solid door), a backpack row or a floor slide pull. Today's untouched moves swap now, and quests, story events, Gates and trials use them from now on. Switch it back any time in Profile.</p>
   <div class="m-btns"><button class="btn" data-act="noTableOk">Swap table moves</button><button class="btn ghost" data-act="closeModal">Keep them</button></div>`,'sys','dumbbell');
-ACT.noTableOk=()=>{const sw=setNoTable(true);closeModal();buzz('done');toast(sw.length?`Swapped ${plural(sw.length,'table move')} for door versions`:'Table moves are off');renderAll()};
+ACT.noTableOk=()=>{const sw=setNoTable(true);closeModal();buzz('done');toast(sw.length?`Swapped ${plural(sw.length,'table move')}`:'Table moves are off');renderAll()};
 ACT.noDoorAsk=()=>openModal(`<div class="m-stamp">No door that locks?</div>
-  <p class="m-text">The towel door moves become doorway rows, which grip the doorframe (any doorway works, door or no door), and floor moves with a towel. Today's untouched moves swap now, and everything else follows. Switch it back any time in Profile.</p>
+  <p class="m-text">The towel door moves become floor slide pulls and other floor moves with a towel. Nothing grips a door or a doorframe. Today's untouched moves swap now, and everything else follows. Switch it back any time in Profile.</p>
   <div class="m-btns"><button class="btn" data-act="noDoorOk">Swap door moves</button><button class="btn ghost" data-act="closeModal">Keep them</button></div>`,'sys','dumbbell');
 ACT.noDoorOk=()=>{const sw=setNoDoor(true);closeModal();buzz('done');toast(sw.length?`Swapped ${plural(sw.length,'door move')}`:'Door moves are off');renderAll()};
 

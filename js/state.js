@@ -76,6 +76,12 @@ function migrate(s){
   s.shadows.forEach((sh,i)=>{if(sh.xp===undefined)sh.xp=shadowXpAt(sh.lvl||1);if(!sh.no)sh.no=i+1;
     if(sh.n==='Fangs')sh.n=`Soldier ${String(sh.no).padStart(2,'0')}`}); // Fangs left the legends; that shadow serves on as a soldier
   if(!s.army.captain&&s.shadows.length)s.army.captain=s.shadows[0].ex;
+  // doorway moves were retired (NO_FRAME in data.js): today's untouched ones become their stand-ins now
+  const tr=s.log&&s.log[todayStr()];
+  if(tr&&Array.isArray(tr.plan)&&!tr.completed)tr.plan.forEach(p=>{
+    if(NO_FRAME[p.orig])p.orig=NO_FRAME[p.orig][0];
+    if(!NO_FRAME[p.n]||(tr.sets&&(tr.sets[p.id]||[]).length)||(tr.done||[]).includes(p.id))return;
+    p.n=NO_FRAME[p.n][0];p.id='m-'+p.n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}); // moveId, defined below
   return s;
 }
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&typeof s==='object')return migrate(s)}catch(e){}return fresh()}
@@ -123,9 +129,10 @@ function nextRank(){const c=currentRank();const i=RANKS.findIndex(x=>x.r===c.r);
 function effLevel(){const nr=nextRank();return Math.min(S.level,nr?nr.lv-1:99)}
 /* Equipment: without a sturdy table (Profile, or "I don't have a table" to Arrow), every table move
    becomes its door stand-in (NO_TABLE in data.js), and without a door that locks, the towel door moves
-   become doorframe and floor versions (NO_DOOR): in quests, story events, Gates and trials. */
+   become floor versions (NO_DOOR): in quests, story events, Gates and trials. Doorway moves are retired
+   for everyone (NO_FRAME), so whatever is left that grips a doorframe becomes a backpack or floor move. */
 const noTable=()=>!!(S.profile&&S.profile.noTable),noDoor=()=>!!(S.profile&&S.profile.noDoor);
-const equipMove=n=>{if(n&&noTable()&&NO_TABLE[n])n=NO_TABLE[n][0];if(n&&noDoor()&&NO_DOOR[n])n=NO_DOOR[n][0];return n};
+const equipMove=n=>{if(n&&noTable()&&NO_TABLE[n])n=NO_TABLE[n][0];if(n&&noDoor()&&NO_DOOR[n])n=NO_DOOR[n][0];if(n&&NO_FRAME[n])n=NO_FRAME[n][0];return n};
 /* The current move of a chain: the hardest one unlocked (or its stand-in). */
 function chainMove(a,c,lv=effLevel()){let m=null;CHAINS[a][c][1].forEach(x=>{if(x[1]<=lv)m=x});return m&&equipMove(m[0])}
 /* Moves that unlock when the capped level rises from a to b. */
@@ -180,10 +187,12 @@ function swapMove(id){
   const rec=todayRec(),p=(rec.plan||[]).find(x=>x.id===id);
   if(!p||rec.sets[id]||rec.done.includes(id))return false;
   if(p.orig){p.n=p.orig;delete p.orig}
-  else{const M=MOVES[p.n],prev=M&&CHAINS[M.a][M.c][1][M.i-1];if(!prev||AREAS[M.a].pool)return false;p.orig=p.n;p.n=equipMove(prev[0])}
+  else{const M=MOVES[p.n];if(!M||AREAS[M.a].pool)return false;let prev=null; // a stand-in may cover two moves, so skip back past it
+    for(let i=M.i-1;i>=0&&!prev;i--){const x=equipMove(CHAINS[M.a][M.c][1][i][0]);if(x!==p.n)prev=x}
+    if(!prev)return false;p.orig=p.n;p.n=prev}
   p.id=moveId(p.n);save();return true;
 }
-function canEase(t){const M=MOVES[t.name];return !!(t.orig||M&&M.i>0&&!AREAS[M.a].pool)}
+function canEase(t){const M=MOVES[t.name];return !!(t.orig||M&&!AREAS[M.a].pool&&CHAINS[M.a][M.c][1].slice(0,M.i).some(x=>equipMove(x[0])!==t.name))}
 /* Challenger (tree.js): swap a move for the next one in its chain, for today only, before any set is logged. */
 const nextInChain=n=>{const M=MOVES[n];if(!M||AREAS[M.a].pool)return null;const ms=CHAINS[M.a][M.c][1];
   for(let i=M.i+1;i<ms.length;i++){const x=equipMove(ms[i][0]);if(x!==n)return x}return null}; // a stand-in may cover two table moves

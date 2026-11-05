@@ -214,8 +214,8 @@ const CHAINS={
 /* Every move by name: {a: area, c: chain, i: place in the chain, lv, base, cue, demo}. */
 const MOVES={};
 Object.entries(CHAINS).forEach(([a,cs])=>cs.forEach(([,ms],c)=>ms.forEach((m,i)=>{MOVES[m[0]]={a,c,i,lv:m[1],base:m[2],cue:m[3],demo:m[4]||m[0]}})));
-/* No sturdy table? Each table move has a stand-in that needs only a doorway or a towel shut in a
-   door. A stand-in takes its table move's place in the chain (area, chain, unlock level) but has its
+/* No sturdy table? Each table move has a stand-in that needs only a towel shut in a door (its doorway
+   versions are retired below, NO_FRAME). A stand-in takes its table move's place in the chain (area, chain, unlock level) but has its
    own target, records and shadow. Used when Profile says there is no table (equipMove in state.js).
    [stand-in, starting target, how-to, demo it shares]; a stand-in that is already a move needs only its name. */
 const NO_TABLE={
@@ -230,8 +230,8 @@ const NO_TABLE={
   'Bodyweight curl (table edge)':['Towel door curl',8,'Hold the towel over the door with your palms up, lean back on straight arms, and curl yourself toward the door using only your biceps. Elbows stay where they are.','Doorframe curl (each arm)']
 };
 Object.entries(NO_TABLE).forEach(([t,[n,base,cue,demo]])=>{if(!MOVES[n])MOVES[n]=Object.assign({},MOVES[t],{base,cue,demo:demo||n,alt:t})});
-/* No door that shuts and locks? The towel door moves become versions that only need a doorframe to
-   hold (doorway rows grip the frame, so any doorway works, door or no door) or the floor and a towel. */
+/* No door that shuts and locks? The towel door moves become floor and towel versions (the doorway
+   rows here are retired in turn by NO_FRAME). */
 const NO_DOOR={
   'Towel door row':['Pause doorway row (2s at the top)',6,'A doorway row where you hold the top for 2 seconds, chest to the frame, shoulder blades squeezed. It grips the frame, so any doorway works, door or no door.','Doorframe row (each arm)'],
   'Tempo towel door row (3s up, 3s down)':['Tempo doorway row (3s up, 3s down)',5,'A doorway row with 3 seconds up and 3 seconds down. Walk your feet closer to the frame to make it harder.','Doorframe row (each arm)'],
@@ -240,6 +240,20 @@ const NO_DOOR={
   'Towel door curl':['Towel isometric curl (secs)',20,'Stand on the middle of a towel and hold both ends, palms up, elbows at your sides. Curl up as hard as you can against it and hold, breathing steadily.','Backpack curl']
 };
 Object.entries(NO_DOOR).forEach(([t,[n,base,cue,demo]])=>{if(!MOVES[n])MOVES[n]=Object.assign({},MOVES[t],{base,cue,demo:demo||n,alt:t})});
+/* Doorway moves are retired for everyone: every move that grips a doorframe becomes a backpack row,
+   a floor slide pull (lats, the no-bar stand-in for a pull-up) or a backpack curl. Applied last in
+   equipMove, after NO_TABLE and NO_DOOR, so it also catches their doorway stand-ins. The old moves stay
+   in MOVES so their history and records still show. */
+const NO_FRAME={
+  'Doorframe row (each arm)':['Pause backpack row (2s at the top)',10,'Hinge forward with a flat back, holding a backpack loaded with books. Pull it to your belly button, hold it there for 2 seconds with your shoulder blades squeezed, then lower slowly.','Backpack row (hinged)'],
+  'Doorway row (both hands)':['Chest-supported backpack row (each arm)',10,'Lie face down along the edge of a bed or sofa, one arm hanging down holding a loaded backpack. Row it up to your ribs, squeeze, and lower slowly. Your chest stays down, so there is no swinging.','One-arm backpack row (each arm)'],
+  'Doorway row, feet past the threshold':['Floor slide pull',6,'Lie face down on a smooth hard floor with a towel under your hips, arms straight out in front, palms flat. Press your palms down and pull your body forward until your hands reach your shoulders, then reach out and repeat. It works the same back muscles as a pull-up.','Floor slide pull'],
+  'Pause doorway row (2s at the top)':['Tempo floor slide pull (3s back)',5,'A floor slide pull where you pull in fast, then take 3 seconds to slide back out, pressing down the whole way.','Floor slide pull'],
+  'Tempo doorway row (3s up, 3s down)':['Archer floor slide pull (each side)',4,'A floor slide pull where one arm does the pulling and the other stays straight out in front, only helping a little. Switch sides each set.','Floor slide pull'],
+  'One-arm doorway row, deep lean (each arm)':['One-arm floor slide pull (each arm)',3,'A floor slide pull with one arm, your other hand behind your back. Pull yourself all the way in without twisting.','Floor slide pull'],
+  'Doorframe curl (each arm)':['Concentration curl (backpack, each arm)',10,'Sit on a chair, elbow braced on the inside of your thigh, holding a loaded backpack by its top handle. Curl it up to your shoulder, squeeze, and lower slowly. Only your forearm moves.','Backpack curl']
+};
+Object.entries(NO_FRAME).forEach(([t,[n,base,cue,demo]])=>{if(!MOVES[n])MOVES[n]=Object.assign({},MOVES[t],{base,cue,demo:demo||n,alt:t})});
 /* The areas as the rest of the app knows them: title, stat, and every move in unlock order. */
 const LADDERS=Object.fromEntries(Object.entries(AREAS).map(([k,A])=>[k,{stat:A.stat,title:A.title,
   steps:CHAINS[k].flatMap(c=>c[1]).sort((x,y)=>x[1]-y[1]).map(m=>[m[0],m[2],m[3]])}]));
