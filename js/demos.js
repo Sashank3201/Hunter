@@ -273,6 +273,9 @@ const DEMOS={
   'Table row, legs straight':{props:['table:60:142:62'],f:[
     P([106,104],-16,{a1:ik(140,65,1),a2:ik(136,65,1),l1:ik(62,117,1),l2:ik(66,117,1)}),
     P([103,95],-28,{a1:ik(140,65,1),a2:ik(136,65,1),l1:ik(62,117,1),l2:ik(66,117,1)})]},
+  'Floor slide pull':{dur:1.1,f:[ // face down, hands planted ahead: the body slides up to them and back
+    P([56,114],0,{a1:ik(124,118,-1),a2:ik(126,118,-1),l1:ang(176,178),l2:ang(178,180)}),
+    P([80,114],0,{a1:ik(124,118,-1),a2:ik(126,118,-1),l1:ang(176,178),l2:ang(178,180),hd:3})]},
   'Superman hold (secs)':{dur:1.4,f:[
     P([82,113],0,{a1:ang(0,0),a2:ang(2,2),l1:ang(180,180),l2:ang(182,182)}),
     P([82,113],-8,{a1:ang(-10,-10),a2:ang(-8,-8),l1:ang(188,188),l2:ang(190,190),hd:4})]},
