@@ -196,7 +196,7 @@ const CHAINS={
   flex:[
     ['Flexibility',[
       ['Standing quad stretch (secs)',1,30,'Stand on one leg, hold the other ankle behind you and pull the heel to your bottom, knees together. Switch sides halfway.'],
-      ['Standing hamstring stretch (secs)',1,30,'Put one heel forward and hinge at the hips with a flat back. Stop when you feel a stretch, not pain.'],
+      ['Standing hamstring stretch (secs)',1,30,'Put one heel forward and hinge at the hips with a flat back. Stop when you feel a stretch, not pain. Switch sides halfway.'],
       ['Kneeling hip flexor stretch (secs)',1,30,'Half-kneel, back knee on a cushion. Tuck your tailbone and shift your hips forward until the front of the back hip stretches. Switch sides halfway.'],
       ['Calf stretch (wall) (secs)',1,30,'Hands on a wall, one foot far back with the heel down and the leg straight. Lean in. Switch sides halfway.'],
       ['Doorway chest stretch (secs)',1,30,'Forearm on a door frame at shoulder height. Step through until your chest stretches. Switch sides halfway.'],
@@ -206,10 +206,10 @@ const CHAINS={
       ['Overhead triceps stretch (secs)',2,30,'Reach one hand down your back and gently press that elbow with the other hand. Switch sides halfway.'],
       ['Cobra stretch (secs)',3,30,'Lie face down, hands under your shoulders. Press your chest up, hips on the floor, shoulders down.'],
       ['Seated forward fold (secs)',4,40,'Sit with legs straight and fold from the hips toward your feet. Bend your knees if you need to.'],
-      ['Couch stretch (secs)',5,40,'Back knee on the floor, back foot up against a couch or wall. Tuck your tailbone and stand tall.'],
-      ['Pigeon pose (secs)',8,45,'One shin forward on the floor, the other leg stretched back. Lean forward over your front shin, easing in slowly.'],
+      ['Couch stretch (secs)',5,40,'Back knee on the floor, back foot up against a couch or wall. Tuck your tailbone and stand tall. Switch sides halfway.'],
+      ['Pigeon pose (secs)',8,45,'One shin forward on the floor, the other leg stretched back. Lean forward over your front shin, easing in slowly. Switch sides halfway.'],
       ['Straddle stretch (secs)',12,60,'Sit with your legs wide apart and fold forward with a long back.'],
-      ['Front-split progression (secs)',16,60,'Kneel in a lunge and slide your front heel forward until you feel a stretch, hands on the floor. Never force it.']]]]
+      ['Front-split progression (secs)',16,60,'Kneel in a lunge and slide your front heel forward until you feel a stretch, hands on the floor. Never force it. Switch sides halfway.']]]]
 };
 /* Every move by name: {a: area, c: chain, i: place in the chain, lv, base, cue, demo}. */
 const MOVES={};
@@ -249,7 +249,7 @@ const NO_FRAME={
   'Doorway row (both hands)':['Chest-supported backpack row (each arm)',10,'Lie face down along the edge of a bed or sofa, one arm hanging down holding a loaded backpack. Row it up to your ribs, squeeze, and lower slowly. Your chest stays down, so there is no swinging.','One-arm backpack row (each arm)'],
   'Doorway row, feet past the threshold':['Floor slide pull',6,'Lie face down on a smooth hard floor with a towel under your hips, arms straight out in front, palms flat. Press your palms down and pull your body forward until your hands reach your shoulders, then reach out and repeat. It works the same back muscles as a pull-up.','Floor slide pull'],
   'Pause doorway row (2s at the top)':['Tempo floor slide pull (3s back)',5,'A floor slide pull where you pull in fast, then take 3 seconds to slide back out, pressing down the whole way.','Floor slide pull'],
-  'Tempo doorway row (3s up, 3s down)':['Archer floor slide pull (each side)',4,'A floor slide pull where one arm does the pulling and the other stays straight out in front, only helping a little. Switch sides each set.','Floor slide pull'],
+  'Tempo doorway row (3s up, 3s down)':['Archer floor slide pull (each side)',4,'A floor slide pull where one arm does the pulling and the other stays straight out in front, only helping a little. Do all your reps on one side, then the other.','Floor slide pull'],
   'One-arm doorway row, deep lean (each arm)':['One-arm floor slide pull (each arm)',3,'A floor slide pull with one arm, your other hand behind your back. Pull yourself all the way in without twisting.','Floor slide pull'],
   'Doorframe curl (each arm)':['Concentration curl (backpack, each arm)',10,'Sit on a chair, elbow braced on the inside of your thigh, holding a loaded backpack by its top handle. Curl it up to your shoulder, squeeze, and lower slowly. Only your forearm moves.','Backpack curl']
 };

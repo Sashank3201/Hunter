@@ -53,6 +53,9 @@ function fresh(){return {
   expeditions:[],    // finished expeditions: [{g, date, ok, n}]
   monthSnaps:{},     // 'YYYY-MM' -> {level, rank, stats, shadows} at the start of that month (chronicle.js)
   chronicleSeen:null,// last month whose chronicle was shown
+  hunterId:Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,6), // this Hunter in rival files (rivals.js)
+  rivals:{},         // rival id -> {name, reports: {monday: file}, added, last}
+  duel:{tests:{},issued:{},shared:{}}, // challenge tests, issued challenges and files shared, by week
   profile:null       // {name, haptics, theme, remindAt} once awakened
 }}
 
@@ -138,6 +141,29 @@ function chainMove(a,c,lv=effLevel()){let m=null;CHAINS[a][c][1].forEach(x=>{if(
 /* Moves that unlock when the capped level rises from a to b. */
 function newMoves(a,b){return Object.keys(MOVES).filter(n=>MOVES[n].lv>a&&MOVES[n].lv<=b)}
 const isTimed=n=>/secs|sec on|secs on/.test(n);
+/* Moves done one side at a time. The target is per side, so every set is a round on each side, back
+   to back, before the rest (workout.js). One-sided stretches instead switch sides halfway. */
+const SIDED=new Set(['Archer push-up','One-arm push-up (hand on box)','One-arm push-up','Archer table row','Split squat','Bulgarian split squat',
+  'Bulgarian split squat, tempo (3s down)','Assisted pistol (hold support)','Shrimp squat','Pistol squat','Knee side plank (secs)','Side plank (secs)',
+  'Star side plank (secs)','Side plank hip dips']);
+const sided=n=>!!n&&(/\beach (?:arm|leg|side)\b/.test(n)||SIDED.has(n));
+/* A one-sided move's round in progress: the first side's count, waiting for the other side. */
+const sideA=it=>{const r=todayRec();return r.sideA&&r.sideA[it.id]!=null?r.sideA[it.id]:null};
+function firstSide(it,v){const r=todayRec();(r.sideA=r.sideA||{})[it.id]=v;save()}
+/* Log a set. For a one-sided move it closes the round: the set counts the weaker side, and both
+   sides are kept for display. */
+function logRound(it,v){
+  const r=todayRec(),a=sideA(it);
+  if(a!=null){delete r.sideA[it.id];r.sidePairs=r.sidePairs||{};(r.sidePairs[it.id]=r.sidePairs[it.id]||[]).push([a,v]);v=Math.min(a,v)}
+  return logSet(it,v);
+}
+function undoRound(it){
+  const r=todayRec();if(sideA(it)!=null){delete r.sideA[it.id];save();return}
+  undoSet(it);const p=r.sidePairs&&r.sidePairs[it.id];if(p&&p.length>(r.sets[it.id]||[]).length){p.pop();save()}
+}
+/* Logged sets as text: "8/7" when both sides of a round were logged. */
+function setsText(it){const r=todayRec(),p=(r.sidePairs||{})[it.id]||[];return (r.sets[it.id]||[]).map((v,i)=>p[i]&&p[i][0]!==p[i][1]?`${p[i][0]}/${p[i][1]}`:String(v))}
+const switchHalf=n=>!!n&&!sided(n)&&/switch sides halfway/i.test((MOVES[n]||{}).cue||'');
 const moveId=n=>'m-'+n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 /* The best set of this move in its last session before today. Older saves logged sets by area,
    so with no history yet the record (a little under it) stands in. */
