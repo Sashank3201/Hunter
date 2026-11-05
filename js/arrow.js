@@ -626,6 +626,13 @@ function arSwapReply(c){
     +(stuck.length?` ${arList(stuck.map(dn))} ${stuck.length>1?'stay':'stays'}: already started, already swapped, or the easiest version there is.`:'');
   return {say:say.trim(),mood:sw.length?'happy':'thinking',chips:[chip('Show my quest','arrowGo','quest')]};
 }
+/* The model's own route to the four rule-based replies above (rest_day, swap_move, short_quest and
+   rivals are intents in models/arrow-nlu.bin): phrasings the fast regex paths in arrowReply miss land
+   here, and so do the "did you mean" chips for them. */
+AH.rest_day=c=>arRestReply(c);
+AH.swap_move=c=>arSwapReply(c);
+AH.short_quest=c=>arShortReply(c);
+AH.rivals=()=>arRivalsReply();
 
 /* Pain: remember where, pause the moves that load it (body.js), and check in daily. */
 const arCap=s=>s[0].toUpperCase()+s.slice(1);
