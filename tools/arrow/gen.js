@@ -23,8 +23,8 @@ const UNITW={en:['bowl of','bowls of','plate of','cup of','cups of','glass of','
   te:['ginne','ginnelu','plate','glass','cup','katori','mukkalu'],hi:['katori','plate','glass','cup','tukde','packet']};
 const SIZEW={en:['small','big','large','huge','medium'],te:['pedda','chinna','konchem'],hi:['bada','chhota','thoda']};
 const JOIN={en:[', ',' and ',' with ',' plus ',' & ',', and '],te:[' mariyu ',' inka ',' tho ',' ',', '],hi:[' aur ',' ke saath ',', ',' ']};
-const BODY={en:['shoulder','knee','back','lower back','wrist','elbow','ankle','neck','hip','chest','hamstring'],te:['mokalu','nadumu','veepu','bhujam','mokali'],
-  hi:['kandha','ghutna','kamar','peeth','kalai']};
+const BODY={en:['shoulder','knee','back','lower back','wrist','elbow','ankle','neck','hip','chest','hamstring','arm','forearm','upper arm','biceps','triceps','thigh','calf','foot','finger','ribs'],
+  te:['mokalu','nadumu','veepu','bhujam','mokali','cheyyi','chethi','kaalu','tholu'],hi:['kandha','ghutna','kamar','peeth','kalai','baazu','haath','pair','jaangh','kohni']};
 const MOVIES=['pushpa 2','rrr','bahubali','salaar','kgf','kalki','jawan','animal','devara','leo','pathaan'];
 const BODYP=['chest','arms','biceps','triceps','forearms','shoulders','legs','back','calves','abs','glutes','neck'];
 const GOALW=['cut','bulk','lean bulk','lose weight','lose fat','gain weight','gain muscle','maintain','maintenance','recomp','fat loss','get shredded'];
@@ -119,5 +119,11 @@ module.exports=function generate(app,seed=7){
   /* The same words under two intents confuse training: keep one owner (out_of_scope gives way). */
   const key=x=>app.NLU.tokens(x.text).join(' '),owner=new Map();
   out.forEach(x=>{const k=key(x);if(!k)return;const o=owner.get(k);if(!o||(o==='out_of_scope'&&x.intent!=='out_of_scope'))owner.set(k,x.intent)});
-  return out.filter(x=>{const k=key(x);return k&&owner.get(k)===x.intent});
+  /* Never train on a test sentence word for word: templates can produce one by chance. */
+  const held=new Set(['blind_test.tsv','userphrases.tsv'].filter(f=>fs.existsSync(path.join(__dirname,f)))
+    .flatMap(f=>fs.readFileSync(path.join(__dirname,f),'utf8').split('\n').filter(l=>l.trim()&&l[0]!=='#').map(l=>key({text:l.split('\t')[1]||''}))));
+  let heldHits=0;
+  const kept=out.filter(x=>{const k=key(x);if(held.has(k)){heldHits++;return false}return k&&owner.get(k)===x.intent});
+  if(heldHits&&!module.exports.quiet)console.log(`generated lines: ${heldHits} dropped for matching a test sentence`);
+  return kept;
 };

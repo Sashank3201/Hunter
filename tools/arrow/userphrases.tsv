@@ -1,0 +1,66 @@
+# The Player's own phrasings, and fresh variations of them. NEVER used for training.
+# Written before the rest_day, swap_move, short_quest and rivals templates, and before the pain
+# templates learned arms. The first lines are messages the Player actually sent Arrow (or asked
+# Arrow to understand) in screenshots and chats; the rest were written to sound like them, plus
+# look-alikes that must still go to the old intents.
+# intent<TAB>message
+pain	My left arm is injured
+rest_day	I can't workout today
+rest_day	My body is injured
+rest_day	I need rest today
+swap_move	I don't have a table to workout the quest replace the pull workout
+swap_move	What if I don't have a door
+short_quest	I only have 10 minutes
+pain	my right arm is hurting since morning
+pain	i think i strained my biceps
+pain	pulled something in my forearm doing curls
+pain	left arm lo noppi ga undi
+pain	naa cheyyi ki debba tagilindi
+pain	mera baazu dard kar raha hai
+pain	upper arm is sore and swollen after the fall
+pain	my triceps hurt when i straighten my arm
+pain	i hurt my thigh playing football
+pain	calf strain since yesterday
+rest_day	not feeling well, skipping today's workout
+rest_day	please give me a rest day today
+rest_day	i'm sick today so no training
+rest_day	i won't be able to train today, exams
+rest_day	use my rest pass for today
+rest_day	ivala workout cheyyalenu ra
+rest_day	naaku ivala rest kavali
+rest_day	aaj workout nahi kar paunga
+rest_day	aaj chhutti chahiye bhai
+rest_day	got a fever, can't do the quest today
+swap_move	there's no table in my room
+swap_move	my door doesn't lock so i can't do towel rows
+swap_move	replace the rows with something else
+swap_move	swap out the push-ups please
+swap_move	i can't do the floor slide pull, change it
+swap_move	no backpack at home what do i use
+swap_move	intlo table ledu
+swap_move	ghar pe table nahi hai
+swap_move	door wala exercise hata do
+short_quest	only got 15 minutes today
+short_quest	busy day, give me a quick workout
+short_quest	short on time can i do a mini quest
+short_quest	10 min version of today's quest please
+short_quest	naaku 10 nimishalu matrame undi
+short_quest	ivala time ledu chinna workout ivvu
+short_quest	sirf 10 minute hai mere paas
+short_quest	aaj time nahi hai chhota workout do
+rivals	i want to compete with my friend
+rivals	how do i challenge my friend
+rivals	send my stats to my friend
+rivals	add my friend's file
+rivals	who's winning this week me or my friend
+rivals	naa friend tho compete cheyyali
+rivals	dost ke saath competition karna hai
+recovery	how many rest days do i need
+recovery	should i take a rest day if i'm tired
+ask_quest	is today a rest day
+ask_quest	what's my quest today
+exercise_howto	how do i do a floor slide pull
+recovery	my legs are sore from yesterday
+pain	how do i stop my knee pain
+motivate	not in the mood to work out today
+ask_event	what's the story event challenge this week
