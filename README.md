@@ -47,7 +47,7 @@ It is a Progressive Web App (PWA): plain HTML, CSS and JavaScript with no build 
 
 Pick a skin in **Profile → Arrow skin**, or tell Arrow "wear the Monarch skin". Asking for a body's own skin turns Arrow into that body.
 - **Body.** Tell Arrow your weight or waist whenever you measure ("I weigh 64 kg", "waist 81 cm", "my belt feels looser"). Progress → Body shows the trend once there is one, and your food targets follow your weight. No scale needed: a tailor's tape, or a string and a ruler, works for the waist.
-- **Sleep and injuries.** One tap each morning logs your sleep. Tell Arrow "my knee hurts" and your quest pauses the moves that load it until it heals, with a daily check-in.
+- **Sleep and injuries.** One tap each morning logs your sleep. Tell Arrow "my knee hurts" or "my left arm is injured" (knee, ankle, hip, leg, back, shoulder, elbow, wrist, arm, neck, chest or abs, in English, Telugu or Hindi) and your quest pauses the moves that load it until it heals, with a daily check-in. Questions like "how to avoid knee pain" get advice instead, with a button to pause that part if it hurts now.
 - **Diet.** Daily calorie and protein targets, a food log with 200+ foods (lots of Indian staples), and voice input.
 - **Arrow.** A chat companion that understands English, Telugu and Hindi written in English letters. It logs food, coaches you from your own numbers ("give me advice", "am I improving?", "plan my day"), charts your five stats and where they go in four weeks of full quests ("what are my stats?"), answers training, diet and sleep questions, and follows up when you say "tell me more". Its language model runs on the phone, offline.
 - **Weekly report** with a grade, and a shareable Hunter License card.
@@ -132,7 +132,7 @@ There is no build step: edit a file, save it, and refresh the page.
 
 - **Scripts load in order.** `index.html` loads the files in `js/` as classic scripts that share global variables, so the order matters. `js/data.js` comes first and `js/main.js` comes last. Only `js/world3d.js` is an ES module, loaded when a Gate opens.
 - **Adding a new file:** add it to `index.html`, and to the `ASSETS` list in `sw.js` so it works offline.
-- **Before every release:** bump the cache name in `sw.js` (`hunter-system-v38` → `hunter-system-v39`) so phones store the new files for offline use.
+- **Before every release:** bump the cache name in `sw.js` (`hunter-system-v39` → `hunter-system-v40`) so phones store the new files for offline use.
 - **Adding a story event:** add it to `STORY_EVENTS` in `js/story.js` (anywhere in the list), with its weapon in `WEAPONS`, its shadow in `SHADOW_BODY` and `SHADOW_SKILLS` (`js/data.js`), its skin in `ARROW_SKINS`, a silhouette look in `js/shadows.js` and a raid world in `js/world3d.js`. The live event never changes until its raid is won, so a new one never replaces it. Then retrain Arrow so it knows the new names.
 - **Changing a body:** the bodies come from avatar definitions in `tools/avatars/` (`*.avatar.json`). Run `node tools/avatars/convert.js` to rebuild `js/forms.js` from them. It keeps the expressions the animations use and measures where each head sits, so the gear lands on it.
 - **A one-off extra Rest Pass:** add the date to `EXTRA_PASS_DAYS` in `js/state.js`. That day gets one extra pass, used before the weekly ones. If the day is missed with it unused, it is used automatically instead of a penalty.

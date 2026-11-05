@@ -629,6 +629,11 @@ function arSwapReply(c){
 
 /* Pain: remember where, pause the moves that load it (body.js), and check in daily. */
 const arCap=s=>s[0].toUpperCase()+s.slice(1);
+/* A named body part plus an injury word goes straight to the pain handler, before the model: it pauses
+   the moves that load that part. Questions ("how to avoid knee pain") still go to the coach. */
+const AR_HURT=/\b(?:hurts?|hurting|hurted|pain(?:s|ful|ing)?|injur\w*|sprain\w*|strain(?:ed)?|pulled|twisted|swollen|swelling|fractur\w*|broken|noppi\w*|dard\w*|chot\w*|debba\w*)\b/;
+const AR_HURT_Q=/\b(?:how (?:to|do|can|should)|why|avoid|prevent|tips?|exercises? for|stretch(?:es)? for|is it normal)\b/;
+const arWantsPain=low=>AR_HURT.test(low)&&!AR_HURT_Q.test(low)&&!!injuryPart(low); // chest pain that could be an emergency is caught first in AH.pain
 const AR_BETTER=/\b(better|healed|fine now|ok now|okay now|no (more )?pain|doesn'?t hurt|not hurting|recovered|gone|theek ho|thik ho|bagundi|taggindi|tagindi)\b/;
 const AR_SEVERE=/sharp|swollen|swelling|\bpop(ped)?\b|twist|sprain|\btear\b|torn|can'?t (walk|move|bend|lift|put weight)|numb|tingl|vaach|sooj|bruise/;
 const AR_DOCTOR=/numb|tingl|can'?t (walk|move|put weight)|\bpop(ped)?\b|swollen|swelling|deform|\bfell\b|accident|vaach|sooj/;
@@ -638,9 +643,14 @@ AH.pain=c=>{
   const part=injuryPart(c.low);
   if(part&&AR_BETTER.test(c.low)){const was=injuries().some(x=>x.part===part);if(was)injuryAnswer(part,'better');
     return {say:was?`Love that. ${arCap(INJURY_PARTS[part].n)} moves are back in your quest. Start one step easier for the first session and stop if it twinges.`:`Good to hear your ${INJURY_PARTS[part].n} is fine.`,mood:'happy'}}
-  if(!part)return {say:arSay('pain')+' Tell me where it hurts (knee, back, shoulder, wrist...) and I\'ll pause the moves that load it.'+(arRestChip()?' Or take today off with a Rest Pass.':''),mood:'scared',chips:arRestChip()?[arRestChip()]:null};
-  const sev=AR_SEVERE.test(c.low)?2:1,i=injuryAdd(part,sev),P=INJURY_PARTS[part];
-  return {say:`Noted: your ${P.n}. I've paused ${pausedText(part)} until ${fmtDate(i.until)}, so your quest skips ${P.pause.length>1?'them':'it'}, and I'll check on it every day. ${AR_DOCTOR.test(c.low)?'Numbness, a pop, swelling, or not being able to put weight on it means see a doctor or physio soon.':sev>1?'If it\'s still sharp or swollen in a couple of days, get it checked.':'Rest it, move gently, and stop anything that makes it hurt.'}`,
+  // a question about pain ("how to avoid knee pain") gets advice, not a new injury
+  if(part&&AR_HURT_Q.test(c.low)){const n=INJURY_PARTS[part].n,resting=injuries().find(x=>x.part===part);
+    return {say:`Pain during a move is a stop sign; soreness a day or two later is normal. To keep your ${n} happy: warm up first, build up slowly, keep your form clean, and take the easier version of any move that hurts. Sharp pain, swelling or pain that lasts more than a few days means see a doctor or physio. `
+      +(resting?`Your ${n} is already resting until ${fmtDate(resting.until)}: ${pausedText(part)} are off.`:`Does your ${n} hurt right now? I can pause the moves that load it.`),
+      mood:'thinking',chips:resting?null:[chip(`Yes, pause ${n} moves`,'arrowInjury',part)]}}
+  if(!part)return {say:arSay('pain')+' Tell me where it hurts (knee, back, shoulder, arm, wrist...) and I\'ll pause the moves that load it.'+(arRestChip()?' Or take today off with a Rest Pass.':''),mood:'scared',chips:arRestChip()?[arRestChip()]:null};
+  const sev=AR_SEVERE.test(c.low)?2:1,i=injuryAdd(part,sev),P=INJURY_PARTS[part],side=(c.low.match(/\b(left|right)\b/)||[])[1];
+  return {say:`Noted: your ${side?side+' ':''}${P.n}. I've paused ${pausedText(part)} until ${fmtDate(i.until)}, so your quest skips ${P.pause.length>1?'them':'it'}, and I'll check on it every day. ${AR_DOCTOR.test(c.low)?'Numbness, a pop, swelling, or not being able to put weight on it means see a doctor or physio soon.':sev>1?'If it\'s still sharp or swollen in a couple of days, get it checked.':'Rest it, move gently, and stop anything that makes it hurt.'}`,
     mood:'scared',chips:[chip('Show my quest','arrowGo','quest')]};
 };
 
@@ -1087,6 +1097,7 @@ function arrowReply(ds,text,force){
   const ctx=ds.arrowCtx&&Date.now()-ds.arrowCtx.at<15*60000?ds.arrowCtx:null; // what Arrow said last, for "tell me more"
   const c={ds,day:flDay(ds),T:foodTargets(ds),text,low,lang:arLang(text),ctx};
   const pend=ds.arrowPending&&Date.now()-ds.arrowPending.at<15*60000?ds.arrowPending:null;
+  if(!force&&(arWantsPain(low)||AR_HURT.test(low)&&AR_HURT_Q.test(low)&&injuryPart(low))){ds.arrowLast={text,intent:'pain',top:[]};return Object.assign(AH.pain(c),{intent:'pain',conf:1,src:'rules'})} // "my left arm is injured"
   if(!force&&arWantsRest(low)){ds.arrowLast={text,intent:'rest_day',top:[]};return Object.assign(arRestReply(c),{intent:'rest_day',conf:1,src:'rules'})} // "I can't train today"
   if(!force&&AR_RIVALS.test(low)&&!/\b(story|event|raid|gate|dungeon)\b/.test(low)){ds.arrowLast={text,intent:'rivals',top:[]};return Object.assign(arRivalsReply(),{intent:'rivals',conf:1,src:'rules'})}
   if(!force&&arWantsShort(low)){ds.arrowLast={text,intent:'short_quest',top:[]};return Object.assign(arShortReply(c),{intent:'short_quest',conf:1,src:'rules'})} // "only have 10 minutes"
@@ -1240,6 +1251,8 @@ ACT.arrowAsk=q=>flSend(q);
 ACT.arrowUsual=m=>flSend(`Usual ${m}`,false,'repeat_meal');
 ACT.arrowStart=()=>flSend('Start my workout',false,'start_workout');
 ACT.arrowGo=k=>arGo(k);
+ACT.arrowInjury=part=>{if(!INJURY_PARTS[part])return;const ds=dietState(),i=injuryAdd(part,1);
+  flSay(ds,`Done: your ${INJURY_PARTS[part].n} is resting. I've paused ${pausedText(part)} until ${fmtDate(i.until)}, and I'll check on it every day.`);saveDietState(ds);renderBot();renderAll()};
 ACT.arrowWear=k=>{const ds=dietState();equipSkin(k);flSay(ds,k?`${arSkinName(k)} on. How do I look?`:arrowForm()==='orb'?'Back in classic ink.':`Back to classic ${ARROW_FORMS[arrowForm()].n}.`);saveDietState(ds);renderBot();Bot.react('proud',2400)};
 ACT.arrowRestPass=()=>{const ds=dietState();useRestPass();const ok=todayRec().rested;
   flSay(ds,ok?`Rest Pass used. Today counts as cleared and your streak is safe. ${passesLeft()?`${passesLeft()} left this week. `:''}Rest well.`:'I couldn\'t use a Rest Pass today. Check the Quest tab.');

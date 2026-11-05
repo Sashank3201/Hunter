@@ -16,6 +16,7 @@ const INJURY_PARTS={
   shoulder:{n:'shoulder',re:/shoulders?|bhujam|bhujalu|kandh\w*|rotator/,pause:['push','pull']},
   elbow:{n:'elbow',re:/elbows?|mochey\w*|kohni/,pause:['push','pull']},
   wrist:{n:'wrist',re:/wrists?|\bhands?\b|fingers?|manikatt\w*|kalai/,pause:['push']},
+  arm:{n:'arm',re:/\b(?:fore|upper ?)?arms?\b|\bbiceps?\b|\btriceps?\b|\bcheyyi\b|\bchethi\b|\bbaa?zu\b|\bbaju\b|\bbaah\b/,pause:['push','pull']},
   neck:{n:'neck',re:/\bneck\b|\bmeda\b|gardan/,pause:['push','pull','core']},
   chest:{n:'chest',re:/\bchest\b|\bpecs?\b|chaathi|chhati|seena/,pause:['push']},
   abs:{n:'stomach muscles',re:/\babs\b|obliques?|\bribs?\b|side stitch/,pause:['core']}
